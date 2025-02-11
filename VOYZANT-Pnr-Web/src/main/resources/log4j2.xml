@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="60">
+	<Properties>
+
+		<Property name="log-path">/opt/logs/flights-voyzant-pnr/</Property>
+		<Property name="file-name">flights-voyzant-pnr</Property>
+		<Property name="file-appender">flights-voyzant-pnr-appender</Property>
+		<Property name="file-appender-extra">flights-voyzant-pnr-appender-extra</Property>
+		<Property name="file-appender-pattern">%d{MM-dd-yyyy}-%i</Property>
+	</Properties>
+	<Appenders>
+		<Console name="Console-Appender" target="SYSTEM_OUT">
+			<PatternLayout
+					pattern="%d{ISO8601} [%t] %-5level %logger{36} - %msg%n" />
+		</Console>
+		<RollingRandomAccessFile
+				name="${file-appender}" fileName="${log-path}/${file-name}.json"
+				filePattern="${log-path}/${file-name}-${file-appender-pattern}.json.gz">
+			<PatternLayout>
+				<Pattern>%m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="500 MB" />
+			</Policies>
+		</RollingRandomAccessFile>
+		<RollingRandomAccessFile
+				name="${file-appender-extra}"
+				fileName="${log-path}/${file-name}-extra.log"
+				filePattern="${log-path}/${file-name}-${file-appender-pattern}.log.gz">
+			<PatternLayout>
+				<Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="500 MB" />
+			</Policies>
+		</RollingRandomAccessFile>
+	</Appenders>
+	<Loggers>
+		<Logger name="org.springframework" level="info"
+				additivity="false">
+			<AppenderRef ref="${file-appender-extra}" />
+		</Logger>
+		<Logger
+				name="com.mmt.flights.logger.factory.FlightLoggerFactory"
+				level="info" additivity="false">
+			<AppenderRef ref="${file-appender}" />
+		</Logger>
+		<AsyncLogger name="com.mmt.flights" level="info"
+					 additivity="false">
+			<AppenderRef ref="${file-appender-extra}" />
+		</AsyncLogger>
+		<Root>
+			<AppenderRef ref="${file-appender-extra}" />
+		</Root>
+	</Loggers>
+</Configuration>

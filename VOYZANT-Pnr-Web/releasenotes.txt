@@ -1,0 +1,6 @@
+********* Release Details *********
+BUILD NUMBER=${buildNumber}
+APPLICATION NAME=${project.artifactId}
+USER EMAIL=${buildUser}
+DATE=${buildTime}
+

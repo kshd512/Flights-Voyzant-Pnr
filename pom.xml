@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.mmt.flights</groupId>
+    <artifactId>Flights-VOYZANT-Pnr</artifactId>
+    <version>0.0.1</version>
+    <packaging>pom</packaging>
+
+    <name>Flights-VOYZANT-Pnr</name>
+    <description>PNR service for VOYZANT</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.3.RELEASE</version>
+        <relativePath /> <!-- lookup parent from repository -->
+    </parent>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Central Repo</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <id>releases</id>
+            <name>MMT Internal Releases</name>
+            <url>http://nexus:8081/nexus/content/repositories/thirdparty</url>
+        </repository>
+        <repository>
+            <id>public</id>
+            <name>MMT Internal Releases</name>
+            <url>http://nexus:8081/nexus/content/groups/public/</url>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>MMT Internal Releases</name>
+            <url>http://nexus:8081/nexus/content/repositories/thirdparty</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>MMT Internal Releases</name>
+            <url>http://nexus:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <properties>
+        <!-- Sonar -->
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+        <sonar.language>java</sonar.language>
+        <sonar.maven.plugin.version>3.11.0.3922</sonar.maven.plugin.version>
+        <log4j.version>2.17.1</log4j.version>
+        <jacoco.version>0.7.8</jacoco.version>
+        <service.name>VOYZANT</service.name>
+        <sonar-jacoco-listeners.version>3.4</sonar-jacoco-listeners.version>
+        <jacoco.out.ut.file>jacoco-ut.exec</jacoco.out.ut.file>
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+        <!-- optional URL to server. Default value is http://localhost:9000 -->
+        <sonar.host.url>http://sonar.mmt.mmt:9000/sonar</sonar.host.url>
+        <sonar.exclusions>
+            src/main/java/com/mmt/flights/entity/**/*,
+            src/main/java/com/mmt/flights/cache/**/*,
+            src/main/java/com/mmt/flights/cms/**/*,
+            src/main/java/com/mmt/flights/common/**/*,
+            src/main/java/com/mmt/flights/constants/**/*,
+            src/main/java/com/mmt/flights/config/**/*,
+            src/main/java/com/mmt/flights/util/**/*,
+            src/main/java/com/mmt/flights/cancel/service/**/*,
+            src/main/java/com/mmt/flights/cancel/util/**/*,
+            src/main/java/com/mmt/flights/cancel/workflow/*.java,
+            src/main/java/com/mmt/flights/odc/util/**/*,
+            src/main/java/com/mmt/flights/odc/constant/**/*,
+            src/main/java/com/mmt/flights/pnr/util/**/*,
+            src/main/java/com/mmt/flights/pnr/constant/**/*,
+            src/main/java/com/mmt/flights/application/PnrApplication.java,
+            src/main/java/com/mmt/flights/pnr/service/RetrievePnrService.java,
+            src/main/java/com/mmt/flights/pnr/service/RetrievePnrSubscriber.java,
+            src/main/java/com/mmt/flights/pnr/workflow/tasks/CMSManagerTask.java,
+            src/main/java/com/mmt/flights/pnr/workflow/PnrFlowHandler.java,
+            src/main/java/com/mmt/flights/pnr/workflow/tasks/DummyTask.java,
+            src/main/java/com/mmt/flights/pnr/workflow/tasks/PnrRetrieveNetworkCall.java,
+            src/main/java/com/mmt/flights/pnr/workflow/tasks/PnrRetrieveBaseNetworkCall.java,
+            src/main/java/com/mmt/flights/application/ProfileUtil.java,
+            src/main/java/com/mmt/flights/pnr/workflow/tasks/PnrAncillaryInfoNetworkCall.java,
+            src/main/java/com/mmt/flights/pnr/workflow/PnrWorkFlowBuilder.java,
+            src/main/java/com/mmt/flights/odc/common/DateUtil.java,
+            src/main/java/com/mmt/flights/odc/workflow/tasks/QueryVerifyBookResultNetworkTask.java,
+            src/main/java/com/mmt/flights/odc/workflow/tasks/*NetworkCall.java,
+            src/main/java/com/mmt/flights/cancel/workflow/tasks/*NetworkCall.java,
+            src/main/java/com/mmt/flights/odc/workflow/ODCService.java,
+            src/main/java/com/mmt/flights/odc/workflow/ODCCommonFlowHandler.java,
+            src/main/java/com/mmt/flights/odc/workflow/ODCWorkFlowBuilder.java,
+            src/main/java/com/mmt/flights/odc/workflow/ODCCommonFlowSubscriber.java,
+            src/main/java/com/mmt/flights/controllers/**/*,
+            src/main/java/org/tempuri/**/*
+            <!-- src/main/java/com/mmt/flights/com.mmt.flights.cms.common/config/**/*,
+            src/main/java/com/mmt/flights/com.mmt.flights.cms.common/constants/**/*,
+            src/main/java/com/mmt/flights/com.mmt.flights.cms.common/properties/**/*,
+            src/main/java/com/mmt/flights/com.mmt.flights.cms.common/logging/metric/**/*,
+            src/main/java/com/mmt/flights/search/config/**/*,
+            src/main/java/com/mmt/flights/search/constants/**/*,
+            src/main/java/com/mmt/flights/constants/**/*,
+            src/main/java/com/mmt/flights/com.mmt.flights.cms.common/flx18/FLXConstants.java,
+            src/main/java/com/mmt/flights/com.mmt.flights.cms.common/flx18/FlxHystrixProps.java -->
+        </sonar.exclusions>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-to-slf4j</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>32.0.1-jre</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-jul</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-web</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.sonarsource.java</groupId>
+            <artifactId>sonar-jacoco-listeners</artifactId>
+            <version>${sonar-jacoco-listeners.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar.maven.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-ut-agent</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${sonar.jacoco.reportPath}</destFile>
+                            <propertyName>jacoco.agent.ut.arg</propertyName>
+                            <append>true</append>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>${jacoco.agent.ut.arg}</argLine>
+                    <testFailureIgnore>false</testFailureIgnore>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <modules>
+        <module>VOYZANT-Pnr-Cancel</module>
+        <module>VOYZANT-Pnr-Retrieve</module>
+        <module>VOYZANT-Pnr-Web</module>
+        <module>VOYZANT-Pnr-Common</module>
+        <module>VOYZANT-Pnr-Entity</module>
+        <module>VOYZANT-Pnr-ODC</module>
+        <module>VOYZANT-Pnr-ScheduleChange</module>
+    </modules>
+
+
+</project>

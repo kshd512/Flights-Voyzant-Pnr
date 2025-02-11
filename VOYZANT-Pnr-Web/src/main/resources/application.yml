@@ -1,0 +1,31 @@
+# include com.mmt.flights.cms.common properties for every profile in this section
+
+spring:
+  application:
+    name: flights-voyzant-pnr
+server:
+    port: 8081
+    error:
+      whitelabel:
+        enabled: false
+    servlet:
+      context-path: /flights-voyzant-pnr
+    tomcat:
+      accesslog:
+        enabled: true
+        directory: /opt/logs/flights-voyzant-pnr/
+        prefix: access
+        suffix: .log
+        rotate: false
+        pattern: '%h %l %u %t "%r" %s %b %D %F %{X-Request-ID}o %{X-Forwarded-For}i'
+---
+
+# Health is enabled and made sensitive.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "hystrix.stream"
+      base-path:
+      path-mapping:
+        health: /hystrix.stream

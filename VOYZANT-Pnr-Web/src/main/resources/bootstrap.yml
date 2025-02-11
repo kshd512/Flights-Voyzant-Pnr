@@ -1,0 +1,16 @@
+spring:
+ cloud:
+  consul:
+   host: consul.mmt.mmt
+   port: 8500
+   config:
+    enabled: true
+    data-key: voyzantPnrProps
+    format: yaml
+    prefix: FLIGHTS/supply/pnr/flights-VOYZANT-pnr
+    watch:
+     enabled: true
+   
+
+
+  
