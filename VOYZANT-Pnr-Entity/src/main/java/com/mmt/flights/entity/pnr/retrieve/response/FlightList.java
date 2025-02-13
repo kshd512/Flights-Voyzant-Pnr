@@ -1,7 +1,17 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
-public class FlightList {
-    // Add fields as per requirements
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-    // Generate getters and setters
+public class FlightList {
+    @JsonProperty("Flight")
+    private List<Flight> flight;
+
+    public List<Flight> getFlight() {
+        return flight;
+    }
+
+    public void setFlight(List<Flight> flight) {
+        this.flight = flight;
+    }
 }

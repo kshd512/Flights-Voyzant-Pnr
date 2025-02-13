@@ -1,19 +1,32 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Passenger {
+    @JsonProperty("PassengerID")
     private String passengerID;
+    @JsonProperty("PTC")
     private String ptc;
+    @JsonProperty("BirthDate")
     private String birthDate;
+    @JsonProperty("NameTitle")
     private String nameTitle;
+    @JsonProperty("FirstName")
     private String firstName;
+    @JsonProperty("MiddleName")
     private String middleName;
+    @JsonProperty("LastName")
     private String lastName;
+    @JsonProperty("Gender")
     private String gender;
+    @JsonProperty("TravelDocument")
     private TravelDocument travelDocument;
+    @JsonProperty("Preference")
     private Preference preference;
+    @JsonProperty("LoyaltyProgramAccount")
     private List<Object> loyaltyProgramAccount;
+    @JsonProperty("ContactInfoRef")
     private String contactInfoRef;
 
     public String getPassengerID() {

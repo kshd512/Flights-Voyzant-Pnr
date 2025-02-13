@@ -1,9 +1,15 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class FareBasis {
+    @JsonProperty("FareBasisCode")
     private FareBasisCode fareBasisCode;
+    @JsonProperty("Rbd")
     private String rbd;
+    @JsonProperty("CabinType")
     private String cabinType;
+    @JsonProperty("SeatLeft")
     private String seatLeft;
 
     public FareBasisCode getFareBasisCode() {

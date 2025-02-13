@@ -1,11 +1,17 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class FlightDetail {
+    @JsonProperty("FlightDuration")
     private Duration flightDuration;
+    @JsonProperty("Stops")
     private Stops stops;
+    @JsonProperty("InterMediate")
     private List<Object> interMediate;
+    @JsonProperty("AirMilesFlown")
     private String airMilesFlown;
 
     public Duration getFlightDuration() {

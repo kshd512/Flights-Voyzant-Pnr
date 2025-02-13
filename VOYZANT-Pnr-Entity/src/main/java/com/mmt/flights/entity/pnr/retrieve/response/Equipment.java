@@ -1,7 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Equipment {
+    @JsonProperty("AircraftCode")
     private String aircraftCode;
+    @JsonProperty("Name")
     private String name;
 
     public String getAircraftCode() {

@@ -1,7 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Fee {
+    @JsonProperty("Before")
     private PriceDetail before;
+    @JsonProperty("After")
     private PriceDetail after;
 
     public PriceDetail getBefore() {

@@ -1,15 +1,16 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+
 import java.util.List;
 
 public class FlightSegmentList {
-    private List<FlightSegment> flightSegment;
+    private List<FlightSegment> FlightSegment;
 
     public List<FlightSegment> getFlightSegment() {
-        return flightSegment;
+        return FlightSegment;
     }
 
     public void setFlightSegment(List<FlightSegment> flightSegment) {
-        this.flightSegment = flightSegment;
+        this.FlightSegment = flightSegment;
     }
 }

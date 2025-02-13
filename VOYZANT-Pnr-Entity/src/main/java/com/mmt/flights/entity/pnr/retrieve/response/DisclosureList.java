@@ -1,7 +1,17 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
-public class DisclosureList {
-    // Add fields as per requirements
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-    // Generate getters and setters
+public class DisclosureList {
+    @JsonProperty("Disclosures")
+    private List<Object> disclosures;
+
+    public List<Object> getDisclosures() {
+        return disclosures;
+    }
+
+    public void setDisclosures(List<Object> disclosures) {
+        this.disclosures = disclosures;
+    }
 }

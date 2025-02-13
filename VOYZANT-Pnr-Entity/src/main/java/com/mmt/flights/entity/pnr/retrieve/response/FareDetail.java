@@ -1,7 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class FareDetail {
+    @JsonProperty("PassengerRefs")
     private String passengerRefs;
+    @JsonProperty("Price")
     private Price price;
 
     public String getPassengerRefs() {

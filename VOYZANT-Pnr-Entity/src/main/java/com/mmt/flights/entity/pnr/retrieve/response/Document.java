@@ -1,7 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Document {
+    @JsonProperty("Name")
     private String name;
+    @JsonProperty("ReferenceVersion")
     private String referenceVersion;
 
     public String getName() {

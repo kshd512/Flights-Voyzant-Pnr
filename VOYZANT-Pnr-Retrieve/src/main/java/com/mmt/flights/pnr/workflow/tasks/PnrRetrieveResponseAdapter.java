@@ -16,7 +16,7 @@ import com.mmt.flights.supply.book.v4.common.SupplyFlightDetailDTO;
 import com.mmt.flights.supply.book.v4.request.SupplyContactInfo;
 import com.mmt.flights.supply.book.v4.request.SupplyGSTInfo;
 import com.mmt.flights.supply.book.v4.response.*;
-import com.mmt.flights.supply.common.enums.SupplyPnrStatusTypeOuterClass;
+import com.mmt.flights.supply.common.enums.SupplyPnrStatusTypeOuterClass.SupplyPnrStatusType;
 import com.mmt.flights.supply.common.enums.SupplyStatus;
 import com.mmt.flights.supply.pnr.v4.request.SupplyPnrRequestDTO;
 import io.grpc.xds.shaded.io.envoyproxy.envoy.api.v2.core.ApiVersion;
@@ -39,21 +39,14 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
     @Override
     public FlowState run(FlowState state) throws Exception {
-        // Get pnr request and response data from flow state
         SupplyPnrRequestDTO supplyPnrRequest = state.getValue(FlowStateKey.REQUEST);
         String pnrResponseData = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
-        
-        // Convert JSON string response to OrderViewRS object
         OrderViewRS orderViewRS = objectMapper.readValue(pnrResponseData, OrderViewRS.class);
-        
         CMSMapHolder cmsMapHolder = state.getValue(FlowStateKey.CMS_MAP);
-        long duration;
-        long d1 = state.getValue(FlowStateKey.SESSION_DURATION);
-        long d2 = state.getValue(FlowStateKey.RESPONSE_DURATION);
-        duration = d1 + d2;
+        long duration = new Long(0);//state.getValue(FlowStateKey.SESSION_DURATION) + state.getValue(FlowStateKey.RESPONSE_DURATION);
 
-        // Validate order ID exists
-        if (orderViewRS.getOrder() == null || StringUtils.isEmpty(orderViewRS.getOrder().get(0).getOrderID())) {
+        if (orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty() || 
+            StringUtils.isEmpty(orderViewRS.getOrder().get(0).getOrderID())) {
             throw new ServiceErrorException("PNR_NOT_VALID", ErrorEnum.PNR_PARTIALLY_REFUNDED, HttpStatus.BAD_REQUEST);
         }
 
@@ -61,7 +54,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                 getResponse(supplyPnrRequest, orderViewRS, cmsMapHolder, duration, state)).build();
     }
 
-    public SupplyBookingResponseDTO getResponse(SupplyPnrRequestDTO supplyPnrRequestDTO,
+    private SupplyBookingResponseDTO getResponse(SupplyPnrRequestDTO supplyPnrRequestDTO,
                                               OrderViewRS orderViewRS,
                                               CMSMapHolder cmsMapHolder,
                                               long supplierLatency,
@@ -100,11 +93,11 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                 journeyId++;
             }
 
-            builder.setPnrStatus(SupplyPnrStatusTypeOuterClass.SupplyPnrStatusType.ACTIVE);
+            builder.setPnrStatus(SupplyPnrStatusType.ACTIVE);
             builder.setGstInfo(getGSTInfo(order));
             builder.setContactInfo(getContactInfo(dataLists));
         } else {
-            builder.setPnrStatus(SupplyPnrStatusTypeOuterClass.SupplyPnrStatusType.CUSTOMER_CANCELED);
+            builder.setPnrStatus(SupplyPnrStatusType.CUSTOMER_CANCELED);
         }
 
         builder.setBookingInfo(getBookingInfo(order, dataLists, segmentRefMap, flightKeyMap,
@@ -123,7 +116,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         SupplyFlightDTO.Builder builder = SupplyFlightDTO.newBuilder();
         
         // Set departure info
-        Airport departure = segment.getDeparture();
+        AirportInfo departure = segment.getDeparture();
         SupplyLocationInfoDTO.Builder depBuilder = SupplyLocationInfoDTO.newBuilder();
         depBuilder.setArpCd(departure.getAirportCode());
         depBuilder.setArpNm(departure.getAirportName());
@@ -134,7 +127,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         builder.setDepInfo(depBuilder.build());
         
         // Set arrival info
-        Airport arrival = segment.getArrival();
+        AirportInfo arrival = segment.getArrival();
         SupplyLocationInfoDTO.Builder arrBuilder = SupplyLocationInfoDTO.newBuilder();
         arrBuilder.setArpCd(arrival.getAirportCode());
         arrBuilder.setArpNm(arrival.getAirportName());
@@ -152,7 +145,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         Carrier operatingCarrier = segment.getOperatingCarrier();
         builder.setOprAl(operatingCarrier != null ? operatingCarrier.getAirlineID() : marketingCarrier.getAirlineID());
         
-        // Set other flight details
+        // Set equipment and duration
         Equipment equipment = segment.getEquipment();
         if (equipment != null) {
             builder.setArcrfTyp(equipment.getAircraftCode());
@@ -177,9 +170,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     }
 
     private SupplyGSTInfo getGSTInfo(Order order) {
-        SupplyGSTInfo.Builder builder = SupplyGSTInfo.newBuilder();
-        // TODO: Extract GST info from Order if available
-        return builder.build();
+        return SupplyGSTInfo.newBuilder().build(); // Implement GST info extraction if available
     }
 
     private SupplyContactInfo getContactInfo(DataLists dataLists) {
@@ -194,10 +185,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         }
         return builder.build();
     }
-
-    // Add other helper methods similar to GetBookingResponseAdaptor...
-    // Implementation details would follow similar pattern as GetBookingResponseAdaptor
-    // but adapted for OrderViewRS structure instead of GetBookingResponse
 
     private SupplyBookingResponseMetaDataDTO getMetaData(Order order, String cmsId, long supplierLatency,
                                                         FlowState state, boolean enableTrace) {
@@ -217,8 +204,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                 builder.putTraceInfo("Response",
                     jaxbHandlerService.marshall(state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE)));
             } catch (Exception e) {
-              /*  MMTLogger.error(state.getValue(FlowStateKey.REQUEST),
-                    "Response couldn't be marshalled", this.getClass().getName(), e);*/
+                // Log error but continue
             }
         }
         
@@ -250,9 +236,8 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         List<SupplyBookingJourneyDTO> journeys = getJourneys(dataLists, segmentRefMap, flightlookupMap, pnrGroupNo);
         builder.addAllJourneys(journeys);
 
-        Map<String, String> flightToJourneyMap = null;
+        Map<String, String> flightToJourneyMap = new HashMap<>();
         if (version != null) {
-            flightToJourneyMap = new HashMap<>();
             for (SupplyBookingJourneyDTO journey : journeys) {
                 for (SupplyFlightDetailDTO flight : journey.getFlightDtlsInfoList()) {
                     flightToJourneyMap.put(flight.getFltLookUpKey(), journey.getJrnyKey());
@@ -297,6 +282,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
         String fltkey = segmentRefMap.get(segment.getSegmentKey());
         SupplyFlightDTO flight = flightLookupMap.get(fltkey);
+        
         if (flight != null) {
             builder.addFlightDtlsInfo(getFlightDetailsInfo(fltkey, pnrGroupNo));
             builder.setJrnyKey(AdapterUtil.getJourneyKey(Arrays.asList(flight)));
@@ -311,7 +297,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                                         CMSMapHolder cmsMapHolder,
                                         Map<String, String> flightToJourneyMap) {
         SupplyFareInfoDTO.Builder builder = SupplyFareInfoDTO.newBuilder();
-        
         SupplyPnrFareInfoDTO.Builder fareInfoBuilder = SupplyPnrFareInfoDTO.newBuilder();
         setPnrs(fareInfoBuilder, order);
         
@@ -341,7 +326,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             paxTypeFareBuilderMap.forEach((paxType, fareDetailBuilder) -> 
                 fareInfoBuilder.putPaxFares(paxType, fareDetailBuilder.build()));
         }
-
+        
         builder.putPnrGrpdFrInfo(Integer.parseInt(pnrGroupNo), fareInfoBuilder.build());
         return builder.build();
     }
@@ -366,7 +351,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         builder.setSPnr(order.getOrderID());
         builder.setValidatingCarrier(order.getOwner());
         builder.setCreationDate(order.getTimeLimits() != null ? order.getTimeLimits().getOfferExpirationDateTime() : "");
-        builder.setTimeZoneOffset("+00:00");
+        builder.setTimeZoneOffset("+00:00"); // Set appropriate timezone if available
     }
 
     private SupplyPaxSegmentInfo getPaxSegmentInfo(Order order, DataLists dataLists) {
@@ -377,10 +362,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             for (FlightSegment segment : dataLists.getFlightSegmentList().getFlightSegment()) {
                 String segmentKey = segment.getSegmentKey();
                 SupplyPnrLiftStatusDTOList.Builder liftStatusList = SupplyPnrLiftStatusDTOList.newBuilder();
-                
-                // Add passenger statuses if available in your order data
-                // This would depend on how passenger status is stored in OrderViewRS
-                
                 statusBuilder.putSegmentLiftStatus(segmentKey, liftStatusList.build());
             }
         }

@@ -1,7 +1,17 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
-public class BaggageAllowanceList {
-    // Add fields as per requirements
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-    // Generate getters and setters
+public class BaggageAllowanceList {
+    @JsonProperty("BaggageAllowance")
+    private List<BaggageAllowance> baggageAllowance;
+
+    public List<BaggageAllowance> getBaggageAllowance() {
+        return baggageAllowance;
+    }
+
+    public void setBaggageAllowance(List<BaggageAllowance> baggageAllowance) {
+        this.baggageAllowance = baggageAllowance;
+    }
 }

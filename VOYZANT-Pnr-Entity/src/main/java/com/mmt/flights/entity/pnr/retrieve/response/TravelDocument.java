@@ -1,9 +1,15 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class TravelDocument {
+    @JsonProperty("DocumentNumber")
     private String documentNumber;
+    @JsonProperty("ExpiryDate")
     private String expiryDate;
+    @JsonProperty("IssuingCountry")
     private String issuingCountry;
+    @JsonProperty("DocumentType")
     private String documentType;
 
     public String getDocumentNumber() {

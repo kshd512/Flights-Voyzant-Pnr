@@ -1,7 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Penalty {
+    @JsonProperty("ChangeFee")
     private Fee changeFee;
+    @JsonProperty("CancelationFee")
     private Fee cancelationFee;
 
     public Fee getChangeFee() {

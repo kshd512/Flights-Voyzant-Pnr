@@ -1,7 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class FareBasisCode {
+    @JsonProperty("Refs")
     private String refs;
+    @JsonProperty("Code")
     private String code;
 
     public String getRefs() {

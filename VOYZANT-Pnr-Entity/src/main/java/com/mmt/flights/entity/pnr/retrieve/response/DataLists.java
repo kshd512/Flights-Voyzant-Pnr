@@ -1,19 +1,33 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class DataLists {
+    @JsonProperty("PassengerList")
     private PassengerList passengerList;
+    @JsonProperty("DisclosureList")
     private DisclosureList disclosureList;
+    @JsonProperty("ContactEmail")
     private List<String> contactEmail;
+    @JsonProperty("ContactNumber")
     private List<String> contactNumber;
+    @JsonProperty("ContactAddress")
     private List<String> contactAddress;
+    @JsonProperty("FareList")
     private FareList fareList;
+    @JsonProperty("FlightSegmentList")
     private FlightSegmentList flightSegmentList;
+    @JsonProperty("FlightList")
     private FlightList flightList;
+    @JsonProperty("OriginDestinationList")
     private OriginDestinationList originDestinationList;
+    @JsonProperty("PriceClassList")
     private PriceClassList priceClassList;
+    @JsonProperty("BaggageAllowanceList")
     private BaggageAllowanceList baggageAllowanceList;
+    @JsonProperty("FopList")
     private List<FopList> fopList;
 
     public PassengerList getPassengerList() {

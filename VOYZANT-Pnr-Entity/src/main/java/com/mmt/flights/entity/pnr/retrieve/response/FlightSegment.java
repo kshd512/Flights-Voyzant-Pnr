@@ -1,85 +1,76 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
 public class FlightSegment {
-    private String segmentKey;
-    private Airport departure;
-    private Airport arrival;
-    private Carrier marketingCarrier;
-    private Carrier operatingCarrier;
-    private Equipment equipment;
-    private Code code;
-    private FlightDetail flightDetail;
-    private String brandId;
+    private String SegmentKey;
+    private AirportInfo Departure;
+    private AirportInfo Arrival;
+    private Carrier MarketingCarrier;
+    private Carrier OperatingCarrier;
+    private Equipment Equipment;
+    private Code Code;
+    private FlightDetail FlightDetail;
+    private String BrandId;
 
     public String getSegmentKey() {
-        return segmentKey;
+        return SegmentKey;
     }
-
     public void setSegmentKey(String segmentKey) {
-        this.segmentKey = segmentKey;
+        SegmentKey = segmentKey;
     }
 
-    public Airport getDeparture() {
-        return departure;
+    public AirportInfo getDeparture() {
+        return Departure;
+    }
+    public void setDeparture(AirportInfo departure) {
+        Departure = departure;
     }
 
-    public void setDeparture(Airport departure) {
-        this.departure = departure;
+    public AirportInfo getArrival() {
+        return Arrival;
     }
-
-    public Airport getArrival() {
-        return arrival;
-    }
-
-    public void setArrival(Airport arrival) {
-        this.arrival = arrival;
+    public void setArrival(AirportInfo arrival) {
+        Arrival = arrival;
     }
 
     public Carrier getMarketingCarrier() {
-        return marketingCarrier;
+        return MarketingCarrier;
     }
-
     public void setMarketingCarrier(Carrier marketingCarrier) {
-        this.marketingCarrier = marketingCarrier;
+        MarketingCarrier = marketingCarrier;
     }
 
     public Carrier getOperatingCarrier() {
-        return operatingCarrier;
+        return OperatingCarrier;
     }
-
     public void setOperatingCarrier(Carrier operatingCarrier) {
-        this.operatingCarrier = operatingCarrier;
+        OperatingCarrier = operatingCarrier;
     }
 
     public Equipment getEquipment() {
-        return equipment;
+        return Equipment;
     }
-
     public void setEquipment(Equipment equipment) {
-        this.equipment = equipment;
+        Equipment = equipment;
     }
 
     public Code getCode() {
-        return code;
+        return Code;
     }
-
     public void setCode(Code code) {
-        this.code = code;
+        this.Code = code;
     }
 
     public FlightDetail getFlightDetail() {
-        return flightDetail;
+        return FlightDetail;
     }
-
     public void setFlightDetail(FlightDetail flightDetail) {
-        this.flightDetail = flightDetail;
+        FlightDetail = flightDetail;
     }
 
     public String getBrandId() {
-        return brandId;
+        return BrandId;
     }
-
     public void setBrandId(String brandId) {
-        this.brandId = brandId;
+        BrandId = brandId;
     }
 }

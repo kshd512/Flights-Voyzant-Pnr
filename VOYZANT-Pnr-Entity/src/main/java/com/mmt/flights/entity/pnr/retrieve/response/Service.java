@@ -1,8 +1,13 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Service {
+    @JsonProperty("ServiceID")
     private String serviceID;
+    @JsonProperty("PassengerRefs")
     private String passengerRefs;
+    @JsonProperty("FlightRefs")
     private String flightRefs;
 
     public String getServiceID() {

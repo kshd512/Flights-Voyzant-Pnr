@@ -1,9 +1,15 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class AgentMarkupInfo {
+    @JsonProperty("OnflyMarkup")
     private PriceDetail onflyMarkup;
+    @JsonProperty("OnflyDiscount")
     private PriceDetail onflyDiscount;
+    @JsonProperty("OnflyHst")
     private PriceDetail onflyHst;
+    @JsonProperty("PromoDiscount")
     private PromoDiscount promoDiscount;
 
     public PriceDetail getOnflyMarkup() {

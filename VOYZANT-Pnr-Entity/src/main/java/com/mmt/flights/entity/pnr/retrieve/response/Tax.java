@@ -1,8 +1,13 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Tax {
+    @JsonProperty("TaxCode")
     private String taxCode;
+    @JsonProperty("BookingCurrencyPrice")
     private Double bookingCurrencyPrice;
+    @JsonProperty("EquivCurrencyPrice")
     private Double equivCurrencyPrice;
 
     public String getTaxCode() {

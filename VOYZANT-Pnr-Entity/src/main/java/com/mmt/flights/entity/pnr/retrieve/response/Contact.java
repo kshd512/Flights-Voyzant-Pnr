@@ -1,6 +1,9 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Contact {
+    @JsonProperty("EmailContact")
     private String emailContact;
 
     public String getEmailContact() {

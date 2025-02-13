@@ -1,11 +1,16 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 import java.util.Map;
 
 public class RewardSettings {
+    @JsonProperty("RewardAvailable")
     private String rewardAvailable;
+    @JsonProperty("PointTypes")
     private List<Object> pointTypes;
+    @JsonProperty("PointValues")
     private Map<String, Object> pointValues;
 
     public String getRewardAvailable() {

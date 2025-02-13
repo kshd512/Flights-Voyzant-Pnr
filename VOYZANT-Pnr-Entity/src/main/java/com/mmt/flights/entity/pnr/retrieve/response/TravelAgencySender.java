@@ -1,9 +1,15 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class TravelAgencySender {
+    @JsonProperty("Name")
     private String name;
+    @JsonProperty("IataNumber")
     private String iataNumber;
+    @JsonProperty("AgencyID")
     private String agencyID;
+    @JsonProperty("Contacts")
     private Contacts contacts;
 
     public String getName() {

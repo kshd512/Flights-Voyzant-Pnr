@@ -1,40 +1,75 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class Order {
+    @JsonProperty("OrderID")
     private String orderID;
+    @JsonProperty("GdsBookingReference")
     private String gdsBookingReference;
+    @JsonProperty("OrderStatus")
     private String orderStatus;
+    @JsonProperty("PaymentStatus")
     private String paymentStatus;
+    @JsonProperty("TicketStatus")
     private String ticketStatus;
+    @JsonProperty("NeedToTicket")
     private String needToTicket;
+    @JsonProperty("OfferID")
     private String offerID;
+    @JsonProperty("Owner")
     private String owner;
+    @JsonProperty("OwnerName")
     private String ownerName;
+    @JsonProperty("IsBrandedFare")
     private String isBrandedFare;
+    @JsonProperty("BrandedFareOptions")
     private List<Object> brandedFareOptions;
+    @JsonProperty("CabinOptions")
     private List<Object> cabinOptions;
+    @JsonProperty("IsAdditionalCabinType")
     private String isAdditionalCabinType;
+    @JsonProperty("Eticket")
     private String eticket;
+    @JsonProperty("TimeLimits")
     private TimeLimits timeLimits;
+    @JsonProperty("BookingCurrencyCode")
     private String bookingCurrencyCode;
+    @JsonProperty("EquivCurrencyCode")
     private String equivCurrencyCode;
+    @JsonProperty("HstPercentage")
     private String hstPercentage;
+    @JsonProperty("RewardSettings")
     private RewardSettings rewardSettings;
+    @JsonProperty("BookingFeeInfo")
     private BookingFeeInfo bookingFeeInfo;
+    @JsonProperty("TotalPrice")
     private PriceDetail totalPrice;
+    @JsonProperty("BasePrice")
     private PriceDetail basePrice;
+    @JsonProperty("TaxPrice")
     private PriceDetail taxPrice;
+    @JsonProperty("Commission")
     private Commission commission;
+    @JsonProperty("PortalCharges")
     private PortalCharges portalCharges;
+    @JsonProperty("AgentMarkupInfo")
     private AgentMarkupInfo agentMarkupInfo;
+    @JsonProperty("Penalty")
     private Penalty penalty;
+    @JsonProperty("PaxSeatInfo")
     private List<Object> paxSeatInfo;
+    @JsonProperty("OfferItem")
     private List<OfferItem> offerItem;
+    @JsonProperty("BaggageAllowance")
     private List<BaggageAllowance> baggageAllowance;
+    @JsonProperty("SplitPaymentInfo")
     private List<SplitPaymentInfo> splitPaymentInfo;
+    @JsonProperty("BookingToEquivExRate")
     private Double bookingToEquivExRate;
+    @JsonProperty("FopRef")
     private String fopRef;
 
     public String getOrderID() {

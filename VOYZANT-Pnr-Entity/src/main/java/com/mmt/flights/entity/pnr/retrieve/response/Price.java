@@ -1,14 +1,23 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class Price {
+    @JsonProperty("TotalAmount")
     private PriceDetail totalAmount;
+    @JsonProperty("BaseAmount")
     private PriceDetail baseAmount;
+    @JsonProperty("TaxAmount")
     private PriceDetail taxAmount;
+    @JsonProperty("Commission")
     private Commission commission;
+    @JsonProperty("BookingFee")
     private PriceDetail bookingFee;
+    @JsonProperty("PortalCharges")
     private PortalCharges portalCharges;
+    @JsonProperty("Taxes")
     private List<Tax> taxes;
 
     public PriceDetail getTotalAmount() {

@@ -1,9 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
-public class Success {
-    // Empty class as per JSON
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+public class Success {
+    @JsonProperty("Message")
     private String message;
+    @JsonProperty("Code")
     private int code;
 
     public String getMessage() {

@@ -1,7 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Preference {
+    @JsonProperty("WheelChairPreference")
     private WheelChairPreference wheelChairPreference;
+    @JsonProperty("SeatPreference")
     private String seatPreference;
 
     public WheelChairPreference getWheelChairPreference() {

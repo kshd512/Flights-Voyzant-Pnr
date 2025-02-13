@@ -1,9 +1,15 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Payment {
+    @JsonProperty("Type")
     private String type;
+    @JsonProperty("PassengerID")
     private String passengerID;
+    @JsonProperty("Amount")
     private Double amount;
+    @JsonProperty("ChequeNumber")
     private String chequeNumber;
 
     public String getType() {

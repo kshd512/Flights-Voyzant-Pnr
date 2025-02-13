@@ -1,16 +1,26 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 import java.util.Map;
 
 public class OrderViewRS {
+    @JsonProperty("Document")
     private Document document;
+    @JsonProperty("Party")
     private Party party;
+    @JsonProperty("ShoppingResponseId")
     private String shoppingResponseId;
+    @JsonProperty("Success")
     private Success success;
+    @JsonProperty("Payments")
     private Payments payments;
+    @JsonProperty("Order")
     private List<Order> order;
+    @JsonProperty("DataLists")
     private DataLists dataLists;
+    @JsonProperty("MetaData")
     private Map<String, Object> metaData;
 
     public Document getDocument() {

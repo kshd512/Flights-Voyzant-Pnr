@@ -1,7 +1,9 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
-public class TotalPriceDetail {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+public class TotalPriceDetail {
+    @JsonProperty("TotalAmount")
     private PriceDetail TotalAmount;
 
     public PriceDetail getTotalAmount() {
