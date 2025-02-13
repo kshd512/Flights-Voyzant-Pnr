@@ -28,7 +28,9 @@ public class FlowStateKey {
 	public static final String REQUEST = "REQUEST";
 	public static final String RESPONSE = "RESPONSE";
 
-
+    public static final String SESSION_DURATION = "SESSION_DURATION";
+    public static final String RESPONSE_DURATION = "RESPONSE_DURATION";
+    public static final String VERSION = "VERSION";
 
 	public static final String LOG_KEY = "LOGKEY";
 
