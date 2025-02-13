@@ -1,10 +1,21 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class AirportInfo {
+    @JsonProperty("AirportCode")
     private String AirportCode;
+    
+    @JsonProperty("Date")
     private String Date;
+    
+    @JsonProperty("Time")
     private String Time;
+    
+    @JsonProperty("AirportName")
     private String AirportName;
+    
+    @JsonProperty("Terminal")
     private Terminal Terminal;
 
     public String getAirportCode() {
