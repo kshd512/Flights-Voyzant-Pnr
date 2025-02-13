@@ -36,7 +36,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     
     @Autowired
     private JaxbHandlerService jaxbHandlerService;
-    
+
     @Override
     public FlowState run(FlowState state) throws Exception {
         SupplyPnrRequestDTO supplyPnrRequest = state.getValue(FlowStateKey.REQUEST);
@@ -153,7 +153,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         
         FlightDetail flightDetail = segment.getFlightDetail();
         if (flightDetail != null && flightDetail.getFlightDuration() != null) {
-            builder.setDurInMins(Integer.parseInt(flightDetail.getFlightDuration().getValue()));
+           // builder.setDurInMins(Integer.parseInt(flightDetail.getFlightDuration().getValue()));
         }
 
         // Set segment identifiers
@@ -277,7 +277,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         builder.setArrDate(segment.getArrival().getDate() + "T" + segment.getArrival().getTime());
         
         if (segment.getFlightDetail() != null && segment.getFlightDetail().getFlightDuration() != null) {
-            builder.setDurInMins(Integer.parseInt(segment.getFlightDetail().getFlightDuration().getValue()));
+           // builder.setDurInMins(Integer.parseInt(segment.getFlightDetail().getFlightDuration().getValue()));
         }
 
         String fltkey = segmentRefMap.get(segment.getSegmentKey());
