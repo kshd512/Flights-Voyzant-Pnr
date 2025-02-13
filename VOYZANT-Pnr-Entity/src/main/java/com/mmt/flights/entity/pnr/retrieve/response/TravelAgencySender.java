@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TravelAgencySender {
     @JsonProperty("Name")
     private String name;
-    @JsonProperty("IataNumber")
+    @JsonProperty("IATA_Number")
     private String iataNumber;
     @JsonProperty("AgencyID")
     private String agencyID;

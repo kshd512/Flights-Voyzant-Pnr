@@ -1,41 +1,49 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
-class TravelAgencySender {
-    private String name;
-    private String iata_number;
-    private String agencyid;
-    private Contacts contacts;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    // Getters and Setters
+public class TravelAgencySender {
+    @JsonProperty("Name")
+    private String Name;
+    
+    @JsonProperty("IATA_Number")
+    private String Iata_number;
+    
+    @JsonProperty("AgencyID")
+    private String Agencyid;
+    
+    @JsonProperty("Contacts")
+    private Contacts Contacts;
+
     public String getName() {
-        return name;
+        return Name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        Name = name;
     }
 
     public String getIata_number() {
-        return iata_number;
+        return Iata_number;
     }
 
     public void setIata_number(String iata_number) {
-        this.iata_number = iata_number;
+        Iata_number = iata_number;
     }
 
     public String getAgencyid() {
-        return agencyid;
+        return Agencyid;
     }
 
     public void setAgencyid(String agencyid) {
-        this.agencyid = agencyid;
+        Agencyid = agencyid;
     }
 
     public Contacts getContacts() {
-        return contacts;
+        return Contacts;
     }
 
     public void setContacts(Contacts contacts) {
-        this.contacts = contacts;
+        Contacts = contacts;
     }
 }
