@@ -28,6 +28,8 @@ public class Passenger {
     private List<Object> loyaltyProgramAccount;
     @JsonProperty("ContactInfoRef")
     private String contactInfoRef;
+    @JsonProperty("attributes")
+    private PassengerAttributes attributes;
 
     public String getPassengerID() {
         return passengerID;
@@ -123,5 +125,13 @@ public class Passenger {
 
     public void setContactInfoRef(String contactInfoRef) {
         this.contactInfoRef = contactInfoRef;
+    }
+
+    public PassengerAttributes getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(PassengerAttributes attributes) {
+        this.attributes = attributes;
     }
 }

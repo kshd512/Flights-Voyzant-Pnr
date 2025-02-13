@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class FareBasis {
     @JsonProperty("FareBasisCode")
     private FareBasisCode fareBasisCode;
-    @JsonProperty("Rbd")
+    @JsonProperty("RBD")
     private String rbd;
     @JsonProperty("CabinType")
     private String cabinType;

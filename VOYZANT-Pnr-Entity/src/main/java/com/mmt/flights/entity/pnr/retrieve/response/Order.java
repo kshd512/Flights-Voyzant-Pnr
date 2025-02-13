@@ -64,7 +64,7 @@ public class Order {
     @JsonProperty("OfferItem")
     private List<OfferItem> offerItem;
     @JsonProperty("BaggageAllowance")
-    private List<BaggageAllowance> baggageAllowance;
+    private List<BaggageAllowanceData> baggageAllowance;
     @JsonProperty("SplitPaymentInfo")
     private List<SplitPaymentInfo> splitPaymentInfo;
     @JsonProperty("BookingToEquivExRate")
@@ -304,11 +304,11 @@ public class Order {
         this.offerItem = offerItem;
     }
 
-    public List<BaggageAllowance> getBaggageAllowance() {
+    public List<BaggageAllowanceData> getBaggageAllowance() {
         return baggageAllowance;
     }
 
-    public void setBaggageAllowance(List<BaggageAllowance> baggageAllowance) {
+    public void setBaggageAllowance(List<BaggageAllowanceData> baggageAllowance) {
         this.baggageAllowance = baggageAllowance;
     }
 

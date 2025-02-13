@@ -9,9 +9,9 @@ public class DataLists {
     private PassengerList passengerList;
     @JsonProperty("DisclosureList")
     private DisclosureList disclosureList;
-    @JsonProperty("ContactEmail")
+    @JsonProperty("contactEmail")
     private List<String> contactEmail;
-    @JsonProperty("ContactNumber")
+    @JsonProperty("contactNumber")
     private List<String> contactNumber;
     @JsonProperty("ContactAddress")
     private List<String> contactAddress;
