@@ -1,0 +1,423 @@
+{
+    "status": "SUCCESS",
+    "metaData": {
+        "currency": "INR",
+        "apiLatency": "312",
+        "ipAddress": "10.117.73.236",
+        "serviceName": "Nav45-Pnr",
+        "supplierName": "NAV42",
+        "credentialId": "B2C_MMT_6E_PROD_SRCTZN",
+        "supplierLatency": "247",
+        "corporateCode": "",
+        "promoCode": "",
+        "cmsCurrency": "",
+        "inventoryOwner": ""
+    },
+    "flightLookUpList": {
+        "IXB$DEL$2025-02-15 16:55$6E-745": {
+            "mrkAl": "6E",
+            "oprAl": "6E",
+            "fltNo": "745",
+            "arcrfTyp": "321",
+            "depInfo": {
+                "trmnl": "",
+                "arpCd": "IXB",
+                "arpNm": "Bagdogra Airport"
+            },
+            "arrInfo": {
+                "trmnl": "1D",
+                "arpCd": "DEL",
+                "arpNm": "Indira Gandhi International Airport"
+            },
+            "tchStp": [],
+            "depTime": "2025-02-15 16:55",
+            "arrTime": "2025-02-15 19:10",
+            "durInMins": "135",
+            "suppSegKey": "6E~ 745~ ~~IXB~02/15/2025 16:55~DEL~02/15/2025 19:10~~",
+            "suppid": "1",
+            "isReturnSeg": false,
+            "bookStatus": "HK",
+            "classOfService": "Y",
+            "ticketReissue": false,
+            "isInternational": false,
+            "marriedSegId": "1",
+            "airlinePNR": "B9SHYR",
+            "flightStatus": "AS_PER_SCHEDULE",
+            "oprFltNo": ""
+        },
+        "DEL$IDR$2025-02-15 21:05$6E-6377": {
+            "mrkAl": "6E",
+            "oprAl": "6E",
+            "fltNo": "6377",
+            "arcrfTyp": "320",
+            "depInfo": {
+                "trmnl": "1D",
+                "arpCd": "DEL",
+                "arpNm": "Indira Gandhi International Airport"
+            },
+            "arrInfo": {
+                "trmnl": "",
+                "arpCd": "IDR",
+                "arpNm": "Devi Ahilyabai Holkar International Airport"
+            },
+            "tchStp": [],
+            "depTime": "2025-02-15 21:05",
+            "arrTime": "2025-02-15 22:35",
+            "durInMins": "90",
+            "suppSegKey": "6E~6377~ ~~DEL~02/15/2025 21:05~IDR~02/15/2025 22:35~~",
+            "suppid": "2",
+            "isReturnSeg": false,
+            "bookStatus": "HK",
+            "classOfService": "Y",
+            "ticketReissue": false,
+            "isInternational": false,
+            "marriedSegId": "1",
+            "airlinePNR": "B9SHYR",
+            "flightStatus": "AS_PER_SCHEDULE",
+            "oprFltNo": ""
+        }
+    },
+    "bookingInfo": {
+        "journeys": [
+            {
+                "jrnyKey": "IXB$DEL$2025-02-15 16:55$6E-745|DEL$IDR$2025-02-15 21:05$6E-6377",
+                "depDate": "2025-02-15 16:55",
+                "arrDate": "2025-02-15 22:35",
+                "durInMins": "340",
+                "flightDtlsInfo": [
+                    {
+                        "fltLookUpKey": "IXB$DEL$2025-02-15 16:55$6E-745",
+                        "pnrGroupNum": 0
+                    },
+                    {
+                        "fltLookUpKey": "DEL$IDR$2025-02-15 21:05$6E-6377",
+                        "pnrGroupNum": 0
+                    }
+                ]
+            }
+        ],
+        "frInfo": {
+            "pnrGrpdFrInfo": {
+                "0": {
+                    "status": "SUCCESS",
+                    "paxFares": {
+                        "ADULT": {
+                            "bs": 5931.0,
+                            "tx": 1223.0,
+                            "noOfPax": 2,
+                            "tot": 7254.0,
+                            "taxBreakups": [
+                                {
+                                    "amnt": 100.0,
+                                    "code": "RCF",
+                                    "msg": ""
+                                },
+                                {
+                                    "amnt": 236.0,
+                                    "code": "ASF",
+                                    "msg": ""
+                                },
+                                {
+                                    "amnt": 837.0,
+                                    "code": "UDF",
+                                    "msg": ""
+                                },
+                                {
+                                    "amnt": 50.0,
+                                    "code": "PHF",
+                                    "msg": ""
+                                }
+                            ],
+                            "segPrdctInfo": {
+                                "IXB$DEL$2025-02-15 16:55$6E-745": {
+                                    "fareClass": "R",
+                                    "fareBasis": "RCIP",
+                                    "productClass": "R",
+                                    "baggageInfo": {
+                                        "cabinBag": {
+                                            "numOfPieces": 1,
+                                            "weightPerPiece": 15,
+                                            "weightUnit": "Kilograms",
+                                            "totalWeight": 0
+                                        }
+                                    },
+                                    "cabin": "ECONOMY",
+                                    "sgFare": {
+                                        "bs": 5931.0,
+                                        "tx": 1223.0,
+                                        "tot": 7254.0,
+                                        "taxBreakups": [
+                                            {
+                                                "amnt": 50.0,
+                                                "code": "PHF",
+                                                "msg": ""
+                                            },
+                                            {
+                                                "amnt": 50.0,
+                                                "code": "RCF",
+                                                "msg": ""
+                                            },
+                                            {
+                                                "amnt": 236.0,
+                                                "code": "ASF",
+                                                "msg": ""
+                                            },
+                                            {
+                                                "amnt": 837.0,
+                                                "code": "UDF",
+                                                "msg": ""
+                                            },
+                                            {
+                                                "amnt": 50.0,
+                                                "code": "RCF",
+                                                "msg": ""
+                                            }
+                                        ],
+                                        "discount": 0.0,
+                                        "airlineFixedFees": [
+                                            {
+                                                "amnt": 100.0,
+                                                "code": "SRCT",
+                                                "isRefundable": false
+                                            }
+                                        ],
+                                        "airlineFixedFee": 100.0
+                                    },
+                                    "fareKey": "0~R~~6E~RCIP~1070~~0~0~~X",
+                                    "fareExpDate": ""
+                                },
+                                "DEL$IDR$2025-02-15 21:05$6E-6377": {
+                                    "fareClass": "R",
+                                    "fareBasis": "RCIP",
+                                    "productClass": "R",
+                                    "baggageInfo": {
+                                        "cabinBag": {
+                                            "numOfPieces": 1,
+                                            "weightPerPiece": 15,
+                                            "weightUnit": "Kilograms",
+                                            "totalWeight": 0
+                                        }
+                                    },
+                                    "cabin": "ECONOMY",
+                                    "sgFare": {
+                                        "bs": 0.0,
+                                        "tx": 0.0,
+                                        "tot": 0.0,
+                                        "taxBreakups": [],
+                                        "discount": 0.0,
+                                        "airlineFixedFees": [],
+                                        "airlineFixedFee": 0.0
+                                    },
+                                    "fareKey": "0~R~~6E~RCIP~1070~~0~0~~X",
+                                    "fareExpDate": ""
+                                }
+                            },
+                            "airlineFixedFees": [
+                                {
+                                    "amnt": 100.0,
+                                    "code": "SRCT",
+                                    "isRefundable": false
+                                }
+                            ],
+                            "airlineFixedFee": 100.0
+                        }
+                    },
+                    "totFr": {
+                        "bs": 11862.0,
+                        "tx": 2446.0,
+                        "tot": 14508.0,
+                        "airlineFixedFee": 200.0
+                    },
+                    "rfndStatus": "RS_NOT_SET",
+                    "pnrKey": "",
+                    "sPnr": "B9SHYR",
+                    "aPnr": "",
+                    "travelerAddons": {
+                        "0": {
+                            "ptcType": "",
+                            "flightLevelAddons": {
+                                "IXB$DEL$2025-02-15 16:55$6E-745": {
+                                    "addons": {
+                                        "SEATS": {
+                                            "addonsType": "SEATS",
+                                            "amount": 0.0,
+                                            "code": "10F",
+                                            "status": "SUCCESS",
+                                            "addonList": [],
+                                            "emdNo": "",
+                                            "chargeable": false,
+                                            "quantity": 0,
+                                            "value": 0,
+                                            "unit": "",
+                                            "description": "",
+                                            "weightPerPiece": 0,
+                                            "weightUnit": "",
+                                            "ssrType": "NOT_SET",
+                                            "emdRequired": false,
+                                            "preference": "SPT_NOT_SET"
+                                        }
+                                    }
+                                }
+                            },
+                            "journeyLevelAddons": {}
+                        },
+                        "1": {
+                            "ptcType": "",
+                            "flightLevelAddons": {
+                                "IXB$DEL$2025-02-15 16:55$6E-745": {
+                                    "addons": {
+                                        "SEATS": {
+                                            "addonsType": "SEATS",
+                                            "amount": 0.0,
+                                            "code": "10E",
+                                            "status": "SUCCESS",
+                                            "addonList": [],
+                                            "emdNo": "",
+                                            "chargeable": false,
+                                            "quantity": 0,
+                                            "value": 0,
+                                            "unit": "",
+                                            "description": "",
+                                            "weightPerPiece": 0,
+                                            "weightUnit": "",
+                                            "ssrType": "NOT_SET",
+                                            "emdRequired": false,
+                                            "preference": "SPT_NOT_SET"
+                                        }
+                                    }
+                                }
+                            },
+                            "journeyLevelAddons": {}
+                        }
+                    },
+                    "travelerInfos": [
+                        {
+                            "id": "0",
+                            "title": "MR",
+                            "paxId": "774385364",
+                            "firstName": "Joseph",
+                            "middleName": "",
+                            "lastName": "kattupalamchacko",
+                            "mealPreference": "",
+                            "gender": "MALE",
+                            "emailId": "aircoolmaker@gmail.com",
+                            "mobileNumber": "",
+                            "mobileNumberCountryCode": "",
+                            "paxType": "ADULT",
+                            "dateOfBirth": "1956-06-20",
+                            "nationality": "",
+                            "freqFlierInformation": [],
+                            "pwdLine": "",
+                            "ptcCode": "",
+                            "travelerDocuments": []
+                        },
+                        {
+                            "id": "1",
+                            "title": "MS",
+                            "paxId": "774385365",
+                            "firstName": "Mony",
+                            "middleName": "",
+                            "lastName": "Joseph",
+                            "mealPreference": "",
+                            "gender": "FEMALE",
+                            "emailId": "aircoolmaker@gmail.com",
+                            "mobileNumber": "",
+                            "mobileNumberCountryCode": "",
+                            "paxType": "ADULT",
+                            "dateOfBirth": "1959-05-25",
+                            "nationality": "",
+                            "freqFlierInformation": [],
+                            "pwdLine": "",
+                            "ptcCode": "",
+                            "travelerDocuments": []
+                        }
+                    ],
+                    "ticketInfos": [],
+                    "validatingCarrier": "6E",
+                    "creationDate": "2025-01-22 20:37:47",
+                    "fareFamily": "SAVER",
+                    "accountCode": "",
+                    "scheduleChangeInfo": {},
+                    "maxTicketingTime": "",
+                    "ticketDelayInterval": 0,
+                    "isCouponFare": false,
+                    "fareType": "SENIOR_CITIZEN",
+                    "fareServices": {},
+                    "tcsStatus": "TCS_NOT_SET",
+                    "paxSegmentPnrDetails": [],
+                    "timeZoneOffset": ""
+                }
+            }
+        },
+        "paxTypeAddonStatus": {},
+        "paxSegmentInfo": {
+            "pnrStatus": {
+                "segmentLiftStatus": {
+                    "IXB$DEL$2025-02-15 16:55$6E-745": {
+                        "paxStatus": [
+                            {
+                                "paxRefID": 0,
+                                "liftStatus": "CHECKIN_PENDING"
+                            },
+                            {
+                                "paxRefID": 1,
+                                "liftStatus": "CHECKIN_PENDING"
+                            }
+                        ]
+                    },
+                    "DEL$IDR$2025-02-15 21:05$6E-6377": {
+                        "paxStatus": [
+                            {
+                                "paxRefID": 0,
+                                "liftStatus": "CHECKIN_PENDING"
+                            },
+                            {
+                                "paxRefID": 1,
+                                "liftStatus": "CHECKIN_PENDING"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "bookingStatus": ""
+    },
+    "err": [],
+    "miscData": {
+        "marriedSegId": "",
+        "ticketReq": false,
+        "isInternational": false,
+        "creditCardNumber": "",
+        "approvalCode": "",
+        "dealCode": "",
+        "issuingAgent": "14180366",
+        "commissionCode": "",
+        "agentCode": "",
+        "transactionType": 0,
+        "logicalFlightCount": 0,
+        "reIssued": false,
+        "checkinAPISeatDetails": [],
+        "codeShareIndicator": false,
+        "flightVC": {},
+        "otherMiscFees": [],
+        "validPricingMethod": false,
+        "ableToRetrieveTicketImage": false,
+        "isITFare": false,
+        "validPaxAge": false,
+        "airportTimeZoneOffset": {}
+    },
+    "pnrStatus": "ACTIVE",
+    "contactInfo": {
+        "emailId": "aircoolmaker@gmail.com",
+        "mobileNumberCountryCode": "",
+        "mobileNumber": "919826454810"
+    },
+    "gstInfo": {
+        "gstNumber": "23ACWPJ8844K1ZV",
+        "companyName": "Air coolmaker ",
+        "emailId": "aircoolmaker@gmail.com"
+    },
+    "splitPnrInfo": [],
+    "bookingComments": [],
+    "parentPnr": ""
+}

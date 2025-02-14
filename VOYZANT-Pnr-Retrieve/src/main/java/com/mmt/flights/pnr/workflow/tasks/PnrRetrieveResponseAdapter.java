@@ -373,6 +373,9 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         SupplyFareInfoDTO.Builder builder = SupplyFareInfoDTO.newBuilder();
         SupplyPnrFareInfoDTO.Builder fareInfoBuilder = buildBasicFareInfo(order);
         
+        // Track unique passenger references per pax type
+        Map<String, Set<String>> paxTypeRefsMap = new HashMap<>();
+
         if (order.getOfferItem() != null) {
             Map<String, SupplyFareDetailDTO.Builder> paxTypeFareBuilderMap = new HashMap<>();
             Map<String, Integer> paxTypeCountMap = new HashMap<>();
@@ -387,8 +390,19 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             // First pass: accumulate pax counts and fares
             for (OfferItem offerItem : order.getOfferItem()) {
                 String paxType = offerItem.getPassengerType();
-                paxTypeCountMap.merge(paxType, offerItem.getPassengerQuantity(), Integer::sum);
-                
+                // Collect unique passenger references from FareDetail or Service passengerRefs
+                if (offerItem.getFareDetail() != null 
+                    && StringUtils.isNotBlank(offerItem.getFareDetail().getPassengerRefs())) {
+                    String[] paxRefs = offerItem.getFareDetail().getPassengerRefs().split(",");
+                    Set<String> paxRefSet = paxTypeRefsMap.computeIfAbsent(paxType, k -> new HashSet<>());
+                    for (String ref : paxRefs) {
+                        paxRefSet.add(ref.trim());
+                    }
+                }
+
+                // Instead of summing passengerQuantity directly, skip paxTypeCountMap.merge
+                // ...existing fare accumulation code for base/tax/total...
+
                 SupplyFareDetailDTO.Builder fareDetailBuilder = paxTypeFareBuilderMap.computeIfAbsent(
                     paxType, k -> initializeFareDetailBuilder());
                 
@@ -437,7 +451,8 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             
             // Second pass: build final FareDetails with accumulated values
             paxTypeFareBuilderMap.forEach((paxType, fareDetailBuilder) -> {
-                fareDetailBuilder.setNoOfPax(paxTypeCountMap.get(paxType));
+                Set<String> uniqueRefs = paxTypeRefsMap.getOrDefault(paxType, Collections.emptySet());
+                fareDetailBuilder.setNoOfPax(uniqueRefs.size());
                 fareDetailBuilder.setAirlineFixedFee(0.0);
                 fareDetailBuilder.addAllAirlineFixedFees(Collections.emptyList());
                 
