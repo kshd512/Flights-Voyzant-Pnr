@@ -22,6 +22,7 @@ import com.mmt.flights.supply.common.enums.SupplyPnrStatusTypeOuterClass.SupplyP
 import com.mmt.flights.supply.pnr.v4.request.SupplyPnrRequestDTO;
 import io.grpc.xds.shaded.io.envoyproxy.envoy.api.v2.core.ApiVersion;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.analysis.function.Add;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -475,6 +476,9 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             
             // Add traveler addons
             fareInfoBuilder.putTravelerAddons("0", buildTravelerAddons(dataLists, segmentRefMap));
+
+            //Add traveler infos
+            addTravelerInfos(fareInfoBuilder, dataLists);
         }
         
         builder.putPnrGrpdFrInfo(Integer.parseInt(pnrGroupNo), fareInfoBuilder.build());
