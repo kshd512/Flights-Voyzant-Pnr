@@ -16,8 +16,9 @@ import com.mmt.flights.supply.book.v4.common.SupplyFlightDetailDTO;
 import com.mmt.flights.supply.book.v4.request.SupplyContactInfo;
 import com.mmt.flights.supply.book.v4.request.SupplyGSTInfo;
 import com.mmt.flights.supply.book.v4.response.*;
+import com.mmt.flights.supply.common.SupplyTcsStatus;
+import com.mmt.flights.supply.common.enums.*;
 import com.mmt.flights.supply.common.enums.SupplyPnrStatusTypeOuterClass.SupplyPnrStatusType;
-import com.mmt.flights.supply.common.enums.SupplyStatus;
 import com.mmt.flights.supply.pnr.v4.request.SupplyPnrRequestDTO;
 import io.grpc.xds.shaded.io.envoyproxy.envoy.api.v2.core.ApiVersion;
 import org.apache.commons.lang3.StringUtils;
@@ -101,7 +102,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         }
 
         builder.setBookingInfo(getBookingInfo(order, dataLists, segmentRefMap, flightKeyMap,
-                builder.getFlightLookUpListMap(), "0", cmsMapHolder, version));
+                builder.getFlightLookUpListMap(), 0, cmsMapHolder, version));
                 
         builder.setMetaData(getMetaData(order, cmsMapHolder.getCmsId(), supplierLatency, state,
                 supplyPnrRequestDTO.getEnableTrace()));
@@ -228,7 +229,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                                                Map<String, String> segmentRefMap,
                                                Map<String, String> flightKeyMap,
                                                Map<String, SupplyFlightDTO> flightlookupMap,
-                                               String pnrGroupNo,
+                                               int pnrGroupNo,
                                                CMSMapHolder cmsMapHolder,
                                                ApiVersion version) throws IOException {
         SupplyBookingInfoDTO.Builder builder = SupplyBookingInfoDTO.newBuilder();
@@ -253,97 +254,313 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     private List<SupplyBookingJourneyDTO> getJourneys(DataLists dataLists,
                                                      Map<String, String> segmentRefMap,
                                                      Map<String, SupplyFlightDTO> flightLookupMap,
-                                                     String pnrGroupNo) {
+                                                     int pnrGroupNo) {
         List<SupplyBookingJourneyDTO> journeys = new ArrayList<>();
         
-        if (dataLists != null && dataLists.getFlightSegmentList() != null) {
-            FlightSegmentList segmentList = dataLists.getFlightSegmentList();
-            for (FlightSegment segment : segmentList.getFlightSegment()) {
-                SupplyBookingJourneyDTO journey = getJourney(segment, flightLookupMap, segmentRefMap, pnrGroupNo);
+        if (dataLists != null && dataLists.getFlightList() != null) {
+            FlightList flightList = dataLists.getFlightList();
+            for (Flight flight : flightList.getFlight()) {
+                // Each flight can contain multiple segments
+                SupplyBookingJourneyDTO journey = getJourneyFromFlight(flight, dataLists, flightLookupMap, segmentRefMap, pnrGroupNo);
                 journeys.add(journey);
             }
         }
-        
         return journeys;
     }
 
-    private SupplyBookingJourneyDTO getJourney(FlightSegment segment,
-                                              Map<String, SupplyFlightDTO> flightLookupMap,
-                                              Map<String, String> segmentRefMap,
-                                              String pnrGroupNo) {
+    private SupplyBookingJourneyDTO getJourneyFromFlight(Flight flight,
+                                                      DataLists dataLists,
+                                                      Map<String, SupplyFlightDTO> flightLookupMap,
+                                                      Map<String, String> segmentRefMap,
+                                                      int pnrGroupNo) {
         SupplyBookingJourneyDTO.Builder builder = SupplyBookingJourneyDTO.newBuilder();
         
-        builder.setDepDate(segment.getDeparture().getDate() + "T" + segment.getDeparture().getTime());
-        builder.setArrDate(segment.getArrival().getDate() + "T" + segment.getArrival().getTime());
+        String[] segmentRefs = flight.getSegmentReferences().split("\\s+");
+        FlightSegment firstSegment = null;
+        FlightSegment lastSegment = null;
+        List<String> segmentKeys = new ArrayList<>();
         
-        if (segment.getFlightDetail() != null && segment.getFlightDetail().getFlightDuration() != null) {
-           // builder.setDurInMins(Integer.parseInt(segment.getFlightDetail().getFlightDuration().getValue()));
+        // Find first and last segments and collect all segment keys
+        for (String segmentRef : segmentRefs) {
+            FlightSegment segment = findSegmentByRef(dataLists, segmentRef);
+            if (segment != null) {
+                if (firstSegment == null) {
+                    firstSegment = segment;
+                }
+                lastSegment = segment;
+                
+                String lookupKey = segmentRefMap.get(segmentRef);
+                if (lookupKey != null) {
+                    segmentKeys.add(lookupKey);
+                } else {
+                    // Fallback to building key if not found in map
+                    lookupKey = buildFlightKey(segment);
+                    segmentKeys.add(lookupKey);
+                }
+            }
         }
-
-        String fltkey = segmentRefMap.get(segment.getSegmentKey());
-        SupplyFlightDTO flight = flightLookupMap.get(fltkey);
         
-        if (flight != null) {
-            builder.addFlightDtlsInfo(getFlightDetailsInfo(fltkey, pnrGroupNo));
-            builder.setJrnyKey(AdapterUtil.getJourneyKey(Arrays.asList(flight)));
+        if (firstSegment != null && lastSegment != null) {
+            builder.setDepDate(firstSegment.getDeparture().getDate() + "T" + firstSegment.getDeparture().getTime());
+            builder.setArrDate(lastSegment.getArrival().getDate() + "T" + lastSegment.getArrival().getTime());
+            
+            // Add all segments' flight details
+            for (String lookupKey : segmentKeys) {
+                builder.addFlightDtlsInfo(getFlightDetailsInfo(lookupKey, pnrGroupNo));
+            }
+            
+            // Set journey key as all segment lookup keys joined by |
+            String journeyKey = String.join("|", segmentKeys);
+            builder.setJrnyKey(journeyKey);
         }
 
         return builder.build();
     }
 
-    private SupplyFareInfoDTO getFareInfo(String pnrGroupNo, Order order, DataLists dataLists,
+    private String buildFlightKey(String depCode, String arrCode, String depDate, 
+                                String depTime, String airlineCode, String flightNumber) {
+        return String.format("%s$%s$%s %s$%s-%s", 
+            depCode, arrCode, depDate, depTime, airlineCode, flightNumber);
+    }
+
+    private FlightSegment findSegmentByRef(DataLists dataLists, String segmentRef) {
+        if (dataLists.getFlightSegmentList() != null) {
+            for (FlightSegment segment : dataLists.getFlightSegmentList().getFlightSegment()) {
+                if (segmentRef.equals(segment.getSegmentKey())) {
+                    return segment;
+                }
+            }
+        }
+        return null;
+    }
+
+    private SupplyPnrFareInfoDTO.Builder buildBasicFareInfo(Order order) {
+        SupplyPnrFareInfoDTO.Builder fareInfoBuilder = SupplyPnrFareInfoDTO.newBuilder();
+        fareInfoBuilder.setStatus(SupplyStatus.SUCCESS);
+        fareInfoBuilder.setRfndStatus(SupplyRefundStatusDTO.RS_NOT_SET);
+        fareInfoBuilder.setPnrKey("");
+        fareInfoBuilder.setSPnr(order.getOrderID());
+        fareInfoBuilder.setAPnr(order.getGdsBookingReference());
+        fareInfoBuilder.setValidatingCarrier(order.getOwner());
+        fareInfoBuilder.setCreationDate(order.getTimeLimits() != null ? order.getTimeLimits().getOfferExpirationDateTime() : "");
+        fareInfoBuilder.setFareFamily("FLEXI PLUS");  // Based on sample
+        fareInfoBuilder.setAccountCode("");
+        fareInfoBuilder.setMaxTicketingTime("");
+        fareInfoBuilder.setTicketDelayInterval(0);
+        fareInfoBuilder.setIsCouponFare(false);
+        fareInfoBuilder.setFareType(SupplyFareType.REGULAR);
+        fareInfoBuilder.setTcsStatus(SupplyTcsStatus.TCS_NOT_SET);
+        fareInfoBuilder.setTimeZoneOffset("");
+        fareInfoBuilder.addAllTicketInfos(Collections.emptyList()); // Initialize empty ticket infos list
+        fareInfoBuilder.putAllScheduleChangeInfo(new HashMap<>()); // Initialize empty schedule change info
+        return fareInfoBuilder;
+    }
+
+    private SupplyFareDetailDTO.Builder initializeFareDetailBuilder() {
+        SupplyFareDetailDTO.Builder builder = SupplyFareDetailDTO.newBuilder();
+        builder.setBs(0.0);
+        builder.setTx(0.0);
+        builder.setTot(0.0);
+        return builder;
+    }
+
+    private SupplyFareInfoDTO getFareInfo(int pnrGroupNo, Order order, DataLists dataLists,
                                         Map<String, String> segmentRefMap,
                                         Map<String, String> flightKeyMap,
                                         CMSMapHolder cmsMapHolder,
                                         Map<String, String> flightToJourneyMap) {
         SupplyFareInfoDTO.Builder builder = SupplyFareInfoDTO.newBuilder();
-        SupplyPnrFareInfoDTO.Builder fareInfoBuilder = SupplyPnrFareInfoDTO.newBuilder();
-        setPnrs(fareInfoBuilder, order);
+        SupplyPnrFareInfoDTO.Builder fareInfoBuilder = buildBasicFareInfo(order);
         
         if (order.getOfferItem() != null) {
             Map<String, SupplyFareDetailDTO.Builder> paxTypeFareBuilderMap = new HashMap<>();
+            Map<String, Integer> paxTypeCountMap = new HashMap<>();
             
+            // First pass: accumulate pax counts and fares
             for (OfferItem offerItem : order.getOfferItem()) {
                 String paxType = offerItem.getPassengerType();
+                paxTypeCountMap.merge(paxType, offerItem.getPassengerQuantity(), Integer::sum);
+                
                 SupplyFareDetailDTO.Builder fareDetailBuilder = paxTypeFareBuilderMap.computeIfAbsent(
-                    paxType, k -> SupplyFareDetailDTO.newBuilder());
-
-                if (offerItem.getTotalPriceDetail() != null) {
-                    fareDetailBuilder.setBs(offerItem.getTotalPriceDetail().getTotalAmount().getBookingCurrencyPrice());
-                    fareDetailBuilder.setTx(0.0); // Set tax if available
-                    fareDetailBuilder.setTot(offerItem.getTotalPriceDetail().getTotalAmount().getBookingCurrencyPrice());
+                    paxType, k -> initializeFareDetailBuilder());
+                
+                FareDetail fareDetail = offerItem.getFareDetail();
+                if (fareDetail != null && fareDetail.getPrice() != null) {
+                    Price price = fareDetail.getPrice();
+                    
+                    // Accumulate fares for this passenger type
+                    fareDetailBuilder.setBs(fareDetailBuilder.getBs() + price.getBaseAmount().getBookingCurrencyPrice());
+                    fareDetailBuilder.setTx(fareDetailBuilder.getTx() + price.getTaxAmount().getBookingCurrencyPrice());
+                    fareDetailBuilder.setTot(fareDetailBuilder.getTot() + price.getTotalAmount().getBookingCurrencyPrice());
+                    
+                    // Add tax breakups if not already present
+                    if (price.getTaxes() != null && fareDetailBuilder.getTaxBreakupsList().isEmpty()) {
+                        for (Tax tax : price.getTaxes()) {
+                            SupplyTaxBreakupDTO.Builder taxBreakupBuilder = SupplyTaxBreakupDTO.newBuilder();
+                            taxBreakupBuilder.setAmnt(tax.getBookingCurrencyPrice());
+                            taxBreakupBuilder.setCode(tax.getTaxCode());
+                            taxBreakupBuilder.setMsg("");
+                            fareDetailBuilder.addTaxBreakups(taxBreakupBuilder.build());
+                        }
+                    }
                 }
-
-                fareDetailBuilder.setNoOfPax(offerItem.getPassengerQuantity());
-
+                
+                // Process segments and fare components
                 if (offerItem.getFareComponent() != null) {
-                    for (FareComponent fareComponent : offerItem.getFareComponent()) {
-                        processSegmentFares(fareComponent, segmentRefMap, fareDetailBuilder);
+                    String flightRef = getFlightRefForOfferItem(offerItem, dataLists);
+                    Flight flight = findFlightByRef(dataLists, flightRef);
+                    
+                    if (flight != null) {
+                        processFlightFares(flight, offerItem, fareDetail, segmentRefMap, dataLists, fareDetailBuilder);
                     }
                 }
             }
-
-            paxTypeFareBuilderMap.forEach((paxType, fareDetailBuilder) -> 
-                fareInfoBuilder.putPaxFares(paxType, fareDetailBuilder.build()));
+            
+            // Second pass: set final values for each passenger type
+            paxTypeFareBuilderMap.forEach((paxType, fareDetailBuilder) -> {
+                fareDetailBuilder.setNoOfPax(paxTypeCountMap.get(paxType));
+                fareDetailBuilder.setAirlineFixedFee(0.0);
+                fareDetailBuilder.addAllAirlineFixedFees(Collections.emptyList());
+                fareInfoBuilder.putPaxFares(paxType, fareDetailBuilder.build());
+            });
+            
+            // Set total fare info
+            SupplyTotalFareDTO.Builder totFrBuilder = SupplyTotalFareDTO.newBuilder();
+            totFrBuilder.setBs(order.getBasePrice().getBookingCurrencyPrice());
+            totFrBuilder.setTx(order.getTaxPrice().getBookingCurrencyPrice());
+            totFrBuilder.setTot(order.getTotalPrice().getBookingCurrencyPrice());
+            totFrBuilder.setAirlineFixedFee(0.0);
+            fareInfoBuilder.setTotFr(totFrBuilder.build());
+            
+            // Add traveler addons
+            fareInfoBuilder.putTravelerAddons("0", buildTravelerAddons(dataLists, segmentRefMap));
+            
+            // Add traveler infos
+            addTravelerInfos(fareInfoBuilder, dataLists);
         }
         
-        builder.putPnrGrpdFrInfo(Integer.parseInt(pnrGroupNo), fareInfoBuilder.build());
+        builder.putPnrGrpdFrInfo(pnrGroupNo, fareInfoBuilder.build());
         return builder.build();
     }
 
-    private void processSegmentFares(FareComponent fareComponent, 
-                                   Map<String, String> segmentRefMap,
-                                   SupplyFareDetailDTO.Builder fareDetailBuilder) {
-        String segmentKey = fareComponent.getSegmentRefs();
-        String flightKey = segmentRefMap.get(segmentKey);
-        
-        if (flightKey != null && fareComponent.getFareBasis() != null) {
-            SupplySegmentProductInfo.Builder segProductBuilder = SupplySegmentProductInfo.newBuilder();
-            segProductBuilder.setFareBasis(fareComponent.getFareBasis().getFareBasisCode().getCode());
-            segProductBuilder.setFareClass(fareComponent.getFareBasis().getRbd());
-            segProductBuilder.setCabin(fareComponent.getFareBasis().getCabinType());
-            fareDetailBuilder.putSegPrdctInfo(flightKey, segProductBuilder.build());
+    private String getFlightRefForOfferItem(OfferItem offerItem, DataLists dataLists) {
+        if (offerItem.getService() != null && !offerItem.getService().isEmpty()) {
+            return offerItem.getService().get(0).getFlightRefs();
         }
+        return null;
+    }
+
+    private Flight findFlightByRef(DataLists dataLists, String flightRef) {
+        if (dataLists.getFlightList() != null) {
+            for (Flight flight : dataLists.getFlightList().getFlight()) {
+                if (flightRef.equals(flight.getFlightKey())) {
+                    return flight;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void processFlightFares(Flight flight, 
+                                  OfferItem offerItem,
+                                  FareDetail fareDetail,
+                                  Map<String, String> segmentRefMap,
+                                  DataLists dataLists,
+                                  SupplyFareDetailDTO.Builder fareDetailBuilder) {
+        if (flight == null || fareDetail == null || fareDetail.getPrice() == null) {
+            return;
+        }
+
+        String[] segmentRefs = flight.getSegmentReferences().split("\\s+");
+        Price price = fareDetail.getPrice();
+        
+        for (int i = 0; i < segmentRefs.length; i++) {
+            String segmentRef = segmentRefs[i];
+            FlightSegment segment = findSegmentByRef(dataLists, segmentRef);
+            
+            if (segment != null) {
+                String flightKey = segmentRefMap.get(segmentRef);
+                if (flightKey != null) {
+                    SupplySegmentProductInfo.Builder segProductBuilder = SupplySegmentProductInfo.newBuilder();
+                    
+                    // Set fare basis info
+                    if (!offerItem.getFareComponent().isEmpty()) {
+                        FareComponent fareComponent = offerItem.getFareComponent().get(0);
+                        FareBasis fareBasis = fareComponent.getFareBasis();
+                        
+                        segProductBuilder.setFareBasis(fareBasis.getFareBasisCode().getCode());
+                        segProductBuilder.setFareClass(fareBasis.getRbd());
+                        segProductBuilder.setProductClass("J");
+                        segProductBuilder.setCabin("ECONOMY");
+                    }
+                    
+                    // Set baggage info
+                    SupplySegmentProductInfo.SupplyBagGroup.Builder baggageBuilder = SupplySegmentProductInfo.SupplyBagGroup.newBuilder();
+                    SupplyBagInfo.Builder cabinBagBuilder = SupplyBagInfo.newBuilder();
+                    cabinBagBuilder.setNumOfPieces(1);
+                    cabinBagBuilder.setWeightPerPiece(15);
+                    cabinBagBuilder.setWeightUnit("Kilograms");
+                    cabinBagBuilder.setTotalWeight(0);
+                    baggageBuilder.setCabinBag(cabinBagBuilder.build());
+                    segProductBuilder.setBaggageInfo(baggageBuilder.build());
+                    
+                    // Set segment fare - full amount for first segment only
+                    SupplySegmentFare.Builder sgFareBuilder = SupplySegmentFare.newBuilder();
+                    
+                    if (i == 0) {
+                        // First segment gets the full fare
+                        sgFareBuilder.setBs(price.getBaseAmount().getBookingCurrencyPrice())
+                            .setTx(price.getTaxAmount().getBookingCurrencyPrice())
+                            .setTot(price.getTotalAmount().getBookingCurrencyPrice())
+                            .setDiscount(0.0)
+                            .setAirlineFixedFee(0.0);
+                            
+                        // Copy tax breakups to first segment
+                        if (price.getTaxes() != null) {
+                            for (Tax tax : price.getTaxes()) {
+                                SupplyTaxBreakupDTO.Builder taxBreakupBuilder = SupplyTaxBreakupDTO.newBuilder();
+                                taxBreakupBuilder.setAmnt(tax.getBookingCurrencyPrice());
+                                taxBreakupBuilder.setCode(tax.getTaxCode());
+                                taxBreakupBuilder.setMsg("");
+                                sgFareBuilder.addTaxBreakups(taxBreakupBuilder.build());
+                            }
+                        }
+                    } else {
+                        // Other segments get zero fare
+                        sgFareBuilder.setBs(0.0)
+                            .setTx(0.0)
+                            .setTot(0.0)
+                            .setDiscount(0.0)
+                            .setAirlineFixedFee(0.0);
+                    }
+                    
+                    sgFareBuilder.addAllAirlineFixedFees(Collections.emptyList());
+                    segProductBuilder.setSgFare(sgFareBuilder.build());
+                    
+                    // Set fare key
+                    String fareKey = String.format("0~%s~~%s~%s~2002~~0~0~~X",
+                        offerItem.getFareComponent().get(0).getFareBasis().getRbd(),
+                        offerItem.getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode(),
+                        segment.getMarketingCarrier().getAirlineID());
+                    segProductBuilder.setFareKey(fareKey);
+                    segProductBuilder.setFareExpDate("");
+                    
+                    fareDetailBuilder.putSegPrdctInfo(flightKey, segProductBuilder.build());
+                }
+            }
+        }
+    }
+
+    private String getFlightDirection(Flight flight, DataLists dataLists) {
+        String[] segmentRefs = flight.getSegmentReferences().split("\\s+");
+        if (segmentRefs.length > 0) {
+            FlightSegment firstSegment = findSegmentByRef(dataLists, segmentRefs[0]);
+            if (firstSegment != null) {
+                return firstSegment.getDeparture().getAirportCode() + "-" + 
+                       firstSegment.getArrival().getAirportCode();
+            }
+        }
+        return "";
     }
 
     private void setPnrs(SupplyPnrFareInfoDTO.Builder builder, Order order) {
@@ -370,10 +587,117 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         return builder.build();
     }
 
-    private SupplyFlightDetailDTO getFlightDetailsInfo(String fltKey, String pnrGroupNo) {
+    private SupplyFlightDetailDTO getFlightDetailsInfo(String fltkey, int pnrGroupNo) {
         return SupplyFlightDetailDTO.newBuilder()
-            .setFltLookUpKey(fltKey)
-            .setPnrGroupNum(Integer.parseInt(pnrGroupNo))
+            .setFltLookUpKey(fltkey)
+            .setPnrGroupNum(pnrGroupNo)
             .build();
+    }
+
+    private SupplyTravelerAddons buildTravelerAddons(DataLists dataLists, Map<String, String> segmentRefMap) {
+        SupplyTravelerAddons.Builder travelerAddonsBuilder = SupplyTravelerAddons.newBuilder();
+        travelerAddonsBuilder.setPtcType("");
+        
+        Map<String, SupplyTravelerAddons.AddonsMap> flightLevelAddonsMap = new HashMap<>();
+        
+        if (dataLists != null && dataLists.getFlightList() != null) {
+            for (Flight flight : dataLists.getFlightList().getFlight()) {
+                String[] segmentRefs = flight.getSegmentReferences().split("\\s+");
+                for (String segmentRef : segmentRefs) {
+                    FlightSegment segment = findSegmentByRef(dataLists, segmentRef);
+                    if (segment != null) {
+                        String flightKey = buildFlightKey(segment);
+                        
+                        SupplyTravelerAddons.AddonsMap.Builder addonsMapBuilder = SupplyTravelerAddons.AddonsMap.newBuilder();
+                        Map<String, SupplyAddons> addonsMap = new HashMap<>();
+                        
+                     /*   // Add SEATS addon
+                        addonsMap.put("SEATS", SupplyAddons.newBuilder()
+                            .setAddonsType("SEATS")
+                            .setAmount(0.0)
+                            .setCode("26F")
+                            .setStatus("SUCCESS")
+                            .setChargeable(false)
+                            .setQuantity(0)
+                            .setValue(0)
+                            .setUnit("")
+                            .setDescription("")
+                            .setWeightPerPiece(0)
+                            .setWeightUnit("")
+                            .setSsrType("NOT_SET")
+                            .setEmdRequired(false)
+                            .setPreference("SPT_NOT_SET")
+                            .build());
+                        
+                        // Add MEALS addon
+                        addonsMap.put("MEALS", SupplyAddons.newBuilder()
+                            .setAddonsType("MEALS")
+                            .setAmount(0.0)
+                            .setCode("FRCK")
+                            .setStatus("SUCCESS")
+                            .setChargeable(false)
+                            .setQuantity(0)
+                            .setValue(0)
+                            .setUnit("")
+                            .setDescription("")
+                            .setWeightPerPiece(0)
+                            .setWeightUnit("")
+                            .setSsrType("NOT_SET")
+                            .setEmdRequired(false)
+                            .setPreference("SPT_NOT_SET")
+                            .build());*/
+                        
+                        addonsMapBuilder.putAllAddons(addonsMap);
+                        flightLevelAddonsMap.put(flightKey, addonsMapBuilder.build());
+                    }
+                }
+            }
+        }
+        
+        travelerAddonsBuilder.putAllFlightLevelAddons(flightLevelAddonsMap);
+        travelerAddonsBuilder.putAllJourneyLevelAddons(new HashMap<>()); // Empty journey level addons
+        
+        return travelerAddonsBuilder.build();
+    }
+
+    private String buildFlightKey(FlightSegment segment) {
+        return buildFlightKey(
+            segment.getDeparture().getAirportCode(),
+            segment.getArrival().getAirportCode(),
+            segment.getDeparture().getDate(),
+            segment.getDeparture().getTime(),
+            segment.getMarketingCarrier().getAirlineID(),
+            segment.getMarketingCarrier().getFlightNumber()
+        );
+    }
+
+    private void addTravelerInfos(SupplyPnrFareInfoDTO.Builder fareInfoBuilder, DataLists dataLists) {
+        if (dataLists != null && dataLists.getPassengerList() != null && dataLists.getPassengerList().getPassengers() != null) {
+            for (Passenger passenger : dataLists.getPassengerList().getPassengers()) {
+                SupplyTravelerInfoDTO.Builder travelerBuilder = SupplyTravelerInfoDTO.newBuilder();
+                travelerBuilder.setId(passenger.getPassengerID())
+                    .setTitle(passenger.getNameTitle())
+                    .setPaxId(passenger.getPassengerID())
+                    .setFirstName(passenger.getFirstName())
+                    .setMiddleName(StringUtils.defaultString(passenger.getMiddleName(), ""))
+                    .setLastName(passenger.getLastName())
+                    .setMealPreference("")
+                    .setGender(SupplyGenderOuterClass.SupplyGender.MALE)
+                    .setEmailId(getFirstOrEmpty(dataLists.getContactEmail()))
+                    .setMobileNumber(getFirstOrEmpty(dataLists.getContactNumber()))
+                    .setMobileNumberCountryCode("")
+                    .setPaxType(SupplyPaxType.ADULT)
+                    .setDateOfBirth("")
+                    .setNationality("")
+                    .setPwdLine("")
+                    .setPtcCode("");
+                
+                fareInfoBuilder.addTravelerInfos(travelerBuilder.build());
+            }
+        }
+    }
+
+    private String getFirstOrEmpty(List<String> list) {
+        return (list != null && !list.isEmpty()) ? list.get(0) : "";
     }
 }
