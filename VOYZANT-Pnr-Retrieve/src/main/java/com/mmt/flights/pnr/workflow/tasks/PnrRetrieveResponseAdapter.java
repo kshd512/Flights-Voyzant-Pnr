@@ -202,8 +202,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             try {
                 builder.putTraceInfo("Request", 
                     jaxbHandlerService.marshall(state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_REQUEST)));
-                builder.putTraceInfo("Response",
-                    jaxbHandlerService.marshall(state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE)));
+                builder.putTraceInfo("Response",state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE));
             } catch (Exception e) {
                 // Log error but continue
             }
