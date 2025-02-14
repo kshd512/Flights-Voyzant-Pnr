@@ -22,7 +22,6 @@ import com.mmt.flights.supply.common.enums.SupplyPnrStatusTypeOuterClass.SupplyP
 import com.mmt.flights.supply.pnr.v4.request.SupplyPnrRequestDTO;
 import io.grpc.xds.shaded.io.envoyproxy.envoy.api.v2.core.ApiVersion;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.math3.analysis.function.Add;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -102,8 +101,8 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             builder.setPnrStatus(SupplyPnrStatusType.CUSTOMER_CANCELED);
         }
 
-        builder.setBookingInfo(getBookingInfo(order, dataLists, segmentRefMap, flightKeyMap,
-                builder.getFlightLookUpListMap(), 0, cmsMapHolder, version));
+        builder.setBookingInfo(getBookingInfo(order, dataLists, segmentRefMap,
+                builder.getFlightLookUpListMap(), 0, version));
                 
         builder.setMetaData(getMetaData(order, cmsMapHolder.getCmsId(), supplierLatency, state,
                 supplyPnrRequestDTO.getEnableTrace()));
@@ -228,10 +227,8 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
     private SupplyBookingInfoDTO getBookingInfo(Order order, DataLists dataLists,
                                                Map<String, String> segmentRefMap,
-                                               Map<String, String> flightKeyMap,
                                                Map<String, SupplyFlightDTO> flightlookupMap,
                                                int pnrGroupNo,
-                                               CMSMapHolder cmsMapHolder,
                                                ApiVersion version) throws IOException {
         SupplyBookingInfoDTO.Builder builder = SupplyBookingInfoDTO.newBuilder();
         
@@ -247,7 +244,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             }
         }
 
-        builder.setFrInfo(getFareInfo(String.valueOf(pnrGroupNo), order, dataLists, segmentRefMap, flightKeyMap, cmsMapHolder, flightToJourneyMap));
+        builder.setFrInfo(getFareInfo(String.valueOf(pnrGroupNo), order, dataLists, segmentRefMap));
         builder.setPaxSegmentInfo(getPaxSegmentInfo(order, dataLists));
         return builder.build();
     }
@@ -366,10 +363,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     }
 
     private SupplyFareInfoDTO getFareInfo(String pnrGroupNo, Order order, DataLists dataLists,
-                                        Map<String, String> segmentRefMap,
-                                        Map<String, String> flightKeyMap,
-                                        CMSMapHolder cmsMapHolder,
-                                        Map<String, String> flightToJourneyMap) {
+                                        Map<String, String> segmentRefMap) {
         SupplyFareInfoDTO.Builder builder = SupplyFareInfoDTO.newBuilder();
         SupplyPnrFareInfoDTO.Builder fareInfoBuilder = buildBasicFareInfo(order);
         
