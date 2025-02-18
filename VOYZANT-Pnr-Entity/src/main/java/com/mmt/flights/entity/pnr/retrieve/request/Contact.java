@@ -1,14 +1,16 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
-class Contact {
-    private String emailcontact;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    // Getters and Setters
-    public String getEmailcontact() {
-        return emailcontact;
+public class Contact {
+    @JsonProperty("emailcontact")
+    private String emailContact;
+
+    public String getEmailContact() {
+        return emailContact;
     }
 
-    public void setEmailcontact(String emailcontact) {
-        this.emailcontact = emailcontact;
+    public void setEmailContact(String emailContact) {
+        this.emailContact = emailContact;
     }
 }

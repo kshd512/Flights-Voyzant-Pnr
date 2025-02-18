@@ -1,9 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
-class Party {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class Party {
+    @JsonProperty("sender")
     private Sender sender;
 
-    // Getters and Setters
     public Sender getSender() {
         return sender;
     }

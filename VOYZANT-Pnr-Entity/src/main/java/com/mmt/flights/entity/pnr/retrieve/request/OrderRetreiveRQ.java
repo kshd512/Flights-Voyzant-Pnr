@@ -1,17 +1,24 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
-class OrderRetrieveRQ {
-    private Document Document;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class OrderRetreiveRQ {
+    @JsonProperty("Document")
+    private Document document;
+    
+    @JsonProperty("party")
     private Party party;
-    private Query Query;
+    
+    @JsonProperty("Query")
+    private Query query;
 
     // Getters and Setters
     public Document getDocument() {
-        return Document;
+        return document;
     }
 
     public void setDocument(Document document) {
-        this.Document = document;
+        this.document = document;
     }
 
     public Party getParty() {
@@ -23,10 +30,10 @@ class OrderRetrieveRQ {
     }
 
     public Query getQuery() {
-        return Query;
+        return query;
     }
 
     public void setQuery(Query query) {
-        this.Query = query;
+        this.query = query;
     }
 }

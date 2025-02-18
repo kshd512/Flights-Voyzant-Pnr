@@ -9,7 +9,6 @@ import com.mmt.flights.common.logging.MMTLogger;
 import com.mmt.flights.common.logging.SupplierStep;
 import com.mmt.flights.common.logging.TaskLog;
 import com.mmt.flights.common.logging.metric.MetricServices;
-import com.mmt.flights.common.voyzant.VOYZANTClient;
 import com.mmt.flights.common.util.HttpClientUtil;
 import com.mmt.flights.common.util.JaxbHandlerService;
 import com.mmt.flights.common.util.ScrambleUtil;
@@ -31,9 +30,6 @@ public class PnrRetrieveNetworkCall implements MapTask {
 
     @Autowired
     HiveRequestResponseLogger hive;
-
-    @Autowired
-    private VOYZANTClient VOYZANTClient;
 
     @Autowired
     private ConnectorEndpoints endpoints;
@@ -60,8 +56,7 @@ public class PnrRetrieveNetworkCall implements MapTask {
             taskLog.setRequest(MMTLogger.convertToJson(supplierPnrRequest));
             response = httpClientUtil.post(url, supplierPnrRequest, String.class, cmsMap.getCmsMap());
             taskLog.setResponse(MMTLogger.convertToJson(response));
-            validateResponse(response);
-        } catch (PSErrorException e){
+        } catch (PSErrorException e) {
             errorCode = e.getPsErrorEnum();
             throw e;
         } catch (Exception e){
@@ -73,9 +68,6 @@ public class PnrRetrieveNetworkCall implements MapTask {
             MMTLogger.logTimeForNetworkCall(state, MetricServices.PNR_RETRIEVE_NETWORK_CALL_LATENCY.name(), startTime);
         }
         return response;
-    }
-
-    private void validateResponse(String response) {
     }
 
     private void logEncrypted(FlowState state, TaskLog taskLog) {

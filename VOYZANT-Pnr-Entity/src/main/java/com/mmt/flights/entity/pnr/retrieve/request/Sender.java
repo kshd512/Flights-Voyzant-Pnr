@@ -1,14 +1,16 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
-class Sender {
-    private TravelAgencySender travelagencysender;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    // Getters and Setters
-    public TravelAgencySender getTravelagencysender() {
-        return travelagencysender;
+public class Sender {
+    @JsonProperty("travelagencysender")
+    private TravelAgencySender travelAgencySender;
+
+    public TravelAgencySender getTravelAgencySender() {
+        return travelAgencySender;
     }
 
-    public void setTravelagencysender(TravelAgencySender travelagencysender) {
-        this.travelagencysender = travelagencysender;
+    public void setTravelAgencySender(TravelAgencySender travelAgencySender) {
+        this.travelAgencySender = travelAgencySender;
     }
 }

@@ -1,16 +1,16 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class OrderRetrieveRequest {
-    private OrderRetrieveRQ OrderRetreiveRQ;
+    @JsonProperty("OrderRetreiveRQ")
+    private OrderRetreiveRQ orderRetreiveRQ;
 
-    // Getters and Setters
-    public OrderRetrieveRQ getOrderRetreiveRQ() {
-        return OrderRetreiveRQ;
+    public OrderRetreiveRQ getOrderRetreiveRQ() {
+        return orderRetreiveRQ;
     }
 
-    public void setOrderRetreiveRQ(OrderRetrieveRQ orderRetreiveRQ) {
-        this.OrderRetreiveRQ = orderRetreiveRQ;
+    public void setOrderRetreiveRQ(OrderRetreiveRQ orderRetreiveRQ) {
+        this.orderRetreiveRQ = orderRetreiveRQ;
     }
 }

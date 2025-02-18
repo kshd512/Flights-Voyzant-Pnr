@@ -1,11 +1,12 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-class Contacts {
+public class Contacts {
+    @JsonProperty("contact")
     private List<Contact> contact;
 
-    // Getters and Setters
     public List<Contact> getContact() {
         return contact;
     }
