@@ -21,7 +21,10 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import rx.Observable;
 
@@ -204,46 +207,6 @@ public class CancelPnrController {
                     PSCommonErrorEnum.FLT_UNKNOWN_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR));
         }
 
-        return deferredResult;
-    }
-
-    @RequestMapping(value = EndpointConstants.CHECK_REFUND, method = RequestMethod.POST)
-    @ApiOperation(value = "VOYZANT check refund API", response = SupplyValidateCancelResponseDTO.class, notes = "This API pnr with VOYZANT connector")
-    public DeferredResult<ResponseEntity<SupplyPnrCancelResponseDTO>> checkRefund(
-            @RequestBody SupplyPnrCancelRequestDTO cancelRequest) {
-        long startTime = System.currentTimeMillis();
-        long timeout = techConfig.getPnrCancelTimeout();
-        DeferredResult<ResponseEntity<SupplyPnrCancelResponseDTO>> deferredResult = new DeferredResult<>(timeout);
-        try {
-            String logKey = cancelRequest.getRequestConfig().getCorrelationId();
-            MMTLogger.info(
-                    (new LogParams.LogParamsBuilder())
-                            .correlationId(logKey)
-                            .lob(cancelRequest.getRequestConfig().getLob())
-                            .src(cancelRequest.getRequestConfig().getSource())
-                            .className(this.getClass().getName())
-                            .extraInfo("Check refund request")
-                            .serviceName(MetricServices.CHECK_REFUND_REQUEST_COUNTER.name())
-                            .request(MMTLogger.convertProtoToJson(cancelRequest))
-                            .build(),
-                    MetricType.LOG_FILE, MetricType.LOG_COUNTER);
-            Observable<SupplyPnrCancelResponseDTO> observableResponse = cancelPnrService.checkRefund(cancelRequest);
-            observableResponse
-                    .subscribe(new CancelPnrSubscriber(deferredResult, cancelRequest, startTime, timeout));
-
-        } catch (Exception e) {
-            MMTLogger.error((new LogParams.LogParamsBuilder())
-                            .serviceName(MetricServices.PNR_CANCEL_REQUEST_ERROR.name())
-                            .className(this.getClass().getName())
-                            .src(cancelRequest.getRequestConfig().getSource()).lob(cancelRequest.getRequestConfig().getLob())
-                            .request(MMTLogger.convertProtoToJson(cancelRequest)).throwable(e)
-                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .errorCode(PSCommonErrorEnum.FLT_UNKNOWN_ERROR.getCode()).build(), MetricType.LOG_FILE,
-                    MetricType.LOG_COUNTER);
-            deferredResult.setErrorResult(new ResponseEntity<>(AdapterUtil.getErroneousResponseValidateCancel(
-                    HttpStatus.INTERNAL_SERVER_ERROR, PSCommonErrorEnum.FLT_UNKNOWN_ERROR.getCode(), e.getMessage(),
-                    PSCommonErrorEnum.FLT_UNKNOWN_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR));
-        }
         return deferredResult;
     }
 }

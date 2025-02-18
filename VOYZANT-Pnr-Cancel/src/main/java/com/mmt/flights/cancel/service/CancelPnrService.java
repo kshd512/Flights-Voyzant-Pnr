@@ -31,12 +31,4 @@ public class CancelPnrService {
     public Observable<SupplyPnrCancelResponseDTO> cancelReleasePnr(SupplyPnrCancelRequestDTO request) {
         return FlowExecutor.getBuilder(CancelPnrWorkflowBuilder.cancelRelease(), new CancellationHandler(hiveLogger)).build().execute(Observable.just(request));
     }
-
-    public Observable<SupplyPnrCancelResponseDTO> checkRefund(SupplyPnrCancelRequestDTO request) {
-        if(request.getRequestCore().getVoidTicket()) {
-            return FlowExecutor.getBuilder(CancelPnrWorkflowBuilder.checkVoidStatus(), new CheckRefundHandler(hiveLogger)).build().execute(Observable.just(request));
-        } else {
-            return FlowExecutor.getBuilder(CancelPnrWorkflowBuilder.checkRefund(), new CheckRefundHandler(hiveLogger)).build().execute(Observable.just(request));
-        }
-    }
 }

@@ -28,29 +28,9 @@ public class CancelPnrWorkflowBuilder {
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapter.class)
                 .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
+                .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
-                .toMap(CheckRefundRequestAdapterTask.class)
-                .toMap(CheckRefundNetworkCallTask.class)
-                .toMap(CheckRefundPnrResponseAdapterTask.class)
-                .toMap(DummyTask.class, completeFlow()).build();
-    }
-
-    public static WorkFlow checkRefund() {
-        return new WorkFlow.Builder()
-                .defineMap(CMSManagerTask.class)
-                .toMap(CheckRefundRequestAdapterTaskV2.class)
-                .toMap(CheckRefundNetworkCallTask.class)
-                .toMap(CheckRefundPnrResponseAdapterTask.class)
-                .toMap(DummyTask.class, completeFlow()).build();
-    }
-
-    public static WorkFlow checkVoidStatus() {
-        return new WorkFlow.Builder()
-                .defineMap(CMSManagerTask.class)
-                .toMap(VoidStatusCheckPnrRetrieveRequestAdapterTask.class)
-                .toMap(PnrRetrieveNetworkCall.class)
-                .toMap(CheckVoidStatusResponseAdapterTask.class)
                 .toMap(DummyTask.class, completeFlow()).build();
     }
 
