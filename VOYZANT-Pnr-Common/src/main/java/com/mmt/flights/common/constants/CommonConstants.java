@@ -26,4 +26,5 @@ public class CommonConstants {
 
 	public static final String VERSION_V1 = "v1";
 	public static final String VERSION_V2 = "v2";
+	public static final String EMPTY_STRING = "";
 }

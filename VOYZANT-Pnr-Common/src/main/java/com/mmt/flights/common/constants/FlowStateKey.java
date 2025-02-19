@@ -1,10 +1,6 @@
 package com.mmt.flights.common.constants;
 
 public class FlowStateKey {
-
-
-
-
 	public static final String CRID = "CRID";
 	public static final String LOB = "LOB";
 	public static final String SRC = "SRC";
@@ -17,11 +13,6 @@ public class FlowStateKey {
 	public static final String CANCEL_PNR_REQUEST = "CANCEL_PNR_REQUEST";
 	public static final String CANCEL_PNR_RESPONSE = "CANCEL_PNR_RESPONSE";
 	public static final String CHECK_REFUND_REQUEST = "CHECK_REFUND_REQUEST";
-	public static final String CHECK_REFUND_RESPONSE = "CHECK_REFUND_RESPONSE";
-	public static final String VOID_CANCEL_REQUEST = "VOID_CANCEL_REQUEST";
-	public static final String VOID_CANCEL_RESPONSE = "VOID_CANCEL_RESPONSE";
-	public static final String CANCEL_RELEASE_REQUEST = "CANCEL_RELEASE_REQUEST";
-	public static final String CANCEL_RELEASE_RESPONSE = "CANCEL_RELEASE_RESPONSE";
 	public static final String PNR_RETRIEVE_REQUEST = "PNR_RETRIEVE_REQUEST";
 
     public static final String SPLIT_PNR_REQUEST = "SPLIT_PNR_REQUEST";
@@ -30,9 +21,6 @@ public class FlowStateKey {
 	public static final String FUNNEL_STEP = "FUNNEL_STEP";
 	public static final String REQUEST = "REQUEST";
 	public static final String RESPONSE = "RESPONSE";
-
-    public static final String SESSION_DURATION = "SESSION_DURATION";
-    public static final String RESPONSE_DURATION = "RESPONSE_DURATION";
     public static final String VERSION = "VERSION";
 
 	public static final String LOG_KEY = "LOGKEY";
@@ -42,7 +30,7 @@ public class FlowStateKey {
 
 
 	public static final String AIRLINE = "AIRLINE";
-
-	public static final String SCHEDULE_CHANGE_DETAIL_RESPONSE = "SCHEDULE_CHANGE_DETAIL_RESPONSE";
+	public static final String PNR_CANCEL_RESPONSE = "PNR_CANCEL_RESPONSE";
+	public static final String GetPnr = "GetPnr";
 
 }
