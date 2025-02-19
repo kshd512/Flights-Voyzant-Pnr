@@ -24,6 +24,9 @@ public class FlowStateKey {
 	public static final String CANCEL_RELEASE_RESPONSE = "CANCEL_RELEASE_RESPONSE";
 	public static final String PNR_RETRIEVE_REQUEST = "PNR_RETRIEVE_REQUEST";
 
+    public static final String SPLIT_PNR_REQUEST = "SPLIT_PNR_REQUEST";
+    public static final String SPLIT_PNR_RESPONSE = "SPLIT_PNR_RESPONSE";
+
 	public static final String FUNNEL_STEP = "FUNNEL_STEP";
 	public static final String REQUEST = "REQUEST";
 	public static final String RESPONSE = "RESPONSE";

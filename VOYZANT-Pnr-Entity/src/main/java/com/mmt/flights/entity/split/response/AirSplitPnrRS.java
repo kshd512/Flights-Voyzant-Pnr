@@ -18,14 +18,22 @@ public class AirSplitPnrRS {
     private Success success;
     
     @JsonProperty("OriginalOrderID")
-    private String originalOrderId;
+    private String originalOrderID;
     
     @JsonProperty("SplitedOrderID")
-    private String splitedOrderId;
+    private String splitedOrderID;
     
     @JsonProperty("OriginalGdsBookingReference")
     private String originalGdsBookingReference;
     
     @JsonProperty("SplitedGdsBookingReference")
     private String splitedGdsBookingReference;
+
+    public Document getDocument() {
+        return document;
+    }
+
+    public void setDocument(Document document) {
+        this.document = document;
+    }
 }

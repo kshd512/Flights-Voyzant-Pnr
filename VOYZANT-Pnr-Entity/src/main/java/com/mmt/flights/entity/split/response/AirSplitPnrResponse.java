@@ -7,4 +7,12 @@ import lombok.Data;
 public class AirSplitPnrResponse {
     @JsonProperty("AirSplitPnrRS")
     private AirSplitPnrRS airSplitPnrRS;
+
+    public AirSplitPnrRS getAirSplitPnrRS() {
+        return airSplitPnrRS;
+    }
+
+    public void setAirSplitPnrRS(AirSplitPnrRS airSplitPnrRS) {
+        this.airSplitPnrRS = airSplitPnrRS;
+    }
 }

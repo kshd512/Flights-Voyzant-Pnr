@@ -1,6 +1,5 @@
 package com.mmt.flights.config;
 
-
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -18,4 +17,13 @@ public class ConnectorEndpoints {
     private String checkRefundURL;
     private String voidCancelOrderURL;
     private String cancelReleaseUrl;
+    private String pnrSplitURL;
+
+    public String getPnrSplitURL() {
+        return pnrSplitURL;
+    }
+
+    public void setPnrSplitURL(String pnrSplitURL) {
+        this.pnrSplitURL = pnrSplitURL;
+    }
 }

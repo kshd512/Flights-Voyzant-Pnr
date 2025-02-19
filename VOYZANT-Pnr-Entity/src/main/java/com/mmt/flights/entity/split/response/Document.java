@@ -10,4 +10,12 @@ public class Document {
     
     @JsonProperty("ReferenceVersion")
     private String referenceVersion;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

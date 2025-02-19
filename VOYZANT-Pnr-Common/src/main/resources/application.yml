@@ -1,0 +1,5 @@
+connector:
+  pnr:
+    split:
+      url: ${PNR_SPLIT_URL:/pnr/api/v1/split}
+  # ...existing connector configurations...
