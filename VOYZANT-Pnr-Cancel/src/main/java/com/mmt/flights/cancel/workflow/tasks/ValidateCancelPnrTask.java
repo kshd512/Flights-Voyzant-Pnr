@@ -5,25 +5,26 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
-import com.mmt.flights.entity.pnr.retrieve.response.FlightSegment;
-import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
-import com.mmt.flights.entity.pnr.retrieve.response.Passenger;
+import com.mmt.flights.entity.pnr.retrieve.response.*;
 import com.mmt.flights.postsales.error.PSErrorException;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelFlightDTO;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
 import com.mmt.flights.supply.cancel.v4.response.SupplyValidateCancelResponseDTO;
 import com.mmt.flights.supply.common.enums.SupplyStatus;
 import com.mmt.flights.supply.pnr.v4.request.SupplyPaxInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class ValidateCancelPnrTask implements MapTask {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    private static final long FOUR_HOURS_IN_MILLIS = 4 * 60 * 60 * 1000;
+    private static final long THREE_HOURS_IN_MILLIS = 3 * 60 * 60 * 1000;
 
     @Override
     public FlowState run(FlowState flowState) throws Exception {
@@ -39,22 +40,34 @@ public class ValidateCancelPnrTask implements MapTask {
     }
 
     private void validateRequestFromResponse(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request) {
-        // Check if order exists and not already cancelled
+        // Basic PNR existence check
         if (orderViewRS == null || orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty()) {
             throw new PSErrorException(ErrorEnum.EXT_PNR_DOES_NOT_EXIST);
         }
 
-        // Check PNR status
+        // PNR status check
         if (isPnrCancelled(orderViewRS)) {
             throw new PSErrorException(ErrorEnum.EXT_PNR_CANCELLED);
         }
 
+        // Validate unticket codeshare check
+        if (isUnticketedCodeShare(orderViewRS)) {
+            throw new PSErrorException(ErrorEnum.EXT_PNR_NOT_TICKETED);
+        }
+
+        // Validate passengers if present in request
         if (!request.getRequestCore().getPaxInfoList().isEmpty()) {
             validatePassengers(orderViewRS, request);
         }
 
+        // Validate flights if present in request
         if (!request.getRequestCore().getFlightsList().isEmpty()) {
             validateFlights(orderViewRS, request);
+        }
+
+        // Check balance due
+        if (hasBalanceDue(orderViewRS)) {
+            throw new PSErrorException(ErrorEnum.EXT_BALANCE_DUE_ERROR);
         }
     }
 
@@ -63,22 +76,45 @@ public class ValidateCancelPnrTask implements MapTask {
                 .anyMatch(order -> "CANCELLED".equalsIgnoreCase(order.getOrderStatus()));
     }
 
+    private boolean isUnticketedCodeShare(OrderViewRS orderViewRS) {
+        if (orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty()) {
+            return false;
+        }
+        
+        String ticketStatus = orderViewRS.getOrder().get(0).getTicketStatus();
+        return "UNTICKET".equalsIgnoreCase(ticketStatus);
+    }
+
     private void validatePassengers(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request) {
         if (orderViewRS.getDataLists() == null || orderViewRS.getDataLists().getPassengerList() == null) {
             throw new PSErrorException(ErrorEnum.EXT_PAX_DOES_NOT_EXIST);
         }
 
         List<Passenger> pnrPassengers = orderViewRS.getDataLists().getPassengerList().getPassengers();
-        Set<String> pnrPassengerNames = pnrPassengers.stream()
-                .map(pax -> (pax.getFirstName() + " " + pax.getLastName()).toLowerCase())
-                .collect(Collectors.toSet());
+        Map<String, Passenger> passengerMap = new HashMap<>();
+        
+        for (Passenger pax : pnrPassengers) {
+            String paxKey = (pax.getFirstName() + " " + pax.getLastName()).toLowerCase();
+            passengerMap.put(paxKey, pax);
+        }
 
-        // Validate passenger existence
+        // Check if only infants are being cancelled
+        boolean onlyInfants = true;
         for (SupplyPaxInfo requestPax : request.getRequestCore().getPaxInfoList()) {
-            String requestPaxName = (requestPax.getFname() + " " + requestPax.getLname()).toLowerCase();
-            if (!pnrPassengerNames.contains(requestPaxName)) {
+            String requestPaxKey = (requestPax.getFname() + " " + requestPax.getLname()).toLowerCase();
+            Passenger pnrPax = passengerMap.get(requestPaxKey);
+            
+            if (pnrPax == null) {
                 throw new PSErrorException(ErrorEnum.EXT_PAX_DOES_NOT_EXIST);
             }
+            
+            if (!"INF".equals(pnrPax.getPtc())) {
+                onlyInfants = false;
+            }
+        }
+
+        if (onlyInfants) {
+            throw new PSErrorException(ErrorEnum.EXT_ONLY_INFANT_CANCELLATION_NOT_ALLOWED);
         }
 
         // Validate partial cancellation
@@ -88,8 +124,7 @@ public class ValidateCancelPnrTask implements MapTask {
     }
 
     private void validatePartialPaxCancellation(int requestPaxCount, int totalPaxCount) {
-        // Validate that we're not trying to cancel everyone except one passenger
-        if (requestPaxCount >= totalPaxCount || totalPaxCount - requestPaxCount < 2) {
+        if (requestPaxCount == totalPaxCount - 1) {
             throw new PSErrorException(ErrorEnum.INVALID_PARTIAL_PAX_CANCEL_REQUEST);
         }
     }
@@ -100,14 +135,54 @@ public class ValidateCancelPnrTask implements MapTask {
         }
 
         List<FlightSegment> pnrSegments = orderViewRS.getDataLists().getFlightSegmentList().getFlightSegment();
+        String validatingCarrier = request.getRequestCore().getValidatingCarrier();
+
         for (SupplyPnrCancelFlightDTO requestFlight : request.getRequestCore().getFlightsList()) {
-            boolean flightFound = pnrSegments.stream()
-                    .anyMatch(segment -> matchesFlightSegment(segment, requestFlight));
-            
-            if (!flightFound) {
+            Optional<FlightSegment> matchingSegment = pnrSegments.stream()
+                .filter(segment -> matchesFlightSegment(segment, requestFlight))
+                .findFirst();
+
+            if (!matchingSegment.isPresent()) {
                 throw new PSErrorException(ErrorEnum.EXT_FLIGHT_DOES_NOT_EXIST);
             }
+
+            FlightSegment segment = matchingSegment.get();
+
+            // Check if flight is cancelled
+            if ("CANCELLED".equalsIgnoreCase(segment.getFlightDetail().getFlightDuration().getValue())) {
+                throw new PSErrorException(ErrorEnum.EXT_SEGMENT_CANCELLED_BY_AIRLINE);
+            }
+
+            // Check departure time for no-show window
+            try {
+                Date departureTime = DATE_FORMAT.parse(segment.getDeparture().getDate() + "T" + segment.getDeparture().getTime());
+                Date now = new Date();
+                long timeDiff = departureTime.getTime() - now.getTime();
+
+                if ("6E".equals(validatingCarrier)) {
+                    boolean isInternational = !segment.getDeparture().getAirportCode().startsWith("IN") || 
+                                           !segment.getArrival().getAirportCode().startsWith("IN");
+                    
+                    if (isInternational && timeDiff <= FOUR_HOURS_IN_MILLIS) {
+                        throw new PSErrorException(ErrorEnum.EXT_PNR_IN_NO_SHOW_WINDOW);
+                    } else if (!isInternational && timeDiff <= THREE_HOURS_IN_MILLIS) {
+                        throw new PSErrorException(ErrorEnum.EXT_PNR_IN_NO_SHOW_WINDOW);
+                    }
+                }
+            } catch (Exception e) {
+                // Log error and continue
+            }
         }
+    }
+
+    private boolean hasBalanceDue(OrderViewRS orderViewRS) {
+        return orderViewRS.getOrder().stream()
+            .anyMatch(order -> {
+                if (order.getTotalPrice() != null && order.getTotalPrice().getEquivCurrencyPrice() != null) {
+                    return order.getTotalPrice().getEquivCurrencyPrice() > 0;
+                }
+                return false;
+            });
     }
 
     private boolean matchesFlightSegment(FlightSegment segment, SupplyPnrCancelFlightDTO requestFlight) {
