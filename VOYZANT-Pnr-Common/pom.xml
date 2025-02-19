@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>Flights-VOYZANT-Pnr</artifactId>
+        <groupId>com.mmt.flights</groupId>
+        <version>0.0.1</version>
+    </parent>
+    <artifactId>VOYZANT-Pnr-Common</artifactId>
+    <name>VOYZANT-Pnr-Common</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <springfox-swagger2-version>2.6.1</springfox-swagger2-version>
+        <springfox-swagger-ui-version>2.10.0</springfox-swagger-ui-version>
+        <sentry-log4j2.version>1.7.5</sentry-log4j2.version>
+        <disruptor.version>3.3.4</disruptor.version>
+        <flights-common-version>release_4.0.146</flights-common-version>
+        <supply-entity-version>r_1.1.504</supply-entity-version>
+        <supply-post-sales-version>release_0.2.23</supply-post-sales-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>VOYZANT-Pnr-Entity</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>Flights-httpclient</artifactId>
+            <version>${flights-common-version}</version>
+        </dependency>
+
+
+    <!--    <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>Fare-Absorption</artifactId>
+            <version>${flights-supply-common-version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.mmt.flights</groupId>
+                    <artifactId>Supply-Entities</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>-->
+
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>Supply-Entities</artifactId>
+            <version>${supply-entity-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>Flights-utility</artifactId>
+            <version>${flights-common-version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-config</artifactId>
+            <version>2.0.1.RELEASE</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.mmt.workflow</groupId>
+            <artifactId>RxFlow</artifactId>
+            <version>0.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Swagger Dependencies -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${springfox-swagger2-version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${springfox-swagger-ui-version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Swagger Dependencies -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Metric Dependencies -->
+        <!-- logger Dependencies -->
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>Flights-logger</artifactId>
+            <version>${flights-common-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>${disruptor.version}</version>
+        </dependency>
+        <!-- logger Dependencies -->
+
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>Flights-hivelogger</artifactId>
+            <version>release_3.0.107</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.mmt.flights</groupId>
+                    <artifactId>Flights-utility</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Hystrix -->
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+            <version>2.0.2.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+            <version>2.0.2.RELEASE</version>
+        </dependency>
+        <!-- Hystrix -->
+
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>Flights-amazonS3</artifactId>
+            <version>release_3.0.87</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.aeonbits.owner</groupId>
+            <artifactId>owner</artifactId>
+            <version>1.0.9</version>
+        </dependency>
+
+
+
+        <dependency>
+            <groupId>org.apache.axis2</groupId>
+            <artifactId>axis2-adb</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.axis2</groupId>
+            <artifactId>axis2-transport-local</artifactId>
+            <version>1.6.3</version>
+            <!-- <exclusions>
+                <exclusion>
+                    <artifactId>XmlSchema</artifactId>
+                    <groupId>org.apache.ws.commons.schema</groupId>
+                </exclusion>
+            </exclusions> -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.axis2</groupId>
+            <artifactId>axis2-transport-http</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.ws.commons.axiom</groupId>
+            <artifactId>axiom-api</artifactId>
+            <version>1.2.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.ws.commons.axiom</groupId>
+            <artifactId>axiom-impl</artifactId>
+            <version>1.2.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.ws.security</groupId>
+            <artifactId>wss4j</artifactId>
+            <version>1.6.19</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>9.6.0-5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>Supply-Post-Sales</artifactId>
+            <version>${supply-post-sales-version}</version>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>com.mmt.flights</groupId>-->
+            <!--<artifactId>flights-pojos</artifactId>-->
+            <!--<version>5.7.1</version>-->
+        <!--</dependency>-->
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,60 @@
+version: "3.3"
+services:
+   flights-voyzant-pnr:
+    image: "524881529748.dkr.ecr.ap-south-1.amazonaws.com/flights-voyzant-pnr:${CONTEXT_TAG}"
+    command: "java -Xmx4g -Xms2g ${JACOCO_COVERAGE} -jar -Dprofile=$Flights_VOYZANT_Pnr_profile -Dserver.port=8000 /opt/service/VOYZANT-Pnr-Web-0.0.1.jar"
+    container_name: flights-voyzant-pnr
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/flights-voyzant-pnr/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 8
+    ports:
+      - "8716:8000"
+    volumes:
+      - type: bind
+        source: /opt/logs
+        target: /opt/logs
+    environment:
+      - CONSUL_TOKEN=${CONSUL_TOKEN}
+      - CONSUL_HTTP_TOKEN=${CONSUL_HTTP_TOKEN}
+    extra_hosts:
+      #- "flights-pnr-service.ecs.mmt:10.212.50.27"
+      #- "consul.mmt.mmt:10.117.219.252"
+      - "rabbitmq-flights-n.mmt.mmt:172.16.94.189"
+      - "rmq-flights.mmt.mmt:172.16.94.189"
+      - "flt-mongo-1.mmt.mmt:172.16.44.99"
+      - "flt-mongo-2.mmt.mmt:172.16.44.99"
+      - "flt-mongo-3.mmt.mmt:172.16.44.99"
+      - "kafka-data.mmt.mmt:10.117.223.70"
+      - "kafka-flights-booking.mmt.mmt:10.117.175.198"
+      - "kafka-mmt.mmt.mmt:10.117.223.70"
+      # - "kerberos.mmt.mmt:10.66.80.10"
+      - "m_flt_aspk-itnry_1.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-itnry_2.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-itnry_3.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-itnry_4.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-itnry_5.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-mfare_1.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-mfare_2.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-mfare_3.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-mfare_4.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-mfare_5.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-rms_1.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-rms_2.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-rms_3.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-rms_4.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk-rms_5.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk_1.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk_2.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk_3.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk_4.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk_5.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk_6.mmt.mmt:10.212.58.251"
+      - "m_flt_aspk_7.mmt.mmt:10.212.58.251"
+      - "aerospike-flights-rkeys-1.mmt.mmt:10.212.58.251"
+      - "aerospike-flights-rkeys-2.mmt.mmt:10.212.58.251"
+      - "aerospike-flights-rkeys-3.mmt.mmt:10.212.58.251"
+      - "mongo-flights-gi-1.mmt.mmt:10.117.174.98"
+      - "mongo-flights-gi-2.mmt.mmt:10.117.174.99"
+      - "mongo-flights-gi-3.mmt.mmt:10.117.175.98"

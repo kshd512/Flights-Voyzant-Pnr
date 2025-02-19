@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>Flights-VOYZANT-Pnr</artifactId>
+        <groupId>com.mmt.flights</groupId>
+        <version>0.0.1</version>
+    </parent>
+    <artifactId>VOYZANT-Pnr-Cancel</artifactId>
+    <name>VOYZANT-Pnr-Cancel</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <disruptor.version>3.3.4</disruptor.version>
+        <metric-watcher-version>3.0.4</metric-watcher-version>
+        <metrics-spring-version>3.1.3</metrics-spring-version>
+        <flights-common-version>release_3.0.38</flights-common-version>
+        <flights-supply-common-version>release_0.0.6</flights-supply-common-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.mmt.flights</groupId>
+            <artifactId>VOYZANT-Pnr-Retrieve</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
