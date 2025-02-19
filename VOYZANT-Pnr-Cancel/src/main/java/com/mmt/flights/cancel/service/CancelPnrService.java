@@ -27,8 +27,4 @@ public class CancelPnrService {
     public Observable<SupplyPnrCancelResponseDTO> partialPaxPnrCancel(SupplyPnrCancelRequestDTO request) {
         return FlowExecutor.getBuilder(CancelPnrWorkflowBuilder.partialPaxPnrCancel(), new CancellationHandler(hiveLogger)).build().execute(Observable.just(request));
     }
-
-    public Observable<SupplyPnrCancelResponseDTO> voidCancelPnr(SupplyPnrCancelRequestDTO request) {
-        return FlowExecutor.getBuilder(CancelPnrWorkflowBuilder.voidCancelPnr(), new VoidCancellationHandler(hiveLogger)).build().execute(Observable.just(request));
-    }
 }

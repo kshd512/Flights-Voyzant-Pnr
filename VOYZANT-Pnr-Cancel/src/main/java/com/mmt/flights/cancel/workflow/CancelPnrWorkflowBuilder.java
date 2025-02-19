@@ -1,7 +1,10 @@
 package com.mmt.flights.cancel.workflow;
 
 import com.mmt.api.rxflow.WorkFlow;
-import com.mmt.flights.cancel.workflow.tasks.*;
+import com.mmt.flights.cancel.workflow.tasks.CancelPnrNetworkCallTask;
+import com.mmt.flights.cancel.workflow.tasks.CancelPnrRequestAdapterTask;
+import com.mmt.flights.cancel.workflow.tasks.CancelPnrRetrieveRequestAdapter;
+import com.mmt.flights.cancel.workflow.tasks.ValidateCancelPnrTask;
 import com.mmt.flights.pnr.workflow.tasks.CMSManagerTask;
 import com.mmt.flights.pnr.workflow.tasks.DummyTask;
 import com.mmt.flights.pnr.workflow.tasks.PnrRetrieveNetworkCall;
@@ -48,18 +51,6 @@ public class CancelPnrWorkflowBuilder {
                 .toMap(ValidateSplitPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
-                .toMap(DummyTask.class, completeFlow()).build();
-    }
-
-    public static WorkFlow voidCancelPnr() {
-        return new WorkFlow.Builder()
-                .defineMap(CMSManagerTask.class)
-                .toMap(CancelPnrRetrieveRequestAdapter.class)
-                .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
-                .toMap(VoidCancelValidateTask.class)
-                .toMap(VoidCancelRequestAdapterTask.class)
-                .toMap(VoidCancelPnrNetworkCallTask.class)
-                .toMap(VoidCancelPnrResponseAdapterTask.class)
                 .toMap(DummyTask.class, completeFlow()).build();
     }
 

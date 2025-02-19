@@ -122,44 +122,4 @@ public class CancelPnrController {
         }
         return deferredResult;
     }
-
-    @RequestMapping(value = EndpointConstants.VOID_CANCEL, method = RequestMethod.POST)
-    @ApiOperation(value = "VOYZANT cancel validate API", response = SupplyValidateCancelResponseDTO.class, notes = "This API pnr with VOYZANT connector")
-    public DeferredResult<ResponseEntity<SupplyPnrCancelResponseDTO>> voidCancelPnr(
-            @RequestBody SupplyPnrCancelRequestDTO request) {
-        long startTime = System.currentTimeMillis();
-        long timeout = techConfig.getPnrCancelTimeout();
-        DeferredResult<ResponseEntity<SupplyPnrCancelResponseDTO>> deferredResult = new DeferredResult<>(timeout);
-        try {
-            String logKey = request.getRequestConfig().getCorrelationId();
-            MMTLogger.info(
-                    (new LogParams.LogParamsBuilder())
-                            .correlationId(logKey)
-                            .lob(request.getRequestConfig().getLob())
-                            .src(request.getRequestConfig().getSource())
-                            .className(this.getClass().getName())
-                            .extraInfo("VOID Cancellation validation request")
-                            .serviceName(MetricServices.VOID_PNR_CANCEL_REQUEST_COUNTER.name())
-                            .request(MMTLogger.convertProtoToJson(request))
-                            .build(),
-                    MetricType.LOG_FILE, MetricType.LOG_COUNTER);
-            Observable<SupplyPnrCancelResponseDTO> observableResponse = cancelPnrService.voidCancelPnr(request);
-            observableResponse
-                    .subscribe(new CancelPnrSubscriber(deferredResult, request, startTime, timeout));
-
-        } catch (Exception e) {
-            MMTLogger.error((new LogParams.LogParamsBuilder())
-                            .serviceName(MetricServices.PNR_CANCEL_REQUEST_ERROR.name())
-                            .className(this.getClass().getName())
-                            .src(request.getRequestConfig().getSource()).lob(request.getRequestConfig().getLob())
-                            .request(MMTLogger.convertProtoToJson(request)).throwable(e)
-                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .errorCode(PSCommonErrorEnum.FLT_UNKNOWN_ERROR.getCode()).build(), MetricType.LOG_FILE,
-                    MetricType.LOG_COUNTER);
-            deferredResult.setErrorResult(new ResponseEntity<>(AdapterUtil.getErroneousResponseValidateCancel(
-                    HttpStatus.INTERNAL_SERVER_ERROR, PSCommonErrorEnum.FLT_UNKNOWN_ERROR.getCode(), e.getMessage(),
-                    PSCommonErrorEnum.FLT_UNKNOWN_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR));
-        }
-        return deferredResult;
-    }
 }
