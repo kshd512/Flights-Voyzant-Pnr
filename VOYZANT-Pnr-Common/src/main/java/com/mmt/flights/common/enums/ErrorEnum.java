@@ -26,6 +26,8 @@ public enum ErrorEnum implements PSErrorEnum {
     EXT_CANNOT_SPLIT_PNR(HttpStatus.BAD_REQUEST, "40076", "Cannot split PNR"),
     EXT_PNR_NOT_TICKETED(HttpStatus.BAD_REQUEST, "40077", "PNR is not ticketed"),
     EXT_MISSING_SEGMENTS_IN_JOURNEY(HttpStatus.BAD_REQUEST, "40078", "Missing segments in journey"),
+    EXT_CHECKED_IN_DONE(HttpStatus.BAD_REQUEST, "40079", "Passenger has already checked in"),
+    EXT_FLIGHT_SUSPENDED(HttpStatus.BAD_REQUEST, "40080", "Flight has been suspended"),
 
     // Split PNR specific errors
     EXT_SPLIT_PNR_FAILED(HttpStatus.BAD_REQUEST, "40080", "Failed to split PNR"),

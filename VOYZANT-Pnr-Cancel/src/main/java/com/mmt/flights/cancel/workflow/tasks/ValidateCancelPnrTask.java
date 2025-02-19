@@ -5,18 +5,19 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
-import com.mmt.flights.entity.pnr.retrieve.response.*;
+import com.mmt.flights.entity.pnr.retrieve.response.FlightSegment;
+import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
+import com.mmt.flights.entity.pnr.retrieve.response.Passenger;
 import com.mmt.flights.postsales.error.PSErrorException;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelFlightDTO;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
 import com.mmt.flights.supply.cancel.v4.response.SupplyValidateCancelResponseDTO;
 import com.mmt.flights.supply.common.enums.SupplyStatus;
 import com.mmt.flights.supply.pnr.v4.request.SupplyPaxInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class ValidateCancelPnrTask implements MapTask {
