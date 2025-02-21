@@ -11,17 +11,14 @@ import com.mmt.flights.entity.pnr.retrieve.response.Passenger;
 import com.mmt.flights.flightsutil.AirportDetailsUtil;
 import com.mmt.flights.postsales.error.PSCommonErrorEnum;
 import com.mmt.flights.postsales.error.PSErrorException;
-import com.mmt.flights.postsales.logger.FunnelStep;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelFlightDTO;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
 import com.mmt.flights.supply.cancel.v4.response.SupplyValidateCancelResponseDTO;
 import com.mmt.flights.supply.common.enums.SupplyStatus;
 import com.mmt.flights.supply.pnr.v4.request.SupplyPaxInfo;
-import com.mmt.pojo.navpush.Booking;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -36,10 +33,7 @@ public class ValidateCancelPnrTask implements MapTask {
 
     @Autowired
     private AirportDetailsUtil airportUtil;
-    
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-    private static final long FOUR_HOURS_IN_MILLIS = 4 * 60 * 60 * 1000;
-    private static final long THREE_HOURS_IN_MILLIS = 3 * 60 * 60 * 1000;
+
     private static final String CANCELLED = "CANCELLED";
     private static final String SUSPENDED = "SUSPENDED";
 
@@ -137,9 +131,13 @@ public class ValidateCancelPnrTask implements MapTask {
             throw new PSErrorException(ErrorEnum.EXT_FLIGHT_DOES_NOT_EXIST);
         }
 
+        HashSet<String> flightNoSet = new HashSet<>();
         List<FlightSegment> pnrSegments = orderViewRS.getDataLists().getFlightSegmentList().getFlightSegment();
+        if(isFlightNotMatch(orderViewRS, request, flightNoSet)){
+            throw new PSErrorException(ErrorEnum.EXT_FLIGHT_DOES_NOT_EXIST);
+        }
         validateRequestedFlights(pnrSegments, request);
-        validateNoShowWindow(orderViewRS, request);
+        validateNoShowWindow(orderViewRS, request, flightNoSet);
     }
 
     private void validateRequestedFlights(List<FlightSegment> pnrSegments, SupplyPnrCancelRequestDTO request) {
@@ -149,24 +147,25 @@ public class ValidateCancelPnrTask implements MapTask {
         }
     }
 
-    public static boolean isFlightNotMatch(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request, HashSet<String> paxNoSet, HashSet<String> flightNoSet) throws ParseException {
+    public static boolean isFlightNotMatch(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request, HashSet<String> flightNoSet) {
+        if (orderViewRS.getDataLists() == null || orderViewRS.getDataLists().getFlightSegmentList() == null) {
+            return true;
+        }
+
         for (SupplyPnrCancelFlightDTO flightDTO : request.getRequestCore().getFlightsList()) {
             boolean isFlightFound = false;
-            for (Journey journey : getBookingResponse.getJourneys().getJourney()) {
-                for (Segment segment : journey.getSegments().getSegment()) {
-                    if (flightDTO.getFrom().trim().equalsIgnoreCase((segment.getDepartureStation().trim()))
-                            && flightDTO.getTo().trim().equalsIgnoreCase((segment.getArrivalStation().trim()))
-                            && flightDTO.getFltNo().trim().equalsIgnoreCase((segment.getFlightDesignator().getFlightNumber().trim()))
-                    ) {
-                        flightNoSet.add(flightDTO.getFltNo().trim());
-                        isFlightFound = true;
-                        break;
-                    }
-                }
-                if (isFlightFound) {
+            
+            for (FlightSegment segment : orderViewRS.getDataLists().getFlightSegmentList().getFlightSegment()) {
+                if (flightDTO.getFrom().trim().equalsIgnoreCase(segment.getDeparture().getAirportCode().trim())
+                    && flightDTO.getTo().trim().equalsIgnoreCase(segment.getArrival().getAirportCode().trim())
+                    && flightDTO.getFltNo().trim().equalsIgnoreCase(segment.getMarketingCarrier().getFlightNumber().trim())
+                ) {
+                    flightNoSet.add(flightDTO.getFltNo().trim());
+                    isFlightFound = true;
                     break;
                 }
             }
+            
             if (!isFlightFound) {
                 return true;
             }
@@ -184,9 +183,9 @@ public class ValidateCancelPnrTask implements MapTask {
             .orElseThrow(() -> new PSErrorException(ErrorEnum.EXT_FLIGHT_DOES_NOT_EXIST));
     }
 
-    private void validateNoShowWindow(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request) {
+    private void validateNoShowWindow(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request, HashSet<String> flightNoSet) {
         try {
-            if (isInternational(orderViewRS) && isFourHoursToDeparture(orderViewRS, request, flightNoSet, airportUtil, FunnelStep.Cancel)) {
+            if (isInternational(orderViewRS) && isFourHoursToDeparture(orderViewRS, request, flightNoSet)) {
                 throw new PSErrorException(PSCommonErrorEnum.EXT_PNR_IN_NO_SHOW_WINDOW);
             } else if (!isInternational(orderViewRS) && isThreeHoursToDeparture(orderViewRS, request, flightNoSet)) {
                 throw new PSErrorException(PSCommonErrorEnum.EXT_PNR_IN_NO_SHOW_WINDOW);
@@ -195,6 +194,7 @@ public class ValidateCancelPnrTask implements MapTask {
             // Log error and continue
         }
     }
+
     private FlowState createSuccessResponse(FlowState flowState) {
         SupplyValidateCancelResponseDTO.Builder validateCancelResponse = SupplyValidateCancelResponseDTO.newBuilder();
         validateCancelResponse.setStatus(SupplyStatus.SUCCESS);
@@ -216,8 +216,8 @@ public class ValidateCancelPnrTask implements MapTask {
         return false;
     }
 
-    public static boolean isThreeHoursToDeparture(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request,
-                                                  HashSet<String> flightNoSet, AirportDetailsUtil airportUtil) {
+    public boolean isThreeHoursToDeparture(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request,
+                                                  HashSet<String> flightNoSet) {
         List<FlightSegment> segments = orderViewRS.getDataLists().getFlightSegmentList().getFlightSegment();
         for (FlightSegment segment : segments) {
             try {
@@ -248,8 +248,8 @@ public class ValidateCancelPnrTask implements MapTask {
         return false;
     }
 
-    public static boolean isFourHoursToDeparture(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request,
-                                                 Set<String> flightNoSet, AirportDetailsUtil airportUtil) {
+    public boolean isFourHoursToDeparture(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request,
+                                                 Set<String> flightNoSet) {
         List<FlightSegment> segments = orderViewRS.getDataLists().getFlightSegmentList().getFlightSegment();
         for (FlightSegment segment : segments) {
             try {
