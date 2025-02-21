@@ -5,7 +5,9 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
-import com.mmt.flights.entity.pnr.retrieve.response.*;
+import com.mmt.flights.entity.pnr.retrieve.response.FlightSegment;
+import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
+import com.mmt.flights.entity.pnr.retrieve.response.Passenger;
 import com.mmt.flights.postsales.error.PSErrorException;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelFlightDTO;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
@@ -32,16 +34,17 @@ public class ValidateCancelPnrTask implements MapTask {
     public FlowState run(FlowState flowState) throws Exception {
         SupplyPnrCancelRequestDTO request = flowState.getValue(FlowStateKey.REQUEST);
         String supplierPNRResponse = flowState.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
+        String splitPnrResponse = flowState.getValue(FlowStateKey.SPLIT_PNR_RESPONSE);
         
         OrderViewRS orderViewRS = objectMapper.readValue(supplierPNRResponse, OrderViewRS.class);
-        validateRequestFromResponse(orderViewRS, request);
+        validateRequestFromResponse(orderViewRS, request, splitPnrResponse);
 
         SupplyValidateCancelResponseDTO.Builder validateCancelResponse = SupplyValidateCancelResponseDTO.newBuilder();
         validateCancelResponse.setStatus(SupplyStatus.SUCCESS);
         return flowState.toBuilder().addValue(FlowStateKey.RESPONSE, validateCancelResponse.build()).build();
     }
 
-    private void validateRequestFromResponse(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request) {
+    private void validateRequestFromResponse(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request, String splitPnrResponse) {
         // Basic PNR existence check
         if (orderViewRS == null || orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty()) {
             throw new PSErrorException(ErrorEnum.EXT_PNR_DOES_NOT_EXIST);
@@ -72,9 +75,46 @@ public class ValidateCancelPnrTask implements MapTask {
             }
         }
 
-        // Check balance due
-        if (hasBalanceDue(orderViewRS)) {
-            throw new PSErrorException(ErrorEnum.EXT_BALANCE_DUE_ERROR);
+        //In case of splitted pnr, validate if passengers exists in splitted pnr
+        if(splitPnrResponse != null){
+            validatePassengersInSplitPnr(orderViewRS, request);
+        }
+    }
+
+    private void validatePassengersInSplitPnr(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request) {
+        if (orderViewRS.getDataLists() == null ||
+                orderViewRS.getDataLists().getPassengerList() == null ||
+                orderViewRS.getDataLists().getPassengerList().getPassengers() == null ||
+                request.getRequestCore().getPaxInfoList().isEmpty()) {
+            throw new PSErrorException(ErrorEnum.EXT_PAX_DOES_NOT_EXIST);
+        }
+
+        List<Passenger> pnrPassengers = orderViewRS.getDataLists().getPassengerList().getPassengers();
+        Map<String, Passenger> passengerMap = new HashMap<>();
+        boolean onlyInfants = true;
+
+        // Create map of passengers in splitted PNR
+        for (Passenger pax : pnrPassengers) {
+            String paxKey = (pax.getFirstName() + " " + pax.getLastName()).toLowerCase();
+            passengerMap.put(paxKey, pax);
+        }
+
+        // Verify each requested passenger exists in splitted PNR
+        for (SupplyPaxInfo requestPax : request.getRequestCore().getPaxInfoList()) {
+            String requestPaxKey = (requestPax.getFname() + " " + requestPax.getLname()).toLowerCase();
+            Passenger pnrPax = passengerMap.get(requestPaxKey);
+
+            if (pnrPax == null) {
+                throw new PSErrorException(ErrorEnum.EXT_PAX_DOES_NOT_EXIST);
+            }
+
+            if (!"INF".equals(pnrPax.getPtc())) {
+                onlyInfants = false;
+            }
+        }
+
+        if (onlyInfants) {
+            throw new PSErrorException(ErrorEnum.EXT_ONLY_INFANT_CANCELLATION_NOT_ALLOWED);
         }
     }
 
@@ -187,16 +227,6 @@ public class ValidateCancelPnrTask implements MapTask {
                 // Log error and continue
             }
         }
-    }
-
-    private boolean hasBalanceDue(OrderViewRS orderViewRS) {
-        return orderViewRS.getOrder().stream()
-            .anyMatch(order -> {
-                if (order.getTotalPrice() != null && order.getTotalPrice().getEquivCurrencyPrice() != null) {
-                    return order.getTotalPrice().getEquivCurrencyPrice() > 0;
-                }
-                return false;
-            });
     }
 
     private boolean matchesFlightSegment(FlightSegment segment, SupplyPnrCancelFlightDTO requestFlight) {
