@@ -8,7 +8,6 @@ import com.mmt.flights.pnr.workflow.tasks.PnrRetrieveNetworkCall;
 import com.mmt.flights.postsales.error.PSErrorException;
 import com.mmt.flights.split.workflow.tasks.SplitPnrNetworkCallTask;
 import com.mmt.flights.split.workflow.tasks.SplitPnrRequestAdapterTask;
-import com.mmt.flights.split.workflow.tasks.ValidateSplitPnrTask;
 import org.springframework.stereotype.Component;
 
 import static com.mmt.api.rxflow.rule.Rules.completeFlow;
@@ -48,7 +47,7 @@ public class CancelPnrWorkflowBuilder {
                 .toMap(SplitPnrNetworkCallTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapter.class)
                 .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
-                .toMap(ValidateSplitPnrTask.class)
+                .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
                 .toMap(CancelPnrResponseAdaptor.class)
