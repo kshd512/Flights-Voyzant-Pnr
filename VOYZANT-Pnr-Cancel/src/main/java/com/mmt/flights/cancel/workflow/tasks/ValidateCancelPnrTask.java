@@ -14,6 +14,7 @@ import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
 import com.mmt.flights.supply.cancel.v4.response.SupplyValidateCancelResponseDTO;
 import com.mmt.flights.supply.common.enums.SupplyStatus;
 import com.mmt.flights.supply.pnr.v4.request.SupplyPaxInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
@@ -24,11 +25,13 @@ import java.util.stream.Stream;
 @Component
 public class ValidateCancelPnrTask implements MapTask {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private static final long FOUR_HOURS_IN_MILLIS = 4 * 60 * 60 * 1000;
     private static final long THREE_HOURS_IN_MILLIS = 3 * 60 * 60 * 1000;
-    private static final Set<String> UNDO_CHECKIN_ENABLED_AIRLINES = new HashSet<>(Arrays.asList("6E", "G8"));
+    private static final String CANCELLED = "CANCELLED";
+    private static final String SUSPENDED = "SUSPENDED";
 
     @Override
     public FlowState run(FlowState flowState) throws Exception {
@@ -53,11 +56,6 @@ public class ValidateCancelPnrTask implements MapTask {
         // PNR status check
         if (isPnrCancelled(orderViewRS)) {
             throw new PSErrorException(ErrorEnum.EXT_PNR_CANCELLED);
-        }
-
-        // Validate unticket codeshare check
-        if (isUnticketedCodeShare(orderViewRS)) {
-            throw new PSErrorException(ErrorEnum.EXT_PNR_NOT_TICKETED);
         }
 
         // Validate passengers if present in request
@@ -120,16 +118,7 @@ public class ValidateCancelPnrTask implements MapTask {
 
     private boolean isPnrCancelled(OrderViewRS orderViewRS) {
         return orderViewRS.getOrder().stream()
-                .anyMatch(order -> "CANCELLED".equalsIgnoreCase(order.getOrderStatus()));
-    }
-
-    private boolean isUnticketedCodeShare(OrderViewRS orderViewRS) {
-        if (orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty()) {
-            return false;
-        }
-        
-        String ticketStatus = orderViewRS.getOrder().get(0).getTicketStatus();
-        return "UNTICKET".equalsIgnoreCase(ticketStatus);
+                .anyMatch(order -> CANCELLED.equalsIgnoreCase(order.getOrderStatus()));
     }
 
     private void validatePassengers(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request) {
@@ -196,16 +185,15 @@ public class ValidateCancelPnrTask implements MapTask {
             FlightSegment segment = matchingSegment.get();
 
             // Check if flight is cancelled or suspended
-            if ("CANCELLED".equalsIgnoreCase(segment.getFlightDetail().getFlightDuration().getValue()) ||  
-                "SUSPENDED".equalsIgnoreCase(segment.getFlightDetail().getFlightDuration().getValue())) {
+            if (CANCELLED.equalsIgnoreCase(segment.getFlightDetail().getFlightDuration().getValue()) ||
+                SUSPENDED.equalsIgnoreCase(segment.getFlightDetail().getFlightDuration().getValue())) {
                 throw new PSErrorException(ErrorEnum.EXT_SEGMENT_CANCELLED_BY_AIRLINE);
             }
 
             // Check for check-in status if airline doesn't support undo check-in
-            if (!UNDO_CHECKIN_ENABLED_AIRLINES.contains(validatingCarrier) && 
-                isCheckedIn(orderViewRS, segment)) {
+            /*if (isCheckedIn(orderViewRS, segment)) {
                 throw new PSErrorException(ErrorEnum.EXT_CHECKED_IN_PNR_CANCELLATION_UNSUPPORTED);
-            }
+            }*/
 
             // Check departure time for no-show window
             try {
@@ -233,23 +221,6 @@ public class ValidateCancelPnrTask implements MapTask {
         return segment.getDeparture().getAirportCode().equals(requestFlight.getFrom()) &&
                segment.getArrival().getAirportCode().equals(requestFlight.getTo()) &&
                segment.getMarketingCarrier().getFlightNumber().equals(requestFlight.getFltNo());
-    }
-
-    private boolean isCheckedIn(OrderViewRS orderViewRS, FlightSegment segment) {
-        // Check if any of the offer items indicate check-in status
-        return orderViewRS.getOrder().stream()
-            .filter(Objects::nonNull)
-            .flatMap(order -> order.getOfferItem() != null ? order.getOfferItem().stream() : Stream.empty())
-            .filter(Objects::nonNull)
-            .flatMap(offerItem -> offerItem.getService() != null ? offerItem.getService().stream() : Stream.empty())
-            .filter(Objects::nonNull)
-            .anyMatch(service -> 
-                service.getFlightRefs() != null && 
-                segment != null && 
-                segment.getSegmentKey() != null &&
-                service.getFlightRefs().contains(segment.getSegmentKey()) && 
-                service.getServiceID() != null &&
-                service.getServiceID().toUpperCase().contains("CHECKED_IN"));
     }
 
     private boolean areAllSegmentsPresent(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request) {
