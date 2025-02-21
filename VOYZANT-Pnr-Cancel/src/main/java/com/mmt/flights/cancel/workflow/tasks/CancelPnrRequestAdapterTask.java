@@ -10,7 +10,7 @@ import com.mmt.flights.entity.cancel.request.OrderCancelRQ;
 import com.mmt.flights.entity.cancel.request.Query;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
 import com.mmt.flights.entity.split.response.AirSplitPnrResponse;
-import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -18,11 +18,11 @@ import java.util.Arrays;
 @Component
 public class CancelPnrRequestAdapterTask implements MapTask {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public FlowState run(FlowState flowState) throws Exception {
-        SupplyPnrCancelRequestDTO request = flowState.getValue(FlowStateKey.REQUEST);
         String supplierPNRResponse = flowState.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
         String splitPnrResponse = flowState.getValue(FlowStateKey.SPLIT_PNR_RESPONSE);
 
@@ -46,7 +46,7 @@ public class CancelPnrRequestAdapterTask implements MapTask {
         
         // Set Document
         Document document = new Document();
-        document.setName("Skyroute B2B Portal");
+        document.setName("MMT");
         document.setReferenceVersion("1.0");
         orderCancelRQ.setDocument(document);
         
@@ -54,9 +54,9 @@ public class CancelPnrRequestAdapterTask implements MapTask {
         Party party = new Party();
         Sender sender = new Sender();
         TravelAgencySender travelAgencySender = new TravelAgencySender();
-        travelAgencySender.setName("Skyroute B2B");
-        travelAgencySender.setIataNumber("1111111111");
-        travelAgencySender.setAgencyID("1111111111");
+        travelAgencySender.setName("MMT");
+        travelAgencySender.setIataNumber("");
+        travelAgencySender.setAgencyID("");
         
         // Set Contacts
         Contacts contacts = new Contacts();
