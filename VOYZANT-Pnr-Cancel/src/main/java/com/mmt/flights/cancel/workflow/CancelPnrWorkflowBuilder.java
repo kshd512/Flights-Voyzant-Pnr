@@ -21,8 +21,7 @@ public class CancelPnrWorkflowBuilder {
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapter.class)
                 .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
-                .toMap(ValidateCancelPnrTask.class)
-                .toMap(DummyTask.class, completeFlow()).build();
+                .toMap(ValidateCancelPnrTask.class, completeFlow()).build();
     }
 
     public static WorkFlow cancelPnr() {
@@ -33,8 +32,7 @@ public class CancelPnrWorkflowBuilder {
                 .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
-                .toMap(CancelPnrResponseAdaptor.class)
-                .toMap(DummyTask.class, completeFlow()).build();
+                .toMap(CancelPnrResponseAdaptor.class, completeFlow()).build();
     }
 
     public static WorkFlow partialPaxPnrCancel() {
@@ -50,8 +48,7 @@ public class CancelPnrWorkflowBuilder {
                 .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
-                .toMap(CancelPnrResponseAdaptor.class)
-                .toMap(DummyTask.class, completeFlow()).build();
+                .toMap(CancelPnrResponseAdaptor.class, completeFlow()).build();
     }
 
     private static boolean retryable(Throwable e) {
