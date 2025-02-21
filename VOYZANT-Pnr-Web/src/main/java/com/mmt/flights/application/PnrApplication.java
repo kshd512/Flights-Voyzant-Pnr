@@ -1,7 +1,9 @@
 package com.mmt.flights.application;
 
+import java.io.IOException;
 import java.util.*;
 
+import com.mmt.flights.flightsutil.AirportDetailsUtil;
 import com.mmt.flights.helper.CommonCurrencyConverter;
 import com.mmt.flights.helper.CurrencyConverter;
 import com.mmt.flights.helper.OandaCurrencyConverter;
@@ -61,4 +63,10 @@ public class PnrApplication {
     public CurrencyConverter getCurrencyConverter() {
         return new CommonCurrencyConverter();
     }
+
+    @Bean
+    AirportDetailsUtil getAirportDetailsUtil() throws IOException {
+        return AirportDetailsUtil.getInstance();
+    }
+
 }
