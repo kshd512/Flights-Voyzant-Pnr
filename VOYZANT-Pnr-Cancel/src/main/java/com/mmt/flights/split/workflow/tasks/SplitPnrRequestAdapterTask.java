@@ -41,7 +41,7 @@ public class SplitPnrRequestAdapterTask implements MapTask {
 
         // Set Document
         Document document = new Document();
-        document.setName("Skyroute B2B Portal");
+        document.setName("MMT");
         document.setReferenceVersion("1.0");
         airSplitPnrRQ.setDocument(document);
 
@@ -49,9 +49,9 @@ public class SplitPnrRequestAdapterTask implements MapTask {
         Party party = new Party();
         Sender sender = new Sender();
         TravelAgencySender travelAgencySender = new TravelAgencySender();
-        travelAgencySender.setName("Skyroute B2B");
-        travelAgencySender.setIataNumber("1111111111");
-        travelAgencySender.setAgencyId("1111111111");
+        travelAgencySender.setName("MMT");
+        travelAgencySender.setIataNumber("");
+        travelAgencySender.setAgencyId("");
 
         // Set Contacts
         Contacts contacts = new Contacts();
