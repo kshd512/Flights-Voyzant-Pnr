@@ -21,7 +21,8 @@ public class CancelPnrWorkflowBuilder {
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapter.class)
                 .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
-                .toMap(ValidateCancelPnrTask.class, completeFlow()).build();
+                .toMap(ValidateCancelPnrTask.class)
+                .toMap(CancelPnrResponseAdaptor.class, completeFlow()).build();
     }
 
     public static WorkFlow cancelPnr() {
