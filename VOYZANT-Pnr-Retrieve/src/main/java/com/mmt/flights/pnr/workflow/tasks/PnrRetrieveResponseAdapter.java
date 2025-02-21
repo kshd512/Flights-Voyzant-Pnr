@@ -27,11 +27,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Component
 public class PnrRetrieveResponseAdapter implements MapTask {
-    
+    private static final DateTimeFormatter INPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter OUTPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+
     @Autowired
     private ObjectMapper objectMapper;
     
@@ -124,7 +128,18 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         if (departure.getTerminal() != null) {
             depBuilder.setTrmnl(departure.getTerminal().getName());
         }
-        builder.setDepTime(departure.getDate() + "T" + departure.getTime());
+
+        // Improved time parsing instead of substring extraction
+        String formattedTime;
+        try {
+            LocalTime parsedTime = LocalTime.parse(departure.getTime(), INPUT_TIME_FORMATTER);
+            formattedTime = parsedTime.format(OUTPUT_TIME_FORMATTER);
+        } catch (Exception e) {
+            // Fallback to the original substring extraction or handle appropriately
+            formattedTime = departure.getTime().length() >= 5 ? 
+                    departure.getTime().substring(0, 5) : departure.getTime();
+        }
+        builder.setDepTime(departure.getDate() + " " + formattedTime);
         builder.setDepInfo(depBuilder.build());
         
         // Set arrival info
