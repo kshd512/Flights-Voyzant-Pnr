@@ -435,30 +435,34 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                     }
                 }
 
-                // Instead of summing passengerQuantity directly, skip paxTypeCountMap.merge
-                // ...existing fare accumulation code for base/tax/total...
-
                 SupplyFareDetailDTO.Builder fareDetailBuilder = paxTypeFareBuilderMap.computeIfAbsent(
                     paxType, k -> initializeFareDetailBuilder());
                 
                 FareDetail fareDetail = offerItem.getFareDetail();
                 if (fareDetail != null && fareDetail.getPrice() != null) {
                     Price price = fareDetail.getPrice();
+                    double baseAmount = price.getBaseAmount().getBookingCurrencyPrice();
+                    double taxAmount = price.getTaxAmount().getBookingCurrencyPrice();
+                    double totalAmountPerPax = price.getTotalAmount().getBookingCurrencyPrice();
                     
-                    // Accumulate fares for this passenger type
-                    fareDetailBuilder.setBs(fareDetailBuilder.getBs() + price.getBaseAmount().getBookingCurrencyPrice());
-                    fareDetailBuilder.setTx(fareDetailBuilder.getTx() + price.getTaxAmount().getBookingCurrencyPrice());
-                    fareDetailBuilder.setTot(fareDetailBuilder.getTot() + price.getTotalAmount().getBookingCurrencyPrice());
+                    // Accumulate fares for this passenger type (per passenger)
+                    fareDetailBuilder.setBs(fareDetailBuilder.getBs() + baseAmount);
+                    fareDetailBuilder.setTx(fareDetailBuilder.getTx() + taxAmount);
+                    fareDetailBuilder.setTot(fareDetailBuilder.getTot() + totalAmountPerPax);
                     
-                    // Accumulate order totals
-                    totalBs += price.getBaseAmount().getBookingCurrencyPrice();
-                    totalTx += price.getTaxAmount().getBookingCurrencyPrice();
-                    totalAmount += price.getTotalAmount().getBookingCurrencyPrice();
+                    // Calculate fares for all passengers of this type
+                    Set<String> uniqueRefs = paxTypeRefsMap.getOrDefault(paxType, Collections.emptySet());
+                    int paxCount = uniqueRefs.size();
+                    
+                    // Accumulate order totals (multiply by passenger count)
+                    totalBs += baseAmount * paxCount;
+                    totalTx += taxAmount * paxCount;
+                    totalAmount += totalAmountPerPax * paxCount;
                     
                     // Initialize tax breakup map for this passenger type if not exists
                     Map<String, Double> taxBreakupMap = paxTypeTaxBreakupMap.computeIfAbsent(paxType, k -> new HashMap<>());
                     
-                    // Add tax breakups
+                    // Add tax breakups (per passenger)
                     if (price.getTaxes() != null) {
                         for (Tax tax : price.getTaxes()) {
                             String taxCode = tax.getTaxCode();
@@ -467,8 +471,8 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                             // Accumulate tax breakups for passenger type
                             taxBreakupMap.merge(taxCode, amount, Double::sum);
                             
-                            // Accumulate tax breakups for order total
-                            orderTotalTaxBreakupMap.merge(taxCode, amount, Double::sum);
+                            // Accumulate tax breakups for order total (multiply by passenger count)
+                            orderTotalTaxBreakupMap.merge(taxCode, amount * paxCount, Double::sum);
                         }
                     }
                 }
@@ -507,20 +511,24 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                 fareInfoBuilder.putPaxFares(paxType, fareDetailBuilder.build());
             });
             
-            // Set total fare info with accumulated values
+            // Set total fare info with accumulated values (already multiplied by pax count)
             SupplyTotalFareDTO.Builder totFrBuilder = SupplyTotalFareDTO.newBuilder();
             totFrBuilder.setBs(totalBs);
             totFrBuilder.setTx(totalTx);
             totFrBuilder.setTot(totalAmount);
             totFrBuilder.setAirlineFixedFee(0.0);
             
-            // Add accumulated tax breakups to total fare
+            // Add accumulated tax breakups to total fare (already multiplied by pax count)
+            List<SupplyTaxBreakupDTO> totalTaxBreakups = new ArrayList<>();
             orderTotalTaxBreakupMap.forEach((code, amount) -> {
-                SupplyTaxBreakupDTO.Builder taxBreakupBuilder = SupplyTaxBreakupDTO.newBuilder();
-                taxBreakupBuilder.setAmnt(amount);
-                taxBreakupBuilder.setCode(code);
-                taxBreakupBuilder.setMsg("");
+                SupplyTaxBreakupDTO taxBreakup = SupplyTaxBreakupDTO.newBuilder()
+                    .setAmnt(amount)
+                    .setCode(code)
+                    .setMsg("")
+                    .build();
+                totalTaxBreakups.add(taxBreakup);
             });
+            //totFrBuilder.addAllTaxBreakup(totalTaxBreakups);
             
             fareInfoBuilder.setTotFr(totFrBuilder.build());
             
