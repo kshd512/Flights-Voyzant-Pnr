@@ -601,13 +601,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                     
                     sgFareBuilder.addAllAirlineFixedFees(Collections.emptyList());
                     segProductBuilder.setSgFare(sgFareBuilder.build());
-                    
-                    // Set fare key
-                    String fareKey = String.format("0~%s~~%s~%s~2002~~0~0~~X",
-                        offerItem.getFareComponent().get(0).getFareBasis().getRbd(),
-                        offerItem.getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode(),
-                        segment.getMarketingCarrier().getAirlineID());
-                    segProductBuilder.setFareKey(fareKey);
+
                     segProductBuilder.setFareExpDate("");
                     
                     fareDetailBuilder.putSegPrdctInfo(flightKey, segProductBuilder.build());
@@ -638,17 +632,29 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
     private SupplyPaxSegmentInfo getPaxSegmentInfo(Order order, DataLists dataLists) {
         SupplyPaxSegmentInfo.Builder builder = SupplyPaxSegmentInfo.newBuilder();
-        SupplyPnrStatusDTO.Builder statusBuilder = SupplyPnrStatusDTO.newBuilder();
         
-        if (dataLists.getFlightSegmentList() != null) {
+        // Only create status if there are flight segments
+        if (dataLists != null && dataLists.getFlightSegmentList() != null 
+            && !dataLists.getFlightSegmentList().getFlightSegment().isEmpty()) {
+            
+            SupplyPnrStatusDTO.Builder statusBuilder = SupplyPnrStatusDTO.newBuilder();
+            
             for (FlightSegment segment : dataLists.getFlightSegmentList().getFlightSegment()) {
-                String segmentKey = segment.getSegmentKey();
-                SupplyPnrLiftStatusDTOList.Builder liftStatusList = SupplyPnrLiftStatusDTOList.newBuilder();
-                statusBuilder.putSegmentLiftStatus(segmentKey, liftStatusList.build());
+                // Only add segment if it has relevant status data
+                if (segment != null && segment.getSegmentKey() != null) {
+                    String segmentKey = segment.getSegmentKey();
+                    // Here you can add additional checks for actual lift status data
+                    // if such data exists in your FlightSegment object
+                    
+                    // For now, only add if segment key is valid
+                    if (StringUtils.isNotEmpty(segmentKey)) {
+                        SupplyPnrLiftStatusDTOList.Builder liftStatusList = SupplyPnrLiftStatusDTOList.newBuilder();
+                        statusBuilder.putSegmentLiftStatus(segmentKey, liftStatusList.build());
+                    }
+                }
             }
         }
         
-        builder.setPnrStatus(statusBuilder.build());
         return builder.build();
     }
 
@@ -676,42 +682,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                         SupplyTravelerAddons.AddonsMap.Builder addonsMapBuilder = SupplyTravelerAddons.AddonsMap.newBuilder();
                         Map<String, SupplyAddons> addonsMap = new HashMap<>();
                         
-                     /*   // Add SEATS addon
-                        addonsMap.put("SEATS", SupplyAddons.newBuilder()
-                            .setAddonsType("SEATS")
-                            .setAmount(0.0)
-                            .setCode("26F")
-                            .setStatus("SUCCESS")
-                            .setChargeable(false)
-                            .setQuantity(0)
-                            .setValue(0)
-                            .setUnit("")
-                            .setDescription("")
-                            .setWeightPerPiece(0)
-                            .setWeightUnit("")
-                            .setSsrType("NOT_SET")
-                            .setEmdRequired(false)
-                            .setPreference("SPT_NOT_SET")
-                            .build());
-                        
-                        // Add MEALS addon
-                        addonsMap.put("MEALS", SupplyAddons.newBuilder()
-                            .setAddonsType("MEALS")
-                            .setAmount(0.0)
-                            .setCode("FRCK")
-                            .setStatus("SUCCESS")
-                            .setChargeable(false)
-                            .setQuantity(0)
-                            .setValue(0)
-                            .setUnit("")
-                            .setDescription("")
-                            .setWeightPerPiece(0)
-                            .setWeightUnit("")
-                            .setSsrType("NOT_SET")
-                            .setEmdRequired(false)
-                            .setPreference("SPT_NOT_SET")
-                            .build());*/
-                        
                         addonsMapBuilder.putAllAddons(addonsMap);
                         flightLevelAddonsMap.put(flightKey, addonsMapBuilder.build());
                     }
@@ -719,7 +689,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             }
         }
         
-        travelerAddonsBuilder.putAllFlightLevelAddons(flightLevelAddonsMap);
+        //travelerAddonsBuilder.putAllFlightLevelAddons(flightLevelAddonsMap);
         travelerAddonsBuilder.putAllJourneyLevelAddons(new HashMap<>()); // Empty journey level addons
         
         return travelerAddonsBuilder.build();
