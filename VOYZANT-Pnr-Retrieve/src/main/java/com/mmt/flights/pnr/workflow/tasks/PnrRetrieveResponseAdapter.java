@@ -575,10 +575,20 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                         FareComponent fareComponent = offerItem.getFareComponent().get(0);
                         FareBasis fareBasis = fareComponent.getFareBasis();
                         
-                        segProductBuilder.setFareBasis(fareBasis.getFareBasisCode().getCode());
-                        segProductBuilder.setFareClass(fareBasis.getRbd());
-                        segProductBuilder.setProductClass("J");
-                        segProductBuilder.setCabin("ECONOMY");
+                        // Split space-separated values and get the corresponding value for this segment
+                        String[] fareBasisCodes = fareBasis.getFareBasisCode().getCode().split("\\s+");
+                        String[] rbdValues = fareBasis.getRbd().split("\\s+");
+                        String[] cabinTypes = fareBasis.getCabinType().split("\\s+");
+                        
+                        // Use the value at index i, or the last value if i is out of bounds
+                        String fareBasisCode = i < fareBasisCodes.length ? fareBasisCodes[i] : fareBasisCodes[fareBasisCodes.length - 1];
+                        String rbd = i < rbdValues.length ? rbdValues[i] : rbdValues[rbdValues.length - 1];
+                        String cabinType = i < cabinTypes.length ? cabinTypes[i] : cabinTypes[cabinTypes.length - 1];
+                        
+                        segProductBuilder.setFareBasis(fareBasisCode.trim());
+                        segProductBuilder.setFareClass(rbd.trim());
+                        segProductBuilder.setProductClass(rbd.trim());
+                        segProductBuilder.setCabin(cabinType.trim());
                     }
                     
                     // Set baggage info
@@ -591,7 +601,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                     baggageBuilder.setCabinBag(cabinBagBuilder.build());
                     segProductBuilder.setBaggageInfo(baggageBuilder.build());
                     
-                    // Set segment fare - full amount for first segment only
+                    // Set segment fare - divide total fare among segments
                     SupplySegmentFare.Builder sgFareBuilder = SupplySegmentFare.newBuilder();
                     
                     if (i == 0) {
@@ -623,7 +633,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                     
                     sgFareBuilder.addAllAirlineFixedFees(Collections.emptyList());
                     segProductBuilder.setSgFare(sgFareBuilder.build());
-
                     segProductBuilder.setFareExpDate("");
                     
                     fareDetailBuilder.putSegPrdctInfo(flightKey, segProductBuilder.build());
