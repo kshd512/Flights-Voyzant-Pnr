@@ -110,8 +110,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                 
         builder.setMetaData(getMetaData(order, cmsMapHolder.getCmsId(), supplierLatency, state,
                 supplyPnrRequestDTO.getEnableTrace()));
-                
-        builder.setMiscData(getMiscInfo(order, builder.getFlightLookUpListMap()));
+
         builder.setStatus(SupplyStatus.SUCCESS);
 
         return builder.build();
@@ -178,9 +177,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         }
         
         FlightDetail flightDetail = segment.getFlightDetail();
-        if (flightDetail != null && flightDetail.getFlightDuration() != null) {
-           // builder.setDurInMins(Integer.parseInt(flightDetail.getFlightDuration().getValue()));
-        }
 
         // Set segment identifiers
         builder.setSuppSegKey(segment.getSegmentKey());
@@ -236,24 +232,11 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         return builder.build();
     }
 
-    private SupplyPnrMiscInfo getMiscInfo(Order order, Map<String, SupplyFlightDTO> flightLookupListMap) {
-        SupplyPnrMiscInfo.Builder builder = SupplyPnrMiscInfo.newBuilder();
-        builder.setIssuingAgent(order.getOwnerName());
-        
-        for (SupplyFlightDTO supplyFlightDTO : flightLookupListMap.values()) {
-            if (supplyFlightDTO.getIsInternational()) {
-                builder.setIsInternational(true);
-                break;
-            }
-        }
-        return builder.build();
-    }
-
     private SupplyBookingInfoDTO getBookingInfo(Order order, DataLists dataLists,
                                                Map<String, String> segmentRefMap,
                                                Map<String, SupplyFlightDTO> flightlookupMap,
                                                int pnrGroupNo,
-                                               ApiVersion version) throws IOException {
+                                               ApiVersion version) {
         SupplyBookingInfoDTO.Builder builder = SupplyBookingInfoDTO.newBuilder();
         
         List<SupplyBookingJourneyDTO> journeys = getJourneys(dataLists, segmentRefMap, flightlookupMap, pnrGroupNo);
@@ -381,7 +364,11 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         fareInfoBuilder.setSPnr(order.getOrderID());
         fareInfoBuilder.setAPnr(order.getGdsBookingReference());
         fareInfoBuilder.setValidatingCarrier(order.getOwner());
-        fareInfoBuilder.setCreationDate(order.getTimeLimits() != null ? order.getTimeLimits().getOfferExpirationDateTime() : "");
+        String existingCreationDate = order.getTimeLimits() != null ? order.getTimeLimits().getOfferExpirationDateTime() : "";
+        if (existingCreationDate.contains("T") && existingCreationDate.length() >= 16) {
+            existingCreationDate = existingCreationDate.substring(0, 10) + " " + existingCreationDate.substring(11, 16);
+        }
+        fareInfoBuilder.setCreationDate(existingCreationDate);
         fareInfoBuilder.setFareFamily("FLEXI PLUS");  // Based on sample
         fareInfoBuilder.setAccountCode("");
         fareInfoBuilder.setMaxTicketingTime("");
@@ -661,7 +648,11 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         builder.setAPnr(order.getGdsBookingReference());
         builder.setSPnr(order.getOrderID());
         builder.setValidatingCarrier(order.getOwner());
-        builder.setCreationDate(order.getTimeLimits() != null ? order.getTimeLimits().getOfferExpirationDateTime() : "");
+        String existingCreationDate = order.getTimeLimits() != null ? order.getTimeLimits().getOfferExpirationDateTime() : "";
+        if (existingCreationDate.contains("T") && existingCreationDate.length() >= 16) {
+            existingCreationDate = existingCreationDate.substring(0, 10) + " " + existingCreationDate.substring(11, 16);
+        }
+        builder.setCreationDate(existingCreationDate);
         builder.setTimeZoneOffset("+00:00"); // Set appropriate timezone if available
     }
 
