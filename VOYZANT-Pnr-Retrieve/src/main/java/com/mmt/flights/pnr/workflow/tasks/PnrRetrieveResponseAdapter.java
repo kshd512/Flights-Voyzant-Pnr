@@ -150,7 +150,17 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         if (arrival.getTerminal() != null) {
             arrBuilder.setTrmnl(arrival.getTerminal().getName());
         }
-        builder.setArrTime(arrival.getDate() + "T" + arrival.getTime());
+
+        // Format arrival time to match departure time format
+        String arrivalFormattedTime;
+        try {
+            LocalTime parsedArrTime = LocalTime.parse(arrival.getTime(), INPUT_TIME_FORMATTER);
+            arrivalFormattedTime = parsedArrTime.format(OUTPUT_TIME_FORMATTER);
+        } catch (Exception e) {
+            arrivalFormattedTime = arrival.getTime().length() >= 5 ? 
+                    arrival.getTime().substring(0, 5) : arrival.getTime();
+        }
+        builder.setArrTime(arrival.getDate() + " " + arrivalFormattedTime);
         builder.setArrInfo(arrBuilder.build());
 
         // Set carrier info
@@ -305,7 +315,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                 if (lookupKey != null) {
                     segmentKeys.add(lookupKey);
                 } else {
-                    // Fallback to building key if not found in map
                     lookupKey = buildFlightKey(segment);
                     segmentKeys.add(lookupKey);
                 }
@@ -313,15 +322,33 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         }
         
         if (firstSegment != null && lastSegment != null) {
-            builder.setDepDate(firstSegment.getDeparture().getDate() + "T" + firstSegment.getDeparture().getTime());
-            builder.setArrDate(lastSegment.getArrival().getDate() + "T" + lastSegment.getArrival().getTime());
+            // Format departure time
+            String depFormattedTime;
+            try {
+                LocalTime parsedDepTime = LocalTime.parse(firstSegment.getDeparture().getTime(), INPUT_TIME_FORMATTER);
+                depFormattedTime = parsedDepTime.format(OUTPUT_TIME_FORMATTER);
+            } catch (Exception e) {
+                depFormattedTime = firstSegment.getDeparture().getTime().length() >= 5 ? 
+                        firstSegment.getDeparture().getTime().substring(0, 5) : firstSegment.getDeparture().getTime();
+            }
+            builder.setDepDate(firstSegment.getDeparture().getDate() + " " + depFormattedTime);
+
+            // Format arrival time
+            String arrFormattedTime;
+            try {
+                LocalTime parsedArrTime = LocalTime.parse(lastSegment.getArrival().getTime(), INPUT_TIME_FORMATTER);
+                arrFormattedTime = parsedArrTime.format(OUTPUT_TIME_FORMATTER);
+            } catch (Exception e) {
+                arrFormattedTime = lastSegment.getArrival().getTime().length() >= 5 ? 
+                        lastSegment.getArrival().getTime().substring(0, 5) : lastSegment.getArrival().getTime();
+            }
+            builder.setArrDate(lastSegment.getArrival().getDate() + " " + arrFormattedTime);
             
             // Add all segments' flight details
             for (String lookupKey : segmentKeys) {
                 builder.addFlightDtlsInfo(getFlightDetailsInfo(lookupKey, pnrGroupNo));
             }
             
-            // Set journey key as all segment lookup keys joined by |
             String journeyKey = String.join("|", segmentKeys);
             builder.setJrnyKey(journeyKey);
         }
