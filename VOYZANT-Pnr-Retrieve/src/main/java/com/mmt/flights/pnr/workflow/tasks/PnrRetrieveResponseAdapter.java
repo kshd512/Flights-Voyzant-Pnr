@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -63,7 +62,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                                               OrderViewRS orderViewRS,
                                               CMSMapHolder cmsMapHolder,
                                               long supplierLatency,
-                                              FlowState state) throws IOException {
+                                              FlowState state) {
         ApiVersion version = state.getValue(FlowStateKey.VERSION);
         SupplyBookingResponseDTO.Builder builder = SupplyBookingResponseDTO.newBuilder();
         Order order = orderViewRS.getOrder().get(0);
@@ -80,8 +79,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         }
 
         // Set booking information
-        builder.setBookingInfo(getBookingInfo(order, dataLists, segmentRefMap,
-                builder.getFlightLookUpListMap(), 0, version));
+        builder.setBookingInfo(getBookingInfo(order, dataLists, segmentRefMap, 0, version));
                 
         // Set metadata
         builder.setMetaData(getMetaData(order, cmsMapHolder.getCmsId(), supplierLatency, state,
@@ -95,7 +93,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     /**
      * Process flight segments and populate the response builder
      */
-    private void processFlightSegments(SupplyBookingResponseDTO.Builder builder, DataLists dataLists, Order order, Map<String, String> segmentRefMap) throws IOException {
+    private void processFlightSegments(SupplyBookingResponseDTO.Builder builder, DataLists dataLists, Order order, Map<String, String> segmentRefMap) {
         Map<String, String> flightKeyMap = new HashMap<>();
         int segmentId = 0;
         int journeyId = 0;
@@ -136,7 +134,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         }
     }
 
-    private SupplyFlightDTO getSimpleFlight(FlightSegment segment, int segmentId, int journeyId) throws IOException {
+    private SupplyFlightDTO getSimpleFlight(FlightSegment segment, int segmentId, int journeyId) {
         SupplyFlightDTO.Builder builder = SupplyFlightDTO.newBuilder();
         
         // Set departure info
@@ -290,12 +288,11 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
     private SupplyBookingInfoDTO getBookingInfo(Order order, DataLists dataLists,
                                                Map<String, String> segmentRefMap,
-                                               Map<String, SupplyFlightDTO> flightlookupMap,
                                                int pnrGroupNo,
                                                ApiVersion version) {
         SupplyBookingInfoDTO.Builder builder = SupplyBookingInfoDTO.newBuilder();
         
-        List<SupplyBookingJourneyDTO> journeys = getJourneys(dataLists, segmentRefMap, flightlookupMap, pnrGroupNo);
+        List<SupplyBookingJourneyDTO> journeys = getJourneys(dataLists, segmentRefMap, pnrGroupNo);
         builder.addAllJourneys(journeys);
 
         Map<String, String> flightToJourneyMap = new HashMap<>();
@@ -308,13 +305,12 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         }
 
         builder.setFrInfo(getFareInfo(String.valueOf(pnrGroupNo), order, dataLists, segmentRefMap));
-        builder.setPaxSegmentInfo(getPaxSegmentInfo(order, dataLists));
+        builder.setPaxSegmentInfo(getPaxSegmentInfo(dataLists));
         return builder.build();
     }
 
     private List<SupplyBookingJourneyDTO> getJourneys(DataLists dataLists,
                                                      Map<String, String> segmentRefMap,
-                                                     Map<String, SupplyFlightDTO> flightLookupMap,
                                                      int pnrGroupNo) {
         List<SupplyBookingJourneyDTO> journeys = new ArrayList<>();
         
@@ -322,7 +318,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             FlightList flightList = dataLists.getFlightList();
             for (Flight flight : flightList.getFlight()) {
                 // Each flight can contain multiple segments
-                SupplyBookingJourneyDTO journey = getJourneyFromFlight(flight, dataLists, flightLookupMap, segmentRefMap, pnrGroupNo);
+                SupplyBookingJourneyDTO journey = getJourneyFromFlight(flight, dataLists, segmentRefMap, pnrGroupNo);
                 journeys.add(journey);
             }
         }
@@ -331,7 +327,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
     private SupplyBookingJourneyDTO getJourneyFromFlight(Flight flight,
                                                       DataLists dataLists,
-                                                      Map<String, SupplyFlightDTO> flightLookupMap,
                                                       Map<String, String> segmentRefMap,
                                                       int pnrGroupNo) {
         SupplyBookingJourneyDTO.Builder builder = SupplyBookingJourneyDTO.newBuilder();
@@ -481,7 +476,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             buildTotalFareInfo(fareInfoBuilder, calculationResult);
             
             // Add traveler addons and info
-            fareInfoBuilder.putTravelerAddons("0", buildTravelerAddons(dataLists, segmentRefMap));
+            fareInfoBuilder.putTravelerAddons("0", buildTravelerAddons(dataLists));
             addTravelerInfos(fareInfoBuilder, dataLists);
         }
         
@@ -663,7 +658,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                                               Map<String, String> segmentRefMap,
                                               SupplyFareDetailDTO.Builder fareDetailBuilder) {
         if (offerItem.getFareComponent() != null) {
-            String flightRef = getFlightRefForOfferItem(offerItem, dataLists);
+            String flightRef = getFlightRefForOfferItem(offerItem);
             Flight flight = findFlightByRef(dataLists, flightRef);
             
             if (flight != null) {
@@ -672,7 +667,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         }
     }
 
-    private String getFlightRefForOfferItem(OfferItem offerItem, DataLists dataLists) {
+    private String getFlightRefForOfferItem(OfferItem offerItem) {
         if (offerItem.getService() != null && !offerItem.getService().isEmpty()) {
             return offerItem.getService().get(0).getFlightRefs();
         }
@@ -710,7 +705,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             if (segment != null && segmentRefMap.containsKey(segmentRef)) {
                 String flightKey = segmentRefMap.get(segmentRef);
                 SupplySegmentProductInfo.Builder segProductBuilder = createSegmentProductInfo(
-                    offerItem, segment, i, segmentRefs.length, price, (i == 0));
+                    offerItem, i, price, (i == 0));
                     
                 fareDetailBuilder.putSegPrdctInfo(flightKey, segProductBuilder.build());
             }
@@ -721,7 +716,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      * Create segment product info for a flight segment
      */
     private SupplySegmentProductInfo.Builder createSegmentProductInfo(
-        OfferItem offerItem, FlightSegment segment, int index, int totalSegments, 
+        OfferItem offerItem, int index,
         Price price, boolean isFirstSegment) {
         
         SupplySegmentProductInfo.Builder segProductBuilder = SupplySegmentProductInfo.newBuilder();
@@ -829,19 +824,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         segProductBuilder.setSgFare(sgFareBuilder.build());
     }
 
-    private String getFlightDirection(Flight flight, DataLists dataLists) {
-        String[] segmentRefs = flight.getSegmentReferences().split("\\s+");
-        if (segmentRefs.length > 0) {
-            FlightSegment firstSegment = findSegmentByRef(dataLists, segmentRefs[0]);
-            if (firstSegment != null) {
-                return firstSegment.getDeparture().getAirportCode() + "-" + 
-                       firstSegment.getArrival().getAirportCode();
-            }
-        }
-        return "";
-    }
-
-    private SupplyPaxSegmentInfo getPaxSegmentInfo(Order order, DataLists dataLists) {
+    private SupplyPaxSegmentInfo getPaxSegmentInfo(DataLists dataLists) {
         SupplyPaxSegmentInfo.Builder builder = SupplyPaxSegmentInfo.newBuilder();
         
         // Only create status if there are flight segments
@@ -876,7 +859,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             .build();
     }
 
-    private SupplyTravelerAddons buildTravelerAddons(DataLists dataLists, Map<String, String> segmentRefMap) {
+    private SupplyTravelerAddons buildTravelerAddons(DataLists dataLists) {
         SupplyTravelerAddons.Builder travelerAddonsBuilder = SupplyTravelerAddons.newBuilder();
         travelerAddonsBuilder.setPtcType("");
         
