@@ -32,8 +32,8 @@ import java.util.*;
 
 @Component
 public class PnrRetrieveResponseAdapter implements MapTask {
-    private static final DateTimeFormatter INPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
-    private static final DateTimeFormatter OUTPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter INPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss").withLocale(Locale.US);
+    private static final DateTimeFormatter OUTPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm").withLocale(Locale.US);
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -47,7 +47,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         String pnrResponseData = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
         OrderViewRS orderViewRS = objectMapper.readValue(pnrResponseData, OrderViewRS.class);
         CMSMapHolder cmsMapHolder = state.getValue(FlowStateKey.CMS_MAP);
-        long duration = new Long(0);//state.getValue(FlowStateKey.SESSION_DURATION) + state.getValue(FlowStateKey.RESPONSE_DURATION);
+        long duration = 0L; // Replaced deprecated constructor
 
         if (orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty() || 
             StringUtils.isEmpty(orderViewRS.getOrder().get(0).getOrderID())) {
@@ -68,15 +68,11 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         Order order = orderViewRS.getOrder().get(0);
         DataLists dataLists = orderViewRS.getDataLists();
         
-        // Initialize segment reference map
-        Map<String, String> segmentRefMap = new HashMap<>();
+        // Initialize segment reference map with expected capacity
+        Map<String, String> segmentRefMap = new HashMap<>(16);
         
         // Process flight segments if available
-        if (dataLists != null && dataLists.getFlightSegmentList() != null) {
-            processFlightSegments(builder, dataLists, order, segmentRefMap);
-        } else {
-            builder.setPnrStatus(SupplyPnrStatusType.CUSTOMER_CANCELED);
-        }
+        processFlightSegments(builder, dataLists, order, segmentRefMap);
 
         // Set booking information
         builder.setBookingInfo(getBookingInfo(order, dataLists, segmentRefMap, 0, version));
@@ -235,13 +231,15 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      * Falls back to substring extraction if parsing fails
      */
     private String formatFlightTime(String timeString) {
+        if (StringUtils.isEmpty(timeString)) {
+            return "";
+        }
+        
         try {
-            LocalTime parsedTime = LocalTime.parse(timeString, INPUT_TIME_FORMATTER);
-            return parsedTime.format(OUTPUT_TIME_FORMATTER);
+            LocalTime time = LocalTime.parse(timeString, INPUT_TIME_FORMATTER);
+            return time.format(OUTPUT_TIME_FORMATTER);
         } catch (Exception e) {
-            // Fallback to the original substring extraction
-            return timeString.length() >= 5 ? 
-                    timeString.substring(0, 5) : timeString;
+            return timeString;
         }
     }
 
@@ -453,11 +451,10 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     }
 
     private SupplyFareDetailDTO.Builder initializeFareDetailBuilder() {
-        SupplyFareDetailDTO.Builder builder = SupplyFareDetailDTO.newBuilder();
-        builder.setBs(0.0);
-        builder.setTx(0.0);
-        builder.setTot(0.0);
-        return builder;
+        return SupplyFareDetailDTO.newBuilder()
+            .setBs(0)
+            .setTot(0)
+            .setTx(0);
     }
 
     private SupplyFareInfoDTO getFareInfo(String pnrGroupNo, Order order, DataLists dataLists,
