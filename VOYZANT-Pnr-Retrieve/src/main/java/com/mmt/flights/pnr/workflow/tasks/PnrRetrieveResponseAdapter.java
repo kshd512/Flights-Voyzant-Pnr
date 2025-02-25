@@ -22,6 +22,8 @@ import com.mmt.flights.supply.common.enums.SupplyPnrStatusTypeOuterClass.SupplyP
 import com.mmt.flights.supply.pnr.v4.request.SupplyPnrRequestDTO;
 import io.grpc.xds.shaded.io.envoyproxy.envoy.api.v2.core.ApiVersion;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -29,15 +31,25 @@ import org.springframework.stereotype.Component;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+/**
+ * Adapter for processing PNR retrieve responses from supplier
+ */
 @Component
 public class PnrRetrieveResponseAdapter implements MapTask {
+    private static final Logger LOG = LoggerFactory.getLogger(PnrRetrieveResponseAdapter.class);
     private static final DateTimeFormatter INPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss").withLocale(Locale.US);
     private static final DateTimeFormatter OUTPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm").withLocale(Locale.US);
+    private static final String TIME_DELIMITER = " ";
+    private static final String T_DELIMITER = "T";
+    private static final String DEFAULT_FARE_FAMILY = "FLEXI PLUS";
+    private static final int DEFAULT_MAP_CAPACITY = 16;
 
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     @Autowired
     private JaxbHandlerService jaxbHandlerService;
 
@@ -47,36 +59,40 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         String pnrResponseData = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
         OrderViewRS orderViewRS = objectMapper.readValue(pnrResponseData, OrderViewRS.class);
         CMSMapHolder cmsMapHolder = state.getValue(FlowStateKey.CMS_MAP);
-        long duration = 0L; // Replaced deprecated constructor
 
-        if (orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty() || 
-            StringUtils.isEmpty(orderViewRS.getOrder().get(0).getOrderID())) {
+        validatePnrResponse(orderViewRS);
+
+        return state.toBuilder()
+                .addValue(FlowStateKey.RESPONSE, getResponse(supplyPnrRequest, orderViewRS, cmsMapHolder, 0L, state))
+                .build();
+    }
+
+    private void validatePnrResponse(OrderViewRS orderViewRS) {
+        if (orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty() ||
+                StringUtils.isEmpty(orderViewRS.getOrder().get(0).getOrderID())) {
             throw new ServiceErrorException("PNR_NOT_VALID", ErrorEnum.PNR_PARTIALLY_REFUNDED, HttpStatus.BAD_REQUEST);
         }
-
-        return state.toBuilder().addValue(FlowStateKey.RESPONSE, 
-                getResponse(supplyPnrRequest, orderViewRS, cmsMapHolder, duration, state)).build();
     }
 
     private SupplyBookingResponseDTO getResponse(SupplyPnrRequestDTO supplyPnrRequestDTO,
-                                              OrderViewRS orderViewRS,
-                                              CMSMapHolder cmsMapHolder,
-                                              long supplierLatency,
-                                              FlowState state) {
+                                                 OrderViewRS orderViewRS,
+                                                 CMSMapHolder cmsMapHolder,
+                                                 long supplierLatency,
+                                                 FlowState state) {
         ApiVersion version = state.getValue(FlowStateKey.VERSION);
         SupplyBookingResponseDTO.Builder builder = SupplyBookingResponseDTO.newBuilder();
         Order order = orderViewRS.getOrder().get(0);
         DataLists dataLists = orderViewRS.getDataLists();
-        
-        // Initialize segment reference map with expected capacity
-        Map<String, String> segmentRefMap = new HashMap<>(16);
-        
-        // Process flight segments if available
+
+        // Initialize segment reference map
+        Map<String, String> segmentRefMap = new HashMap<>(DEFAULT_MAP_CAPACITY);
+
+        // Process flight segments
         processFlightSegments(builder, dataLists, order, segmentRefMap);
 
         // Set booking information
         builder.setBookingInfo(getBookingInfo(order, dataLists, segmentRefMap, 0, version));
-                
+
         // Set metadata
         builder.setMetaData(getMetaData(order, cmsMapHolder.getCmsId(), supplierLatency, state,
                 supplyPnrRequestDTO.getEnableTrace()));
@@ -89,20 +105,30 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     /**
      * Process flight segments and populate the response builder
      */
-    private void processFlightSegments(SupplyBookingResponseDTO.Builder builder, DataLists dataLists, Order order, Map<String, String> segmentRefMap) {
-        Map<String, String> flightKeyMap = new HashMap<>();
+    private void processFlightSegments(SupplyBookingResponseDTO.Builder builder, DataLists dataLists,
+                                       Order order, Map<String, String> segmentRefMap) {
+        if (dataLists == null || dataLists.getFlightSegmentList() == null) {
+            return;
+        }
+
+        Map<String, String> flightKeyMap = new HashMap<>(DEFAULT_MAP_CAPACITY);
         int segmentId = 0;
         int journeyId = 0;
 
-        for (FlightSegment segment : dataLists.getFlightSegmentList().getFlightSegment()) {
+        List<FlightSegment> segments = dataLists.getFlightSegmentList().getFlightSegment();
+        if (segments == null) {
+            return;
+        }
+
+        for (FlightSegment segment : segments) {
             SupplyFlightDTO flight = getSimpleFlight(segment, segmentId, journeyId);
-            String fltkey = AdapterUtil.getJourneyKey(Arrays.asList(flight));
-            
+            String fltkey = AdapterUtil.getJourneyKey(Collections.singletonList(flight));
+
             builder.putFlightLookUpList(fltkey, flight);
             flightKeyMap.put(flight.getDepInfo().getArpCd() + flight.getArrInfo().getArpCd(), fltkey);
-            
+
             processTechnicalStops(flight, flightKeyMap);
-            
+
             segmentRefMap.put(segment.getSegmentKey(), fltkey);
             segmentId++;
             journeyId++;
@@ -117,40 +143,44 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      * Process technical stops for a flight
      */
     private void processTechnicalStops(SupplyFlightDTO flight, Map<String, String> flightKeyMap) {
-        if (flight.getTchStpList() != null) {
-            String lastAirport = flight.getDepInfo().getArpCd();
-            String fltkey = AdapterUtil.getJourneyKey(Arrays.asList(flight));
-            
-            for (SupplyTechnicalStopDTO techStop : flight.getTchStpList()) {
-                String currentAirPort = techStop.getLocInfo().getArpCd();
-                flightKeyMap.put(lastAirport + currentAirPort, fltkey);
-                lastAirport = currentAirPort;
-            }
-            flightKeyMap.put(lastAirport + flight.getArrInfo().getArpCd(), fltkey);
+        if (flight.getTchStpList() == null || flight.getTchStpList().isEmpty()) {
+            return;
         }
+
+        String lastAirport = flight.getDepInfo().getArpCd();
+        String fltkey = AdapterUtil.getJourneyKey(Collections.singletonList(flight));
+
+        for (SupplyTechnicalStopDTO techStop : flight.getTchStpList()) {
+            String currentAirPort = techStop.getLocInfo().getArpCd();
+            flightKeyMap.put(lastAirport + currentAirPort, fltkey);
+            lastAirport = currentAirPort;
+        }
+        flightKeyMap.put(lastAirport + flight.getArrInfo().getArpCd(), fltkey);
     }
 
     private SupplyFlightDTO getSimpleFlight(FlightSegment segment, int segmentId, int journeyId) {
         SupplyFlightDTO.Builder builder = SupplyFlightDTO.newBuilder();
-        
-        // Set departure info
+
+        // Set departure and arrival info
         setFlightDepartureInfo(builder, segment.getDeparture());
-        
-        // Set arrival info
         setFlightArrivalInfo(builder, segment.getArrival());
 
         // Set carrier info
         setFlightCarrierInfo(builder, segment);
-        
+
         // Set equipment and duration
         setFlightEquipmentInfo(builder, segment);
 
         // Set segment identifiers
-        setFlightSegmentIdentifiers(builder, segment, segmentId, journeyId);
-        
+        builder.setSuppSegKey(segment.getSegmentKey())
+                .setSuppid(String.valueOf(segmentId))
+                .setMarriedSegId(String.valueOf(journeyId));
+
         // Set cabin and booking class
-        setFlightCabinInfo(builder, segment);
-        
+        if (segment.getCode() != null) {
+            builder.setClassOfService(segment.getCode().getMarriageGroup());
+        }
+
         return builder.build();
     }
 
@@ -158,71 +188,69 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      * Sets departure airport and time information for a flight
      */
     private void setFlightDepartureInfo(SupplyFlightDTO.Builder builder, AirportInfo departure) {
-        SupplyLocationInfoDTO.Builder depBuilder = SupplyLocationInfoDTO.newBuilder();
-        depBuilder.setArpCd(departure.getAirportCode());
-        depBuilder.setArpNm(departure.getAirportName());
+        if (departure == null) {
+            return;
+        }
+
+        SupplyLocationInfoDTO.Builder depBuilder = SupplyLocationInfoDTO.newBuilder()
+                .setArpCd(departure.getAirportCode())
+                .setArpNm(departure.getAirportName());
+
         if (departure.getTerminal() != null) {
             depBuilder.setTrmnl(departure.getTerminal().getName());
         }
 
         String formattedTime = formatFlightTime(departure.getTime());
-        builder.setDepTime(departure.getDate() + " " + formattedTime);
-        builder.setDepInfo(depBuilder.build());
+        builder.setDepTime(departure.getDate() + TIME_DELIMITER + formattedTime)
+                .setDepInfo(depBuilder.build());
     }
 
     /**
      * Sets arrival airport and time information for a flight
      */
     private void setFlightArrivalInfo(SupplyFlightDTO.Builder builder, AirportInfo arrival) {
-        SupplyLocationInfoDTO.Builder arrBuilder = SupplyLocationInfoDTO.newBuilder();
-        arrBuilder.setArpCd(arrival.getAirportCode());
-        arrBuilder.setArpNm(arrival.getAirportName());
+        if (arrival == null) {
+            return;
+        }
+
+        SupplyLocationInfoDTO.Builder arrBuilder = SupplyLocationInfoDTO.newBuilder()
+                .setArpCd(arrival.getAirportCode())
+                .setArpNm(arrival.getAirportName());
+
         if (arrival.getTerminal() != null) {
             arrBuilder.setTrmnl(arrival.getTerminal().getName());
         }
 
         String formattedTime = formatFlightTime(arrival.getTime());
-        builder.setArrTime(arrival.getDate() + " " + formattedTime);
-        builder.setArrInfo(arrBuilder.build());
+        builder.setArrTime(arrival.getDate() + TIME_DELIMITER + formattedTime)
+                .setArrInfo(arrBuilder.build());
     }
 
     /**
      * Sets marketing and operating carrier information
      */
     private void setFlightCarrierInfo(SupplyFlightDTO.Builder builder, FlightSegment segment) {
+        if (segment == null) {
+            return;
+        }
+
         Carrier marketingCarrier = segment.getMarketingCarrier();
-        builder.setMrkAl(marketingCarrier.getAirlineID());
-        builder.setFltNo(marketingCarrier.getFlightNumber().replaceAll("\\s", ""));
-        
-        Carrier operatingCarrier = segment.getOperatingCarrier();
-        builder.setOprAl(operatingCarrier != null ? operatingCarrier.getAirlineID() : marketingCarrier.getAirlineID());
+        if (marketingCarrier != null) {
+            builder.setMrkAl(marketingCarrier.getAirlineID())
+                    .setFltNo(marketingCarrier.getFlightNumber().replaceAll("\\s", ""));
+
+            Carrier operatingCarrier = segment.getOperatingCarrier();
+            builder.setOprAl(operatingCarrier != null ?
+                    operatingCarrier.getAirlineID() : marketingCarrier.getAirlineID());
+        }
     }
 
     /**
      * Sets equipment information for a flight
      */
     private void setFlightEquipmentInfo(SupplyFlightDTO.Builder builder, FlightSegment segment) {
-        Equipment equipment = segment.getEquipment();
-        if (equipment != null) {
-            builder.setArcrfTyp(equipment.getAircraftCode());
-        }
-    }
-
-    /**
-     * Sets segment identifiers for a flight
-     */
-    private void setFlightSegmentIdentifiers(SupplyFlightDTO.Builder builder, FlightSegment segment, int segmentId, int journeyId) {
-        builder.setSuppSegKey(segment.getSegmentKey());
-        builder.setSuppid(String.valueOf(segmentId));
-        builder.setMarriedSegId(String.valueOf(journeyId));
-    }
-
-    /**
-     * Sets cabin and booking class information for a flight
-     */
-    private void setFlightCabinInfo(SupplyFlightDTO.Builder builder, FlightSegment segment) {
-        if (segment.getCode() != null) {
-            builder.setClassOfService(segment.getCode().getMarriageGroup());
+        if (segment != null && segment.getEquipment() != null) {
+            builder.setArcrfTyp(segment.getEquipment().getAircraftCode());
         }
     }
 
@@ -234,17 +262,18 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         if (StringUtils.isEmpty(timeString)) {
             return "";
         }
-        
+
         try {
             LocalTime time = LocalTime.parse(timeString, INPUT_TIME_FORMATTER);
             return time.format(OUTPUT_TIME_FORMATTER);
         } catch (Exception e) {
+            // Just return original string if parsing fails
             return timeString;
         }
     }
 
     private SupplyGSTInfo getGSTInfo(Order order) {
-        return SupplyGSTInfo.newBuilder().build(); // Implement GST info extraction if available
+        return SupplyGSTInfo.newBuilder().build();
     }
 
     private SupplyContactInfo getContactInfo(DataLists dataLists) {
@@ -261,90 +290,104 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     }
 
     private SupplyBookingResponseMetaDataDTO getMetaData(Order order, String cmsId, long supplierLatency,
-                                                        FlowState state, boolean enableTrace) {
-        SupplyBookingResponseMetaDataDTO.Builder builder = SupplyBookingResponseMetaDataDTO.newBuilder();
-        
-        builder.setCurrency(order.getBookingCurrencyCode());
-        builder.setServiceName(CommonConstants.SERVICE_NAME);
-        builder.setSupplierName(CommonConstants.SUPPLIER_NAME);
-        builder.setCredentialId(cmsId);
-        builder.setSupplierLatency(String.valueOf(supplierLatency));
-        builder.setIpAddress(IPAddressUtil.getIPAddress());
-        
+                                                         FlowState state, boolean enableTrace) {
+        SupplyBookingResponseMetaDataDTO.Builder builder = SupplyBookingResponseMetaDataDTO.newBuilder()
+                .setCurrency(order.getBookingCurrencyCode())
+                .setServiceName(CommonConstants.SERVICE_NAME)
+                .setSupplierName(CommonConstants.SUPPLIER_NAME)
+                .setCredentialId(cmsId)
+                .setSupplierLatency(String.valueOf(supplierLatency))
+                .setIpAddress(IPAddressUtil.getIPAddress());
+
         if (enableTrace) {
-            try {
-                builder.putTraceInfo("Request", 
-                    jaxbHandlerService.marshall(state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_REQUEST)));
-                builder.putTraceInfo("Response",state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE));
-            } catch (Exception e) {
-                // Log error but continue
-            }
+            addTraceInfo(builder, state);
         }
-        
+
         return builder.build();
+    }
+
+    private void addTraceInfo(SupplyBookingResponseMetaDataDTO.Builder builder, FlowState state) {
+        try {
+            builder.putTraceInfo("Request",
+                    jaxbHandlerService.marshall(state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_REQUEST)));
+            builder.putTraceInfo("Response", state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE));
+        } catch (Exception e) {
+            LOG.warn("Failed to add trace information", e);
+        }
     }
 
     private SupplyBookingInfoDTO getBookingInfo(Order order, DataLists dataLists,
-                                               Map<String, String> segmentRefMap,
-                                               int pnrGroupNo,
-                                               ApiVersion version) {
+                                                Map<String, String> segmentRefMap,
+                                                int pnrGroupNo,
+                                                ApiVersion version) {
         SupplyBookingInfoDTO.Builder builder = SupplyBookingInfoDTO.newBuilder();
-        
+
         List<SupplyBookingJourneyDTO> journeys = getJourneys(dataLists, segmentRefMap, pnrGroupNo);
         builder.addAllJourneys(journeys);
 
-        Map<String, String> flightToJourneyMap = new HashMap<>();
+        // Only collect flight to journey mapping if version is not null
         if (version != null) {
-            for (SupplyBookingJourneyDTO journey : journeys) {
-                for (SupplyFlightDetailDTO flight : journey.getFlightDtlsInfoList()) {
-                    flightToJourneyMap.put(flight.getFltLookUpKey(), journey.getJrnyKey());
-                }
-            }
+            buildFlightToJourneyMap(journeys);
         }
 
-        builder.setFrInfo(getFareInfo(String.valueOf(pnrGroupNo), order, dataLists, segmentRefMap));
-        builder.setPaxSegmentInfo(getPaxSegmentInfo(dataLists));
+        builder.setFrInfo(getFareInfo(String.valueOf(pnrGroupNo), order, dataLists, segmentRefMap))
+                .setPaxSegmentInfo(getPaxSegmentInfo(dataLists));
+
         return builder.build();
     }
 
-    private List<SupplyBookingJourneyDTO> getJourneys(DataLists dataLists,
-                                                     Map<String, String> segmentRefMap,
-                                                     int pnrGroupNo) {
-        List<SupplyBookingJourneyDTO> journeys = new ArrayList<>();
-        
-        if (dataLists != null && dataLists.getFlightList() != null) {
-            FlightList flightList = dataLists.getFlightList();
-            for (Flight flight : flightList.getFlight()) {
-                // Each flight can contain multiple segments
-                SupplyBookingJourneyDTO journey = getJourneyFromFlight(flight, dataLists, segmentRefMap, pnrGroupNo);
-                journeys.add(journey);
+    private Map<String, String> buildFlightToJourneyMap(List<SupplyBookingJourneyDTO> journeys) {
+        Map<String, String> flightToJourneyMap = new HashMap<>(DEFAULT_MAP_CAPACITY);
+        for (SupplyBookingJourneyDTO journey : journeys) {
+            String journeyKey = journey.getJrnyKey();
+            for (SupplyFlightDetailDTO flight : journey.getFlightDtlsInfoList()) {
+                flightToJourneyMap.put(flight.getFltLookUpKey(), journeyKey);
             }
         }
-        return journeys;
+        return flightToJourneyMap;
+    }
+
+    private List<SupplyBookingJourneyDTO> getJourneys(DataLists dataLists,
+                                                      Map<String, String> segmentRefMap,
+                                                      int pnrGroupNo) {
+        if (dataLists == null || dataLists.getFlightList() == null) {
+            return Collections.emptyList();
+        }
+
+        FlightList flightList = dataLists.getFlightList();
+        if (flightList.getFlight() == null) {
+            return Collections.emptyList();
+        }
+
+        return flightList.getFlight().stream()
+                .map(flight -> getJourneyFromFlight(flight, dataLists, segmentRefMap, pnrGroupNo))
+                .collect(Collectors.toList());
     }
 
     private SupplyBookingJourneyDTO getJourneyFromFlight(Flight flight,
-                                                      DataLists dataLists,
-                                                      Map<String, String> segmentRefMap,
-                                                      int pnrGroupNo) {
+                                                         DataLists dataLists,
+                                                         Map<String, String> segmentRefMap,
+                                                         int pnrGroupNo) {
         SupplyBookingJourneyDTO.Builder builder = SupplyBookingJourneyDTO.newBuilder();
-        
+
         // Find segments and collect keys
         SegmentBoundaryInfo segmentInfo = findJourneySegments(flight, dataLists, segmentRefMap);
-        
+
         if (segmentInfo.hasValidBoundaries()) {
             // Set departure and arrival info
-            setJourneyDepartureInfo(builder, segmentInfo.firstSegment);
-            setJourneyArrivalInfo(builder, segmentInfo.lastSegment);
-            
+            String depFormattedTime = formatFlightTime(segmentInfo.firstSegment.getDeparture().getTime());
+            builder.setDepDate(segmentInfo.firstSegment.getDeparture().getDate() + TIME_DELIMITER + depFormattedTime);
+
+            String arrFormattedTime = formatFlightTime(segmentInfo.lastSegment.getArrival().getTime());
+            builder.setArrDate(segmentInfo.lastSegment.getArrival().getDate() + TIME_DELIMITER + arrFormattedTime);
+
             // Add flight details
             for (String lookupKey : segmentInfo.segmentKeys) {
                 builder.addFlightDtlsInfo(getFlightDetailsInfo(lookupKey, pnrGroupNo));
             }
-            
+
             // Set journey key
-            String journeyKey = String.join("|", segmentInfo.segmentKeys);
-            builder.setJrnyKey(journeyKey);
+            builder.setJrnyKey(String.join("|", segmentInfo.segmentKeys));
         }
 
         return builder.build();
@@ -356,8 +399,8 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     private static class SegmentBoundaryInfo {
         FlightSegment firstSegment;
         FlightSegment lastSegment;
-        List<String> segmentKeys = new ArrayList<>();
-        
+        final List<String> segmentKeys = new ArrayList<>();
+
         boolean hasValidBoundaries() {
             return firstSegment != null && lastSegment != null;
         }
@@ -368,8 +411,12 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      */
     private SegmentBoundaryInfo findJourneySegments(Flight flight, DataLists dataLists, Map<String, String> segmentRefMap) {
         SegmentBoundaryInfo result = new SegmentBoundaryInfo();
+        if (flight == null || StringUtils.isEmpty(flight.getSegmentReferences())) {
+            return result;
+        }
+
         String[] segmentRefs = flight.getSegmentReferences().split("\\s+");
-        
+
         for (String segmentRef : segmentRefs) {
             FlightSegment segment = findSegmentByRef(dataLists, segmentRef);
             if (segment != null) {
@@ -377,7 +424,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                     result.firstSegment = segment;
                 }
                 result.lastSegment = segment;
-                
+
                 String lookupKey = segmentRefMap.get(segmentRef);
                 if (lookupKey != null) {
                     result.segmentKeys.add(lookupKey);
@@ -387,96 +434,91 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                 }
             }
         }
-        
+
         return result;
     }
 
-    /**
-     * Set departure information for journey
-     */
-    private void setJourneyDepartureInfo(SupplyBookingJourneyDTO.Builder builder, FlightSegment segment) {
-        String formattedTime = formatFlightTime(segment.getDeparture().getTime());
-        builder.setDepDate(segment.getDeparture().getDate() + " " + formattedTime);
-    }
-
-    /**
-     * Set arrival information for journey
-     */
-    private void setJourneyArrivalInfo(SupplyBookingJourneyDTO.Builder builder, FlightSegment segment) {
-        String formattedTime = formatFlightTime(segment.getArrival().getTime());
-        builder.setArrDate(segment.getArrival().getDate() + " " + formattedTime);
-    }
-
-    private String buildFlightKey(String depCode, String arrCode, String depDate, 
-                                String depTime, String airlineCode, String flightNumber) {
-        return String.format("%s$%s$%s %s$%s-%s", 
-            depCode, arrCode, depDate, depTime, airlineCode, flightNumber);
+    private String buildFlightKey(String depCode, String arrCode, String depDate,
+                                  String depTime, String airlineCode, String flightNumber) {
+        return String.format("%s$%s$%s %s$%s-%s",
+                depCode, arrCode, depDate, depTime, airlineCode, flightNumber);
     }
 
     private FlightSegment findSegmentByRef(DataLists dataLists, String segmentRef) {
-        if (dataLists.getFlightSegmentList() != null) {
-            for (FlightSegment segment : dataLists.getFlightSegmentList().getFlightSegment()) {
-                if (segmentRef.equals(segment.getSegmentKey())) {
-                    return segment;
-                }
+        if (dataLists == null || dataLists.getFlightSegmentList() == null ||
+                dataLists.getFlightSegmentList().getFlightSegment() == null) {
+            return null;
+        }
+
+        for (FlightSegment segment : dataLists.getFlightSegmentList().getFlightSegment()) {
+            if (segmentRef.equals(segment.getSegmentKey())) {
+                return segment;
             }
         }
         return null;
     }
 
     private SupplyPnrFareInfoDTO.Builder buildBasicFareInfo(Order order) {
-        SupplyPnrFareInfoDTO.Builder fareInfoBuilder = SupplyPnrFareInfoDTO.newBuilder();
-        fareInfoBuilder.setStatus(SupplyStatus.SUCCESS);
-        fareInfoBuilder.setRfndStatus(SupplyRefundStatusDTO.RS_NOT_SET);
-        fareInfoBuilder.setPnrKey("");
-        fareInfoBuilder.setSPnr(order.getOrderID());
-        fareInfoBuilder.setAPnr(order.getGdsBookingReference());
-        fareInfoBuilder.setValidatingCarrier(order.getOwner());
-        String existingCreationDate = order.getTimeLimits() != null ? order.getTimeLimits().getOfferExpirationDateTime() : "";
-        if (existingCreationDate.contains("T") && existingCreationDate.length() >= 16) {
-            existingCreationDate = existingCreationDate.substring(0, 10) + " " + existingCreationDate.substring(11, 16);
+        SupplyPnrFareInfoDTO.Builder fareInfoBuilder = SupplyPnrFareInfoDTO.newBuilder()
+                .setStatus(SupplyStatus.SUCCESS)
+                .setRfndStatus(SupplyRefundStatusDTO.RS_NOT_SET)
+                .setPnrKey("")
+                .setSPnr(order.getOrderID())
+                .setAPnr(order.getGdsBookingReference())
+                .setValidatingCarrier(order.getOwner())
+                .setFareFamily(DEFAULT_FARE_FAMILY)
+                .setAccountCode("")
+                .setMaxTicketingTime("")
+                .setTicketDelayInterval(0)
+                .setIsCouponFare(false)
+                .setFareType(SupplyFareType.REGULAR)
+                .setTcsStatus(SupplyTcsStatus.TCS_NOT_SET)
+                .setTimeZoneOffset("")
+                .addAllTicketInfos(Collections.emptyList())
+                .putAllScheduleChangeInfo(Collections.emptyMap());
+
+        // Format creation date
+        String existingCreationDate = "";
+        if (order.getTimeLimits() != null) {
+            existingCreationDate = order.getTimeLimits().getOfferExpirationDateTime();
+            if (existingCreationDate != null && existingCreationDate.contains(T_DELIMITER) &&
+                    existingCreationDate.length() >= 16) {
+                existingCreationDate = existingCreationDate.substring(0, 10) + TIME_DELIMITER +
+                        existingCreationDate.substring(11, 16);
+            }
         }
         fareInfoBuilder.setCreationDate(existingCreationDate);
-        fareInfoBuilder.setFareFamily("FLEXI PLUS");  // Based on sample
-        fareInfoBuilder.setAccountCode("");
-        fareInfoBuilder.setMaxTicketingTime("");
-        fareInfoBuilder.setTicketDelayInterval(0);
-        fareInfoBuilder.setIsCouponFare(false);
-        fareInfoBuilder.setFareType(SupplyFareType.REGULAR);
-        fareInfoBuilder.setTcsStatus(SupplyTcsStatus.TCS_NOT_SET);
-        fareInfoBuilder.setTimeZoneOffset("");
-        fareInfoBuilder.addAllTicketInfos(Collections.emptyList()); // Initialize empty ticket infos list
-        fareInfoBuilder.putAllScheduleChangeInfo(new HashMap<>()); // Initialize empty schedule change info
+
         return fareInfoBuilder;
     }
 
     private SupplyFareDetailDTO.Builder initializeFareDetailBuilder() {
         return SupplyFareDetailDTO.newBuilder()
-            .setBs(0)
-            .setTot(0)
-            .setTx(0);
+                .setBs(0)
+                .setTot(0)
+                .setTx(0);
     }
 
     private SupplyFareInfoDTO getFareInfo(String pnrGroupNo, Order order, DataLists dataLists,
-                                        Map<String, String> segmentRefMap) {
+                                          Map<String, String> segmentRefMap) {
         SupplyFareInfoDTO.Builder builder = SupplyFareInfoDTO.newBuilder();
         SupplyPnrFareInfoDTO.Builder fareInfoBuilder = buildBasicFareInfo(order);
-        
-        if (order.getOfferItem() != null) {
+
+        if (order.getOfferItem() != null && !order.getOfferItem().isEmpty()) {
             // Process offer items and calculate fares
             FareCalculationResult calculationResult = calculateFaresFromOfferItems(order, dataLists, segmentRefMap);
-            
+
             // Build individual passenger fare details
             buildPassengerFareDetails(fareInfoBuilder, calculationResult);
-            
+
             // Build total fare info
             buildTotalFareInfo(fareInfoBuilder, calculationResult);
-            
+
             // Add traveler addons and info
             fareInfoBuilder.putTravelerAddons("0", buildTravelerAddons(dataLists));
             addTravelerInfos(fareInfoBuilder, dataLists);
         }
-        
+
         builder.putPnrGrpdFrInfo(Integer.parseInt(pnrGroupNo), fareInfoBuilder.build());
         return builder.build();
     }
@@ -486,43 +528,51 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      */
     private static class FareCalculationResult {
         // Passenger type specific data
-        Map<String, Set<String>> paxTypeRefsMap = new HashMap<>();
-        Map<String, SupplyFareDetailDTO.Builder> paxTypeFareBuilderMap = new HashMap<>();
-        Map<String, Map<String, Double>> paxTypeTaxBreakupMap = new HashMap<>();
-        
+        final Map<String, Set<String>> paxTypeRefsMap = new HashMap<>();
+        final Map<String, SupplyFareDetailDTO.Builder> paxTypeFareBuilderMap = new HashMap<>();
+        final Map<String, Map<String, Double>> paxTypeTaxBreakupMap = new HashMap<>();
+
         // Order total data
         double totalBs = 0.0;
         double totalTx = 0.0;
         double totalAmount = 0.0;
-        Map<String, Double> orderTotalTaxBreakupMap = new HashMap<>();
+        final Map<String, Double> orderTotalTaxBreakupMap = new ConcurrentHashMap<>();
     }
 
     /**
      * Calculate fares from offer items
      */
-    private FareCalculationResult calculateFaresFromOfferItems(Order order, DataLists dataLists, 
-                                                            Map<String, String> segmentRefMap) {
+    private FareCalculationResult calculateFaresFromOfferItems(Order order, DataLists dataLists,
+                                                               Map<String, String> segmentRefMap) {
         FareCalculationResult result = new FareCalculationResult();
-        
+
         for (OfferItem offerItem : order.getOfferItem()) {
+            if (offerItem == null) {
+                continue;
+            }
+
             // Get passenger type and references
             String paxType = offerItem.getPassengerType();
+            if (StringUtils.isBlank(paxType)) {
+                continue;
+            }
+
             collectPassengerReferences(offerItem, paxType, result.paxTypeRefsMap);
-            
+
             // Get fare detail builder
             SupplyFareDetailDTO.Builder fareDetailBuilder = result.paxTypeFareBuilderMap.computeIfAbsent(
-                paxType, k -> initializeFareDetailBuilder());
-            
+                    paxType, k -> initializeFareDetailBuilder());
+
             // Process fare details if available
             if (offerItem.getFareDetail() != null && offerItem.getFareDetail().getPrice() != null) {
-                processFarePrice(offerItem.getFareDetail().getPrice(), paxType, fareDetailBuilder, 
-                               result.paxTypeRefsMap, result.paxTypeTaxBreakupMap, result);
+                processFarePrice(offerItem.getFareDetail().getPrice(), paxType, fareDetailBuilder,
+                        result.paxTypeRefsMap, result.paxTypeTaxBreakupMap, result);
             }
-            
+
             // Process segments and fare components
             processOfferItemFareComponents(offerItem, dataLists, segmentRefMap, fareDetailBuilder);
         }
-        
+
         return result;
     }
 
@@ -543,27 +593,32 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      * Process fare price information
      */
     private void processFarePrice(Price price, String paxType, SupplyFareDetailDTO.Builder fareDetailBuilder,
-                               Map<String, Set<String>> paxTypeRefsMap, 
-                               Map<String, Map<String, Double>> paxTypeTaxBreakupMap,
-                               FareCalculationResult result) {
+                                  Map<String, Set<String>> paxTypeRefsMap,
+                                  Map<String, Map<String, Double>> paxTypeTaxBreakupMap,
+                                  FareCalculationResult result) {
+        if (price == null || price.getBaseAmount() == null || price.getTaxAmount() == null ||
+                price.getTotalAmount() == null) {
+            return;
+        }
+
         double baseAmount = price.getBaseAmount().getBookingCurrencyPrice();
         double taxAmount = price.getTaxAmount().getBookingCurrencyPrice();
         double totalAmountPerPax = price.getTotalAmount().getBookingCurrencyPrice();
-        
+
         // Accumulate fares for this passenger type (per passenger)
-        fareDetailBuilder.setBs(fareDetailBuilder.getBs() + baseAmount);
-        fareDetailBuilder.setTx(fareDetailBuilder.getTx() + taxAmount);
-        fareDetailBuilder.setTot(fareDetailBuilder.getTot() + totalAmountPerPax);
-        
+        fareDetailBuilder.setBs(fareDetailBuilder.getBs() + baseAmount)
+                .setTx(fareDetailBuilder.getTx() + taxAmount)
+                .setTot(fareDetailBuilder.getTot() + totalAmountPerPax);
+
         // Calculate fares for all passengers of this type
         Set<String> uniqueRefs = paxTypeRefsMap.getOrDefault(paxType, Collections.emptySet());
         int paxCount = uniqueRefs.size();
-        
+
         // Accumulate order totals (multiply by passenger count)
         result.totalBs += baseAmount * paxCount;
         result.totalTx += taxAmount * paxCount;
         result.totalAmount += totalAmountPerPax * paxCount;
-        
+
         // Process tax breakups
         processTaxBreakups(price.getTaxes(), paxType, paxTypeTaxBreakupMap, result.orderTotalTaxBreakupMap, paxCount);
     }
@@ -571,22 +626,28 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     /**
      * Process tax breakups from price
      */
-    private void processTaxBreakups(List<Tax> taxes, String paxType, 
-                                  Map<String, Map<String, Double>> paxTypeTaxBreakupMap,
-                                  Map<String, Double> orderTotalTaxBreakupMap, 
-                                  int paxCount) {
-        if (taxes == null) return;
-        
+    private void processTaxBreakups(List<Tax> taxes, String paxType,
+                                    Map<String, Map<String, Double>> paxTypeTaxBreakupMap,
+                                    Map<String, Double> orderTotalTaxBreakupMap,
+                                    int paxCount) {
+        if (taxes == null || taxes.isEmpty()) {
+            return;
+        }
+
         // Initialize tax breakup map for this passenger type if not exists
         Map<String, Double> taxBreakupMap = paxTypeTaxBreakupMap.computeIfAbsent(paxType, k -> new HashMap<>());
-        
+
         for (Tax tax : taxes) {
+            if (tax == null || StringUtils.isEmpty(tax.getTaxCode())) {
+                continue;
+            }
+
             String taxCode = tax.getTaxCode();
             double amount = tax.getBookingCurrencyPrice();
-            
+
             // Accumulate tax breakups for passenger type
             taxBreakupMap.merge(taxCode, amount, Double::sum);
-            
+
             // Accumulate tax breakups for order total (multiply by passenger count)
             orderTotalTaxBreakupMap.merge(taxCode, amount * paxCount, Double::sum);
         }
