@@ -33,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Adapter for processing PNR retrieve responses from supplier
@@ -107,7 +108,8 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      */
     private void processFlightSegments(SupplyBookingResponseDTO.Builder builder, DataLists dataLists,
                                        Order order, Map<String, String> segmentRefMap) {
-        if (dataLists == null || dataLists.getFlightSegmentList() == null) {
+        if (dataLists == null || dataLists.getFlightSegmentList() == null || 
+            dataLists.getFlightSegmentList().getFlightSegment() == null) {
             return;
         }
 
@@ -115,28 +117,21 @@ public class PnrRetrieveResponseAdapter implements MapTask {
         int segmentId = 0;
         int journeyId = 0;
 
-        List<FlightSegment> segments = dataLists.getFlightSegmentList().getFlightSegment();
-        if (segments == null) {
-            return;
-        }
-
-        for (FlightSegment segment : segments) {
+        for (FlightSegment segment : dataLists.getFlightSegmentList().getFlightSegment()) {
             SupplyFlightDTO flight = getSimpleFlight(segment, segmentId, journeyId);
             String fltkey = AdapterUtil.getJourneyKey(Collections.singletonList(flight));
 
             builder.putFlightLookUpList(fltkey, flight);
             flightKeyMap.put(flight.getDepInfo().getArpCd() + flight.getArrInfo().getArpCd(), fltkey);
-
             processTechnicalStops(flight, flightKeyMap);
-
             segmentRefMap.put(segment.getSegmentKey(), fltkey);
             segmentId++;
             journeyId++;
         }
 
-        builder.setPnrStatus(SupplyPnrStatusType.ACTIVE);
-        builder.setGstInfo(getGSTInfo(order));
-        builder.setContactInfo(getContactInfo(dataLists));
+        builder.setPnrStatus(SupplyPnrStatusType.ACTIVE)
+               .setGstInfo(getGSTInfo(order))
+               .setContactInfo(getContactInfo(dataLists));
     }
 
     /**
@@ -578,25 +573,18 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
     /**
      * Collect passenger references from offer item
-     * Modified to properly account for PassengerQuantity
      */
     private void collectPassengerReferences(OfferItem offerItem, String paxType, Map<String, Set<String>> paxTypeRefsMap) {
-        // Initialize passenger reference set for this passenger type
         Set<String> paxRefSet = paxTypeRefsMap.computeIfAbsent(paxType, k -> new HashSet<>());
         
-        // Check if we have passenger references in FareDetail
         if (offerItem.getFareDetail() != null && StringUtils.isNotBlank(offerItem.getFareDetail().getPassengerRefs())) {
-            String[] paxRefs = offerItem.getFareDetail().getPassengerRefs().split("\\s+");
-            for (String ref : paxRefs) {
-                paxRefSet.add(ref.trim());
-            }
-        } 
-        // If no passenger references but we have passenger quantity, create synthetic references
-        else if (offerItem.getPassengerQuantity() != null && offerItem.getPassengerQuantity() > 0) {
-            int paxQuantity = offerItem.getPassengerQuantity();
-            for (int i = 1; i <= paxQuantity; i++) {
-                paxRefSet.add(paxType + i);  // Create reference like "ADT1", "ADT2", etc.
-            }
+            Arrays.stream(offerItem.getFareDetail().getPassengerRefs().split("\\s+"))
+                  .map(String::trim)
+                  .forEach(paxRefSet::add);
+        } else if (offerItem.getPassengerQuantity() != null && offerItem.getPassengerQuantity() > 0) {
+            IntStream.rangeClosed(1, offerItem.getPassengerQuantity())
+                     .mapToObj(i -> paxType + i)
+                     .forEach(paxRefSet::add);
         }
     }
 
@@ -649,7 +637,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
     /**
      * Process tax breakups from price
-     * Modified to properly handle per passenger tax calculation
      */
     private void processTaxBreakups(List<Tax> taxes, String paxType,
                                     Map<String, Map<String, Double>> paxTypeTaxBreakupMap,
@@ -659,7 +646,6 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             return;
         }
 
-        // Initialize tax breakup map for this passenger type if not exists
         Map<String, Double> taxBreakupMap = paxTypeTaxBreakupMap.computeIfAbsent(paxType, k -> new HashMap<>());
 
         for (Tax tax : taxes) {
@@ -670,13 +656,9 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             String taxCode = tax.getTaxCode();
             double totalTaxAmount = tax.getBookingCurrencyPrice();
             
-            // Calculate per passenger tax amount
-            double taxAmountPerPax = totalTaxAmount / paxCount;
-
-            // Store per passenger tax amount in passenger type tax map
-            taxBreakupMap.put(taxCode, taxAmountPerPax);
-
-            // Accumulate total tax amount in order total (already has total for all passengers)
+            // Store per passenger tax amount
+            taxBreakupMap.put(taxCode, totalTaxAmount / paxCount);
+            // Store total tax amount
             orderTotalTaxBreakupMap.put(taxCode, totalTaxAmount);
         }
     }
@@ -706,38 +688,26 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      * Add tax breakups to a builder
      */
     private void addTaxBreakupsToBuilder(SupplyFareDetailDTO.Builder builder, Map<String, Double> taxBreakupMap) {
-        taxBreakupMap.forEach((code, amount) -> {
-            SupplyTaxBreakupDTO.Builder taxBreakupBuilder = SupplyTaxBreakupDTO.newBuilder();
-            taxBreakupBuilder.setAmnt(amount);
-            taxBreakupBuilder.setCode(code);
-            taxBreakupBuilder.setMsg("");
-            builder.addTaxBreakups(taxBreakupBuilder.build());
-        });
+        taxBreakupMap.forEach((code, amount) -> 
+            builder.addTaxBreakups(SupplyTaxBreakupDTO.newBuilder()
+                .setAmnt(amount)
+                .setCode(code)
+                .setMsg("")
+                .build()));
     }
 
     /**
      * Build total fare info from calculation results
      */
     private void buildTotalFareInfo(SupplyPnrFareInfoDTO.Builder fareInfoBuilder, FareCalculationResult result) {
-        SupplyTotalFareDTO.Builder totFrBuilder = SupplyTotalFareDTO.newBuilder();
-        totFrBuilder.setBs(result.totalBs);
-        totFrBuilder.setTx(result.totalTx);
-        totFrBuilder.setTot(result.totalAmount);
-        totFrBuilder.setAirlineFixedFee(0.0);
+        SupplyTotalFareDTO totFare = SupplyTotalFareDTO.newBuilder()
+            .setBs(result.totalBs)
+            .setTx(result.totalTx)
+            .setTot(result.totalAmount)
+            .setAirlineFixedFee(0.0)
+            .build();
         
-        // Add accumulated tax breakups to total fare (already multiplied by pax count)
-        List<SupplyTaxBreakupDTO> totalTaxBreakups = new ArrayList<>();
-        result.orderTotalTaxBreakupMap.forEach((code, amount) -> {
-            SupplyTaxBreakupDTO taxBreakup = SupplyTaxBreakupDTO.newBuilder()
-                .setAmnt(amount)
-                .setCode(code)
-                .setMsg("")
-                .build();
-            totalTaxBreakups.add(taxBreakup);
-        });
-        //totFrBuilder.addAllTaxBreakup(totalTaxBreakups);
-        
-        fareInfoBuilder.setTotFr(totFrBuilder.build());
+        fareInfoBuilder.setTotFr(totFare);
     }
 
     /**
@@ -745,20 +715,15 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      * Modified to handle multi-segment journeys with a single fare
      */
     private void processOfferItemFareComponents(OfferItem offerItem, DataLists dataLists,
-                                          Map<String, String> segmentRefMap,
-                                          SupplyFareDetailDTO.Builder fareDetailBuilder) {
+                                      Map<String, String> segmentRefMap,
+                                      SupplyFareDetailDTO.Builder fareDetailBuilder) {
         if (offerItem.getFareComponent() == null || offerItem.getFareComponent().isEmpty()) {
             return;
         }
         
-        // Get flight reference from the offerItem
         String flightRef = getFlightRefForOfferItem(offerItem);
-        if (flightRef == null) {
-            return;
-        }
-        
-        Flight flight = findFlightByRef(dataLists, flightRef);
-        if (flight == null) {
+        Flight flight = flightRef == null ? null : findFlightByRef(dataLists, flightRef);
+        if (flight == null || StringUtils.isEmpty(flight.getSegmentReferences())) {
             return;
         }
 
@@ -769,13 +734,10 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             FlightSegment segment = findSegmentByRef(dataLists, segmentRef);
             
             if (segment != null && segmentRefMap.containsKey(segmentRef)) {
-                String flightKey = segmentRefMap.get(segmentRef);
-                
-                // Create segment product info without fare details
-                SupplySegmentProductInfo.Builder segProductBuilder = createSegmentProductInfo(
-                    offerItem, i, offerItem.getFareDetail() != null ? offerItem.getFareDetail().getPrice() : null, false);
-                    
-                fareDetailBuilder.putSegPrdctInfo(flightKey, segProductBuilder.build());
+                fareDetailBuilder.putSegPrdctInfo(
+                    segmentRefMap.get(segmentRef),
+                    createSegmentProductInfo(offerItem, i, offerItem.getFareDetail().getPrice(), false).build()
+                );
             }
         }
     }
@@ -906,46 +868,34 @@ public class PnrRetrieveResponseAdapter implements MapTask {
 
     /**
      * Create segment product info for a flight segment
-     * Modified to handle multi-segment journeys with a single fare
      */
     private SupplySegmentProductInfo.Builder createSegmentProductInfo(
-        OfferItem offerItem, int index,
-        Price price, boolean isFirstSegment) {
+        OfferItem offerItem, int index, Price price, boolean isFirstSegment) {
         
-        SupplySegmentProductInfo.Builder segProductBuilder = SupplySegmentProductInfo.newBuilder();
+        SupplySegmentProductInfo.Builder builder = SupplySegmentProductInfo.newBuilder();
+        setFareBasisInfo(builder, offerItem, index);
+        setBaggageInfo(builder);
+        setSegmentFare(builder, price, false);
+        builder.setFareExpDate("");
         
-        // Set fare basis info if available
-        setFareBasisInfo(segProductBuilder, offerItem, index);
-        
-        // Set baggage info
-        setBaggageInfo(segProductBuilder);
-        
-        // Set empty segment fare since we're not distributing fares at segment level
-        setSegmentFare(segProductBuilder, price, false);
-        
-        segProductBuilder.setFareExpDate("");
-        
-        return segProductBuilder;
+        return builder;
     }
 
     /**
-     * Set segment fare info
-     * Modified to not distribute fares at segment level
+     * Set segment fare info - Modified to not distribute fares at segment level
      */
-    private void setSegmentFare(SupplySegmentProductInfo.Builder segProductBuilder, 
-                          Price price, boolean isFirstSegment) {
-        SupplySegmentFare.Builder sgFareBuilder = SupplySegmentFare.newBuilder();
-        
-        // Always set zero fare for all segments since we don't have segment-level fare information
-        sgFareBuilder.setBs(0.0)
-            .setTx(0.0)
-            .setTot(0.0)
-            .setDiscount(0.0)
-            .setAirlineFixedFee(0.0)
-            .addAllTaxBreakups(Collections.emptyList())
-            .addAllAirlineFixedFees(Collections.emptyList());
-        
-        segProductBuilder.setSgFare(sgFareBuilder.build());
+    private void setSegmentFare(SupplySegmentProductInfo.Builder segProductBuilder, Price price, boolean isFirstSegment) {
+        segProductBuilder.setSgFare(
+            SupplySegmentFare.newBuilder()
+                .setBs(0.0)
+                .setTx(0.0)
+                .setTot(0.0)
+                .setDiscount(0.0)
+                .setAirlineFixedFee(0.0)
+                .addAllTaxBreakups(Collections.emptyList())
+                .addAllAirlineFixedFees(Collections.emptyList())
+                .build()
+        );
     }
 
     /**
@@ -953,47 +903,34 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      */
     private void setFareBasisInfo(SupplySegmentProductInfo.Builder segProductBuilder, 
                             OfferItem offerItem, int segmentIndex) {
-    if (offerItem.getFareComponent() == null || offerItem.getFareComponent().isEmpty()) {
-        // Set default empty values
-        segProductBuilder.setFareBasis("");
-        segProductBuilder.setFareClass("");
-        segProductBuilder.setProductClass("");
-        segProductBuilder.setCabin("");
-        return;
+    // Default empty values
+    String fareBasisCode = "";
+    String rbd = "";
+    String cabinType = "";
+    
+    // Extract values if available
+    if (offerItem.getFareComponent() != null && !offerItem.getFareComponent().isEmpty() &&
+        offerItem.getFareComponent().get(0) != null && offerItem.getFareComponent().get(0).getFareBasis() != null) {
+        
+        FareBasis fareBasis = offerItem.getFareComponent().get(0).getFareBasis();
+        
+        // Split space-separated values
+        String[] fareBasisCodes = (fareBasis.getFareBasisCode() != null && fareBasis.getFareBasisCode().getCode() != null) ?
+                                 fareBasis.getFareBasisCode().getCode().split("\\s+") : new String[0];
+        String[] rbdValues = fareBasis.getRbd() != null ? fareBasis.getRbd().split("\\s+") : new String[0];
+        String[] cabinTypes = fareBasis.getCabinType() != null ? fareBasis.getCabinType().split("\\s+") : new String[0];
+        
+        // Get values for this segment
+        fareBasisCode = getValueAtIndexOrLast(fareBasisCodes, segmentIndex);
+        rbd = getValueAtIndexOrLast(rbdValues, segmentIndex);
+        cabinType = getValueAtIndexOrLast(cabinTypes, segmentIndex);
     }
     
-    FareComponent fareComponent = offerItem.getFareComponent().get(0);
-    if (fareComponent == null || fareComponent.getFareBasis() == null) {
-        // Set default empty values
-        segProductBuilder.setFareBasis("");
-        segProductBuilder.setFareClass("");
-        segProductBuilder.setProductClass("");
-        segProductBuilder.setCabin("");
-        return;
-    }
-    
-    FareBasis fareBasis = fareComponent.getFareBasis();
-    
-    // Split space-separated values and get the corresponding value for this segment
-    String[] fareBasisCodes = fareBasis.getFareBasisCode() != null && 
-                             fareBasis.getFareBasisCode().getCode() != null ?
-                             fareBasis.getFareBasisCode().getCode().split("\\s+") : new String[0];
-    
-    String[] rbdValues = fareBasis.getRbd() != null ? 
-                         fareBasis.getRbd().split("\\s+") : new String[0];
-    
-    String[] cabinTypes = fareBasis.getCabinType() != null ? 
-                         fareBasis.getCabinType().split("\\s+") : new String[0];
-    
-    // Use the value at index i, or the last value if i is out of bounds
-    String fareBasisCode = getValueAtIndexOrLast(fareBasisCodes, segmentIndex);
-    String rbd = getValueAtIndexOrLast(rbdValues, segmentIndex);
-    String cabinType = getValueAtIndexOrLast(cabinTypes, segmentIndex);
-    
-    segProductBuilder.setFareBasis(fareBasisCode.trim());
-    segProductBuilder.setFareClass(rbd.trim());
-    segProductBuilder.setProductClass(rbd.trim());
-    segProductBuilder.setCabin(cabinType.trim());
+    // Set values to builder
+    segProductBuilder.setFareBasis(fareBasisCode.trim())
+                     .setFareClass(rbd.trim())
+                     .setProductClass(rbd.trim())
+                     .setCabin(cabinType.trim());
 }
 
     /**
