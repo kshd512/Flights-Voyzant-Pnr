@@ -97,13 +97,7 @@ public class CancelPnrController {
                             .build(),
                     MetricType.LOG_FILE, MetricType.LOG_COUNTER);
             Observable<SupplyPnrCancelResponseDTO> observableResponse = null;
-            boolean partialPax = request.getRequestCore().getPaxInfoList()!=null && request.getRequestCore().getPaxInfoList().size()>0;
-            boolean partialSegment = request.getRequestCore().getFlightsList()!=null && request.getRequestCore().getFlightsList().size()>0;
-            if(partialPax) {
-                observableResponse = cancelPnrService.partialPaxPnrCancel(request);
-            } else {
-                observableResponse = cancelPnrService.cancelPnr(request);
-            }
+            observableResponse = cancelPnrService.cancelPnr(request);
             observableResponse
                     .subscribe(new CancelPnrSubscriber(deferredResult, request, startTime, timeout));
 

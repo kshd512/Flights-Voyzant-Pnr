@@ -1,0 +1,293 @@
+{
+  "status": "SUCCESS",
+  "metaData": {
+    "currency": "CAD",
+    "traceInfo": {
+      "Request": "",
+      "Response": "{\"Document\":{\"Name\":\"API GATEWAY\",\"ReferenceVersion\":\"1.2\"},\"Party\":{\"Sender\":{\"TravelAgencySender\":{\"Name\":\"Lucky Travels\",\"IATA_Number\":\"\",\"AgencyID\":\"\",\"Contacts\":{\"Contact\":[{\"EmailContact\":\"pst@claritytts.com\"}]}}}},\"ShoppingResponseId\":\"1678878409066630254\",\"Success\":{},\"Payments\":{\"Payment\":[{\"Type\":\"CHECK\",\"PassengerID\":\"ALL\",\"Amount\":642.26,\"ChequeNumber\":\"323325\"}]},\"Order\":[{\"OrderID\":\"60ZPNZTI\",\"GdsBookingReference\":\"OUZMYO\",\"OrderStatus\":\"BOOKED\",\"PaymentStatus\":\"PAID\",\"TicketStatus\":\"NOT TICKETED\",\"NeedToTicket\":\"N\",\"OfferID\":\"137211721101678878414495216684\",\"Owner\":\"WS\",\"OwnerName\":\"Westjet\",\"IsBrandedFare\":\"Y\",\"BrandedFareOptions\":[],\"CabinOptions\":[],\"IsAdditionalCabinType\":\"N\",\"Eticket\":\"\",\"TimeLimits\":{\"OfferExpirationDateTime\":\"2023-03-15T13:20:18\"},\"BookingCurrencyCode\":\"CAD\",\"EquivCurrencyCode\":\"CAD\",\"HstPercentage\":\"\",\"RewardSettings\":{\"RewardAvailable\":\"N\",\"PointTypes\":[],\"PointValues\":{}},\"BookingFeeInfo\":{\"FeeType\":\"\",\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"TotalPrice\":{\"BookingCurrencyPrice\":232.35,\"EquivCurrencyPrice\":232.35},\"BasePrice\":{\"BookingCurrencyPrice\":195,\"EquivCurrencyPrice\":195},\"TaxPrice\":{\"BookingCurrencyPrice\":37.35,\"EquivCurrencyPrice\":37.35},\"Commission\":{\"AgencyCommission\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"AgencyYqCommission\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}},\"PortalCharges\":{\"Markup\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"Surcharge\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"Discount\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}},\"AgentMarkupInfo\":{\"OnflyMarkup\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"OnflyDiscount\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"OnflyHst\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"PromoDiscount\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0,\"PromoCode\":\"\"}},\"Penalty\":{\"ChangeFee\":{\"Before\":{\"BookingCurrencyPrice\":\"NA\",\"EquivCurrencyPrice\":\"NA\"},\"After\":{\"BookingCurrencyPrice\":\"NA\",\"EquivCurrencyPrice\":\"NA\"}},\"CancelationFee\":{\"Before\":{\"BookingCurrencyPrice\":\"NA\",\"EquivCurrencyPrice\":\"NA\"},\"After\":{\"BookingCurrencyPrice\":\"NA\",\"EquivCurrencyPrice\":\"NA\"}}},\"PaxSeatInfo\":[],\"OfferItem\":[{\"OfferItemID\":\"OFFERITEMID1\",\"Refundable\":\"0\",\"PassengerType\":\"ADT\",\"PassengerQuantity\":2,\"TotalPriceDetail\":{\"TotalAmount\":{\"BookingCurrencyPrice\":250,\"EquivCurrencyPrice\":250}},\"Service\":[{\"ServiceID\":\"SV1\",\"PassengerRefs\":\"ADT1,ADT2\",\"FlightRefs\":\"Flight1\"}],\"FareDetail\":{\"PassengerRefs\":\"ADT1,ADT2\",\"Price\":{\"TotalAmount\":{\"BookingCurrencyPrice\":250,\"EquivCurrencyPrice\":250},\"BaseAmount\":{\"BookingCurrencyPrice\":210,\"EquivCurrencyPrice\":210},\"TaxAmount\":{\"BookingCurrencyPrice\":40,\"EquivCurrencyPrice\":40},\"Commission\":{\"AgencyCommission\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}},\"BookingFee\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"PortalCharges\":{},\"Taxes\":[{\"TaxCode\":\"RC\",\"BookingCurrencyPrice\":16,\"EquivCurrencyPrice\":16},{\"TaxCode\":\"SQ\",\"BookingCurrencyPrice\":16,\"EquivCurrencyPrice\":16},{\"TaxCode\":\"CA\",\"BookingCurrencyPrice\":8,\"EquivCurrencyPrice\":8}]}},\"FareComponent\":[{\"PriceClassRef\":\"PCR_1\",\"SegmentRefs\":\"Segment1 Segment2\",\"FareBasis\":{\"FareBasisCode\":{\"Refs\":\"FG_1 FG_1\",\"Code\":\"ACUD0ZBJ ACUD0ZBJ\"},\"RBD\":\"A A\",\"CabinType\":\"Y Y\",\"SeatLeft\":\"9 1\"}}]},{\"OfferItemID\":\"OFFERITEMID2\",\"Refundable\":\"0\",\"PassengerType\":\"ADT\",\"PassengerQuantity\":2,\"TotalPriceDetail\":{\"TotalAmount\":{\"BookingCurrencyPrice\":210,\"EquivCurrencyPrice\":210}},\"Service\":[{\"ServiceID\":\"SV2\",\"PassengerRefs\":\"ADT1,ADT2\",\"FlightRefs\":\"Flight2\"}],\"FareDetail\":{\"PassengerRefs\":\"ADT1,ADT2\",\"Price\":{\"TotalAmount\":{\"BookingCurrencyPrice\":210,\"EquivCurrencyPrice\":210},\"BaseAmount\":{\"BookingCurrencyPrice\":180,\"EquivCurrencyPrice\":180},\"TaxAmount\":{\"BookingCurrencyPrice\":30,\"EquivCurrencyPrice\":30},\"Commission\":{\"AgencyCommission\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}},\"BookingFee\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"PortalCharges\":{},\"Taxes\":[{\"TaxCode\":\"RC\",\"BookingCurrencyPrice\":10,\"EquivCurrencyPrice\":10},{\"TaxCode\":\"SQ\",\"BookingCurrencyPrice\":10,\"EquivCurrencyPrice\":10},{\"TaxCode\":\"CA\",\"BookingCurrencyPrice\":10,\"EquivCurrencyPrice\":10}]}},\"FareComponent\":[{\"PriceClassRef\":\"PCR_1\",\"SegmentRefs\":\"Segment3 Segment4\",\"FareBasis\":{\"FareBasisCode\":{\"Refs\":\"FG_1 FG_1\",\"Code\":\"ACUD0ZBJ ACUD0ZBJ\"},\"RBD\":\"A A\",\"CabinType\":\"Y Y\",\"SeatLeft\":\"9 1\"}}]}],\"BaggageAllowance\":[{\"SegmentRefs\":\"Segment1 Segment2\",\"PassengerRefs\":\"ADT1,ADT2\",\"BaggageAllowanceRef\":\"Bag1\"}],\"SplitPaymentInfo\":[{\"AirItineraryId\":\"137211721101678878414495216684\",\"MultipleFop\":\"N\",\"MaxCardsPerPax\":0,\"MaxCardsPerPaxInMFOP\":0}],\"BookingToEquivExRate\":1,\"FopRef\":\"FOP_429_0_1172_0_ALL_PUB\"}],\"DataLists\":{\"PassengerList\":{\"Passengers\":[{\"attributes\":{\"PassengerID\":\"ADT1\"},\"PassengerID\":\"ADT1\",\"PTC\":\"ADT\",\"BirthDate\":\"1996-03-15\",\"NameTitle\":\"Mr\",\"FirstName\":\"LEBRON\",\"MiddleName\":\"\",\"LastName\":\"JAMES\",\"Gender\":\"Male\",\"TravelDocument\":{\"DocumentNumber\":\"\",\"ExpiryDate\":\"2001-01-01\",\"IssuingCountry\":\"\",\"DocumentType\":\"P\"},\"Preference\":{\"WheelChairPreference\":{\"Reason\":\"\"},\"SeatPreference\":\"any\"},\"LoyaltyProgramAccount\":[],\"ContactInfoRef\":\"CTC1\"},{\"attributes\":{\"PassengerID\":\"ADT2\"},\"PassengerID\":\"ADT2\",\"PTC\":\"ADT\",\"BirthDate\":\"1988-07-12\",\"NameTitle\":\"Ms\",\"FirstName\":\"Serena\",\"MiddleName\":\"\",\"LastName\":\"Williams\",\"Gender\":\"Female\",\"TravelDocument\":{\"DocumentNumber\":\"\",\"ExpiryDate\":\"2028-01-01\",\"IssuingCountry\":\"\",\"DocumentType\":\"P\"},\"Preference\":{\"WheelChairPreference\":{\"Reason\":\"\"},\"SeatPreference\":\"any\"},\"LoyaltyProgramAccount\":[],\"ContactInfoRef\":\"CTC2\"}]},\"DisclosureList\":{\"Disclosures\":[]},\"contactEmail\":[\"kathir@gmail.com\"],\"contactNumber\":[\"9854785465\"],\"ContactAddress\":[\"testing address1\"],\"FareList\":{\"FareGroup\":[{\"FareGroupRef\":\"FG_1\",\"FareCode\":\"70J\",\"FareBasisCode\":\"ACUD0ZBJ\"}]},\"FlightSegmentList\":{\"FlightSegment\":[{\"SegmentKey\":\"Segment1\",\"Departure\":{\"AirportCode\":\"YKF\",\"Date\":\"2023-05-19\",\"Time\":\"16:25:00\",\"AirportName\":\"Waterloo Airport\",\"Terminal\":{\"Name\":\"\"}},\"Arrival\":{\"AirportCode\":\"YYC\",\"Date\":\"2023-05-19\",\"Time\":\"18:30:00\",\"AirportName\":\"Calgary International Airport\",\"Terminal\":{\"Name\":\"\"}},\"MarketingCarrier\":{\"AirlineID\":\"WS\",\"Name\":\"Westjet\",\"FlightNumber\":\"557\"},\"OperatingCarrier\":{\"AirlineID\":\"WS\",\"Name\":\"Westjet\",\"FlightNumber\":\"557\"},\"Equipment\":{\"AircraftCode\":\"73W\",\"Name\":\"Boeing 737-700 (winglets) pax\"},\"Code\":{\"MarriageGroup\":\"\"},\"FlightDetail\":{\"FlightDuration\":{\"Value\":\"4 Hrs 5 Min\"},\"Stops\":{\"Value\":0},\"InterMediate\":[],\"AirMilesFlown\":\"1646\"},\"BrandId\":\"BASIC\"},{\"SegmentKey\":\"Segment2\",\"Departure\":{\"AirportCode\":\"YYC\",\"Date\":\"2023-05-19\",\"Time\":\"20:00:00\",\"AirportName\":\"Calgary International Airport\",\"Terminal\":{\"Name\":\"\"}},\"Arrival\":{\"AirportCode\":\"YVR\",\"Date\":\"2023-05-19\",\"Time\":\"20:32:00\",\"AirportName\":\"Vancouver International Airport\",\"Terminal\":{\"Name\":\"M\"}},\"MarketingCarrier\":{\"AirlineID\":\"WS\",\"Name\":\"Westjet\",\"FlightNumber\":\"66\"},\"OperatingCarrier\":{\"AirlineID\":\"WS\",\"Name\":\"Westjet\",\"FlightNumber\":\"66\"},\"Equipment\":{\"AircraftCode\":\"7M8\",\"Name\":\"7M8\"},\"Code\":{\"MarriageGroup\":\"\"},\"FlightDetail\":{\"FlightDuration\":{\"Value\":\"1 Hrs 32 Min\"},\"Stops\":{\"Value\":0},\"InterMediate\":[],\"AirMilesFlown\":\"428\"},\"BrandId\":\"BASIC\"},{\"SegmentKey\":\"Segment3\",\"Departure\":{\"AirportCode\":\"YVR\",\"Date\":\"2023-05-26\",\"Time\":\"06:00:00\",\"AirportName\":\"Vancouver International Airport\",\"Terminal\":{\"Name\":\"M\"}},\"Arrival\":{\"AirportCode\":\"YYC\",\"Date\":\"2023-05-26\",\"Time\":\"08:30:00\",\"AirportName\":\"Calgary International Airport\",\"Terminal\":{\"Name\":\"\"}},\"MarketingCarrier\":{\"AirlineID\":\"WS\",\"Name\":\"Westjet\",\"FlightNumber\":\"119\"},\"OperatingCarrier\":{\"AirlineID\":\"WS\",\"Name\":\"Westjet\",\"FlightNumber\":\"119\"},\"Equipment\":{\"AircraftCode\":\"7M8\",\"Name\":\"7M8\"},\"Code\":{\"MarriageGroup\":\"\"},\"FlightDetail\":{\"FlightDuration\":{\"Value\":\"1 Hrs 30 Min\"},\"Stops\":{\"Value\":0},\"InterMediate\":[],\"AirMilesFlown\":\"428\"},\"BrandId\":\"BASIC\"},{\"SegmentKey\":\"Segment4\",\"Departure\":{\"AirportCode\":\"YYC\",\"Date\":\"2023-05-26\",\"Time\":\"10:00:00\",\"AirportName\":\"Calgary International Airport\",\"Terminal\":{\"Name\":\"\"}},\"Arrival\":{\"AirportCode\":\"YKF\",\"Date\":\"2023-05-26\",\"Time\":\"15:45:00\",\"AirportName\":\"Waterloo Airport\",\"Terminal\":{\"Name\":\"\"}},\"MarketingCarrier\":{\"AirlineID\":\"WS\",\"Name\":\"Westjet\",\"FlightNumber\":\"558\"},\"OperatingCarrier\":{\"AirlineID\":\"WS\",\"Name\":\"Westjet\",\"FlightNumber\":\"558\"},\"Equipment\":{\"AircraftCode\":\"73W\",\"Name\":\"Boeing 737-700 (winglets) pax\"},\"Code\":{\"MarriageGroup\":\"\"},\"FlightDetail\":{\"FlightDuration\":{\"Value\":\"4 Hrs 45 Min\"},\"Stops\":{\"Value\":0},\"InterMediate\":[],\"AirMilesFlown\":\"1646\"},\"BrandId\":\"BASIC\"}]},\"FlightList\":{\"Flight\":[{\"FlightKey\":\"Flight1\",\"Journey\":{\"Time\":\"7 H 7 M\",\"Stops\":1},\"SegmentReferences\":\"Segment1 Segment2\"},{\"FlightKey\":\"Flight2\",\"Journey\":{\"Time\":\"6 H 45 M\",\"Stops\":1},\"SegmentReferences\":\"Segment3 Segment4\"}]},\"OriginDestinationList\":{\"OriginDestination\":[{\"OriginDestinationKey\":\"OD1\",\"DepartureCode\":\"YKF\",\"ArrivalCode\":\"YVR\",\"FlightReferences\":\"Flight1\"},{\"OriginDestinationKey\":\"OD2\",\"DepartureCode\":\"YVR\",\"ArrivalCode\":\"YKF\",\"FlightReferences\":\"Flight2\"}]},\"PriceClassList\":{\"PriceClass\":[{\"PriceClassID\":\"PCR_1\",\"Name\":\"Basic\",\"Code\":\"Basic\",\"Descriptions\":{\"Description\":[]}}]},\"BaggageAllowanceList\":{\"BaggageAllowance\":[{\"BaggageAllowanceID\":\"Bag1\",\"BaggageCategory\":\"Checked\",\"AllowanceDescription\":{\"ApplicableParty\":\"Traveler\",\"Description\":\"CHECKED ALLOWANCE\"},\"PieceAllowance\":{\"ApplicableParty\":\"Traveler\",\"TotalQuantity\":\"0\",\"Unit\":\"kg\"}}]},\"FopList\":[{\"CC\":{\"Allowed\":\"Y\",\"Types\":{\"AX\":{\"F\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"P\":0,\"Charges\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}},\"MC\":{\"F\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"P\":0,\"Charges\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}},\"VI\":{\"F\":{\"BookingCurrencyPrice\":\"0\",\"EquivCurrencyPrice\":\"0\"},\"P\":0,\"Charges\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}}}},\"DC\":{\"Allowed\":\"Y\",\"Types\":{\"MC\":{\"F\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"P\":0,\"Charges\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}},\"VI\":{\"F\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"P\":0,\"Charges\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}},\"RU\":{\"F\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0},\"P\":0,\"Charges\":{\"BookingCurrencyPrice\":0,\"EquivCurrencyPrice\":0}}}},\"CASH\":{\"Allowed\":\"N\",\"Types\":{}},\"CHEQUE\":{\"Allowed\":\"Y\",\"Types\":{}},\"ACH\":{\"Allowed\":\"Y\",\"Types\":{}},\"PG\":{\"Allowed\":\"N\",\"Types\":{}},\"FopKey\":\"FOP_429_0_1172_0_ALL_PUB\"}]},\"MetaData\":{}}"
+    },
+    "ipAddress": "192.168.29.67",
+    "serviceName": "Flights-VOYZANT-Pnr",
+    "supplierName": "VOYZANT",
+    "credentialId": "TEST_CMS",
+    "supplierLatency": "0"
+  },
+  "flightLookUpList": {
+    "YKF$YYC$2023-05-19 16:25$WS-557": {
+      "mrkAl": "WS",
+      "oprAl": "WS",
+      "fltNo": "557",
+      "arcrfTyp": "73W",
+      "depInfo": {
+        "arpCd": "YKF",
+        "arpNm": "Waterloo Airport"
+      },
+      "arrInfo": {
+        "arpCd": "YYC",
+        "arpNm": "Calgary International Airport"
+      },
+      "depTime": "2023-05-19 16:25",
+      "arrTime": "2023-05-19 18:30",
+      "suppSegKey": "Segment1",
+      "suppid": "0",
+      "marriedSegId": "0"
+    },
+    "YYC$YVR$2023-05-19 20:00$WS-66": {
+      "mrkAl": "WS",
+      "oprAl": "WS",
+      "fltNo": "66",
+      "arcrfTyp": "7M8",
+      "depInfo": {
+        "arpCd": "YYC",
+        "arpNm": "Calgary International Airport"
+      },
+      "arrInfo": {
+        "trmnl": "M",
+        "arpCd": "YVR",
+        "arpNm": "Vancouver International Airport"
+      },
+      "depTime": "2023-05-19 20:00",
+      "arrTime": "2023-05-19 20:32",
+      "suppSegKey": "Segment2",
+      "suppid": "1",
+      "marriedSegId": "1"
+    },
+    "YVR$YYC$2023-05-26 06:00$WS-119": {
+      "mrkAl": "WS",
+      "oprAl": "WS",
+      "fltNo": "119",
+      "arcrfTyp": "7M8",
+      "depInfo": {
+        "trmnl": "M",
+        "arpCd": "YVR",
+        "arpNm": "Vancouver International Airport"
+      },
+      "arrInfo": {
+        "arpCd": "YYC",
+        "arpNm": "Calgary International Airport"
+      },
+      "depTime": "2023-05-26 06:00",
+      "arrTime": "2023-05-26 08:30",
+      "suppSegKey": "Segment3",
+      "suppid": "2",
+      "marriedSegId": "2"
+    },
+    "YYC$YKF$2023-05-26 10:00$WS-558": {
+      "mrkAl": "WS",
+      "oprAl": "WS",
+      "fltNo": "558",
+      "arcrfTyp": "73W",
+      "depInfo": {
+        "arpCd": "YYC",
+        "arpNm": "Calgary International Airport"
+      },
+      "arrInfo": {
+        "arpCd": "YKF",
+        "arpNm": "Waterloo Airport"
+      },
+      "depTime": "2023-05-26 10:00",
+      "arrTime": "2023-05-26 15:45",
+      "suppSegKey": "Segment4",
+      "suppid": "3",
+      "marriedSegId": "3"
+    }
+  },
+  "bookingInfo": {
+    "journeys": [
+      {
+        "jrnyKey": "YKF$YYC$2023-05-19 16:25$WS-557|YYC$YVR$2023-05-19 20:00$WS-66",
+        "depDate": "2023-05-19 16:25",
+        "arrDate": "2023-05-19 20:32",
+        "flightDtlsInfo": [
+          {
+            "fltLookUpKey": "YKF$YYC$2023-05-19 16:25$WS-557"
+          },
+          {
+            "fltLookUpKey": "YYC$YVR$2023-05-19 20:00$WS-66"
+          }
+        ]
+      },
+      {
+        "jrnyKey": "YVR$YYC$2023-05-26 06:00$WS-119|YYC$YKF$2023-05-26 10:00$WS-558",
+        "depDate": "2023-05-26 06:00",
+        "arrDate": "2023-05-26 15:45",
+        "flightDtlsInfo": [
+          {
+            "fltLookUpKey": "YVR$YYC$2023-05-26 06:00$WS-119"
+          },
+          {
+            "fltLookUpKey": "YYC$YKF$2023-05-26 10:00$WS-558"
+          }
+        ]
+      }
+    ],
+    "frInfo": {
+      "pnrGrpdFrInfo": {
+        "0": {
+          "status": "SUCCESS",
+          "paxFares": {
+            "ADT": {
+              "bs": 390,
+              "tx": 70,
+              "noOfPax": 2,
+              "tot": 460,
+              "taxBreakups": [
+                {
+                  "amnt": 26,
+                  "code": "RC"
+                },
+                {
+                  "amnt": 18,
+                  "code": "CA"
+                },
+                {
+                  "amnt": 26,
+                  "code": "SQ"
+                }
+              ],
+              "segPrdctInfo": {
+                "YKF$YYC$2023-05-19 16:25$WS-557": {
+                  "fareClass": "A",
+                  "fareBasis": "ACUD0ZBJ",
+                  "productClass": "A",
+                  "baggageInfo": {
+                    "cabinBag": {
+                      "numOfPieces": 1,
+                      "weightPerPiece": 15,
+                      "weightUnit": "Kilograms"
+                    }
+                  },
+                  "cabin": "Y",
+                  "sgFare": {
+                    "bs": 210,
+                    "tx": 40,
+                    "tot": 250,
+                    "taxBreakups": [
+                      {
+                        "amnt": 16,
+                        "code": "RC"
+                      },
+                      {
+                        "amnt": 16,
+                        "code": "SQ"
+                      },
+                      {
+                        "amnt": 8,
+                        "code": "CA"
+                      }
+                    ]
+                  }
+                },
+                "YYC$YVR$2023-05-19 20:00$WS-66": {
+                  "fareClass": "A",
+                  "fareBasis": "ACUD0ZBJ",
+                  "productClass": "A",
+                  "baggageInfo": {
+                    "cabinBag": {
+                      "numOfPieces": 1,
+                      "weightPerPiece": 15,
+                      "weightUnit": "Kilograms"
+                    }
+                  },
+                  "cabin": "Y",
+                  "sgFare": {}
+                },
+                "YVR$YYC$2023-05-26 06:00$WS-119": {
+                  "fareClass": "A",
+                  "fareBasis": "ACUD0ZBJ",
+                  "productClass": "A",
+                  "baggageInfo": {
+                    "cabinBag": {
+                      "numOfPieces": 1,
+                      "weightPerPiece": 15,
+                      "weightUnit": "Kilograms"
+                    }
+                  },
+                  "cabin": "Y",
+                  "sgFare": {
+                    "bs": 180,
+                    "tx": 30,
+                    "tot": 210,
+                    "taxBreakups": [
+                      {
+                        "amnt": 10,
+                        "code": "RC"
+                      },
+                      {
+                        "amnt": 10,
+                        "code": "SQ"
+                      },
+                      {
+                        "amnt": 10,
+                        "code": "CA"
+                      }
+                    ]
+                  }
+                },
+                "YYC$YKF$2023-05-26 10:00$WS-558": {
+                  "fareClass": "A",
+                  "fareBasis": "ACUD0ZBJ",
+                  "productClass": "A",
+                  "baggageInfo": {
+                    "cabinBag": {
+                      "numOfPieces": 1,
+                      "weightPerPiece": 15,
+                      "weightUnit": "Kilograms"
+                    }
+                  },
+                  "cabin": "Y",
+                  "sgFare": {}
+                }
+              }
+            }
+          },
+          "totFr": {
+            "bs": 780,
+            "tx": 140,
+            "tot": 920
+          },
+          "sPnr": "60ZPNZTI",
+          "aPnr": "OUZMYO",
+          "travelerAddons": {
+            "0": {}
+          },
+          "travelerInfos": [
+            {
+              "id": "ADT1",
+              "title": "Mr",
+              "paxId": "ADT1",
+              "firstName": "LEBRON",
+              "lastName": "JAMES",
+              "gender": "MALE",
+              "emailId": "kathir@gmail.com",
+              "mobileNumber": "9854785465",
+              "paxType": "ADULT"
+            },
+            {
+              "id": "ADT2",
+              "title": "Ms",
+              "paxId": "ADT2",
+              "firstName": "Serena",
+              "lastName": "Williams",
+              "gender": "MALE",
+              "emailId": "kathir@gmail.com",
+              "mobileNumber": "9854785465",
+              "paxType": "ADULT"
+            }
+          ],
+          "validatingCarrier": "WS",
+          "creationDate": "2023-03-15 13:20",
+          "fareFamily": "FLEXI PLUS",
+          "fareType": "REGULAR"
+        }
+      }
+    },
+    "paxSegmentInfo": {}
+  },
+  "pnrStatus": "ACTIVE",
+  "contactInfo": {
+    "emailId": "kathir@gmail.com",
+    "mobileNumber": "9854785465"
+  },
+  "gstInfo": {}
+}

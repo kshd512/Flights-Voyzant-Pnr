@@ -1,7 +1,9 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Commission {
     @JsonProperty("AgencyCommission")
     private PriceDetail agencyCommission;

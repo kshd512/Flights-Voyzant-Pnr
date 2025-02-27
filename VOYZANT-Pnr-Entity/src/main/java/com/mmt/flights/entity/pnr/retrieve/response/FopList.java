@@ -1,8 +1,10 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FopList {
     @JsonProperty("CC")
     private PaymentMethod cc;

@@ -1,7 +1,9 @@
 package com.mmt.flights.cancel.service;
 
 import com.mmt.api.rxflow.FlowExecutor;
-import com.mmt.flights.cancel.workflow.*;
+import com.mmt.flights.cancel.workflow.CancelPnrWorkflowBuilder;
+import com.mmt.flights.cancel.workflow.CancellationHandler;
+import com.mmt.flights.cancel.workflow.CancellationValidationHandler;
 import com.mmt.flights.common.logging.HiveRequestResponseLogger;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
 import com.mmt.flights.supply.cancel.v4.response.SupplyPnrCancelResponseDTO;
@@ -22,9 +24,5 @@ public class CancelPnrService {
 
     public Observable<SupplyPnrCancelResponseDTO> cancelPnr(SupplyPnrCancelRequestDTO request) {
         return FlowExecutor.getBuilder(CancelPnrWorkflowBuilder.cancelPnr(), new CancellationHandler(hiveLogger)).build().execute(Observable.just(request));
-    }
-
-    public Observable<SupplyPnrCancelResponseDTO> partialPaxPnrCancel(SupplyPnrCancelRequestDTO request) {
-        return FlowExecutor.getBuilder(CancelPnrWorkflowBuilder.partialPaxPnrCancel(), new CancellationHandler(hiveLogger)).build().execute(Observable.just(request));
     }
 }

@@ -1,9 +1,11 @@
 package com.mmt.flights.entity.pnr.retrieve.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DataLists {
     @JsonProperty("PassengerList")
     private PassengerList passengerList;

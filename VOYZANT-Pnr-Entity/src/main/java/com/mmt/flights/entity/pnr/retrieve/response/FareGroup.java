@@ -2,7 +2,8 @@ package com.mmt.flights.entity.pnr.retrieve.response;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+@JsonIgnoreProperties(ignoreUnknown = true)
 class FareGroup {
     @JsonProperty("FareGroupRef")
     private String fareGroupRef;
