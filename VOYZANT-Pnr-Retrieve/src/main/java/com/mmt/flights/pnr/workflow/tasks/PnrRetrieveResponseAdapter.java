@@ -736,7 +736,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
             if (segment != null && segmentRefMap.containsKey(segmentRef)) {
                 fareDetailBuilder.putSegPrdctInfo(
                     segmentRefMap.get(segmentRef),
-                    createSegmentProductInfo(offerItem, i, offerItem.getFareDetail().getPrice(), false).build()
+                    createSegmentProductInfo(offerItem, i, offerItem.getFareDetail().getPrice()).build()
                 );
             }
         }
@@ -870,12 +870,12 @@ public class PnrRetrieveResponseAdapter implements MapTask {
      * Create segment product info for a flight segment
      */
     private SupplySegmentProductInfo.Builder createSegmentProductInfo(
-        OfferItem offerItem, int index, Price price, boolean isFirstSegment) {
+        OfferItem offerItem, int index, Price price) {
         
         SupplySegmentProductInfo.Builder builder = SupplySegmentProductInfo.newBuilder();
         setFareBasisInfo(builder, offerItem, index);
         setBaggageInfo(builder);
-        setSegmentFare(builder, price, false);
+        setSegmentFare(builder);
         builder.setFareExpDate("");
         
         return builder;
@@ -884,7 +884,7 @@ public class PnrRetrieveResponseAdapter implements MapTask {
     /**
      * Set segment fare info - Modified to not distribute fares at segment level
      */
-    private void setSegmentFare(SupplySegmentProductInfo.Builder segProductBuilder, Price price, boolean isFirstSegment) {
+    private void setSegmentFare(SupplySegmentProductInfo.Builder segProductBuilder) {
         segProductBuilder.setSgFare(
             SupplySegmentFare.newBuilder()
                 .setBs(0.0)
