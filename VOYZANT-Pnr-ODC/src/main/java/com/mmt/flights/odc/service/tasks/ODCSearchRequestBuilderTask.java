@@ -6,7 +6,9 @@ import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
 import com.mmt.flights.entity.odc.*;
+import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
 import com.mmt.flights.odc.search.DateChangeSearchRequest;
+import com.mmt.flights.odc.search.Itinerary;
 import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,14 +22,16 @@ public class ODCSearchRequestBuilderTask implements MapTask {
     @Override
     public FlowState run(FlowState state) throws Exception {
         DateChangeSearchRequest request = state.getValue(FlowStateKey.REQUEST);
-        if (request == null) {
+        String pnrResponseData = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
+        OrderViewRS orderViewRS = objectMapper.readValue(pnrResponseData, OrderViewRS.class);
+        if (request == null || request.getItineraryList() == null || request.getItineraryList().isEmpty()) {
             throw new PSErrorException(ErrorEnum.INVALID_REQUEST);
         }
 
         // Build OrderReshopRQ
         OrderReshopRequest orderReshopRequest = new OrderReshopRequest();
         OrderReshopRQ rq = new OrderReshopRQ();
-        
+
         // Set document info
         Document document = new Document();
         document.setName("API GATEWAY");
@@ -55,18 +59,22 @@ public class ODCSearchRequestBuilderTask implements MapTask {
         FlightQuery flightQuery = new FlightQuery();
         OriginDestinations originDest = new OriginDestinations();
 
-        OriginDestination od = new OriginDestination();
-        // Previous flight details
-        od.setPreviousDeparture(new Airport(request.getOriginAirport(), request.getOldDepartureDate()));
-        od.setPreviousArrival(new Airport(request.getDestinationAirport(), null));
-        od.setPreviousCabinType(request.getCabinClass());
+        // Process each itinerary
+        for (Itinerary itinerary : request.getItineraryList()) {
+            OriginDestination od = new OriginDestination();
+            // Previous flight details
+            od.setPreviousDeparture(new Airport(itinerary.getFrom(), itinerary.getDepDate()));
+            od.setPreviousArrival(new Airport(itinerary.getTo(), null));
+            od.setPreviousCabinType(request.getCabinClass());
 
-        // New flight details
-        od.setDeparture(new Airport(request.getOriginAirport(), request.getNewDepartureDate()));
-        od.setArrival(new Airport(request.getDestinationAirport(), null));
-        od.setCabinType(request.getCabinClass());
+            // New flight details
+            od.setDeparture(new Airport(itinerary.getFrom(), itinerary.getDepDate()));
+            od.setArrival(new Airport(itinerary.getTo(), null));
+            od.setCabinType(request.getCabinClass());
 
-        originDest.getOriginDestination().add(od);
+            originDest.getOriginDestination().add(od);
+        }
+
         flightQuery.setOriginDestinations(originDest);
         servicing.getAdd().setFlightQuery(flightQuery);
         reshop.setOrderServicing(servicing);
@@ -76,7 +84,7 @@ public class ODCSearchRequestBuilderTask implements MapTask {
         // Set passenger details
         DataLists dataLists = new DataLists();
         PassengerList passengerList = new PassengerList();
-        for (DateChangeRequest.Passenger pax : request.getPassengers()) {
+        for (Passenger pax : request.getPassengers()) {
             Passenger passenger = new Passenger();
             passenger.setPassengerID(pax.getPassengerId());
             passenger.setPtc(pax.getPassengerType());
