@@ -1,18 +1,30 @@
 package com.mmt.flights.entity.odc;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderReshopRQ {
+    @JsonProperty("Document")
     private Document document;
+
+    @JsonProperty("Party")
     private Party party;
+
+    @JsonProperty("Query")
     private Query query;
+
+    @JsonProperty("DataLists")
     private DataLists dataLists;
+
+    @JsonProperty("Preference")
     private Preference preference;
+
+    @JsonProperty("MetaData")
     private MetaData metaData;
 
-    // Getters and setters
     public Document getDocument() {
         return document;
     }
