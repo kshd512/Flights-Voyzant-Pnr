@@ -7,7 +7,6 @@ import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.entity.cancel.response.CancelPnrResponse;
 import com.mmt.flights.entity.cancel.response.OrderViewRS;
 import com.mmt.flights.entity.cancel.response.Response;
-import com.mmt.flights.entity.split.response.AirSplitPnrResponse;
 import com.mmt.flights.supply.cancel.v4.response.SupplyPnrCancelResponseDTO;
 import com.mmt.flights.supply.cancel.v4.response.SupplyPnrCancelResponseMetaDataDTO;
 import com.mmt.flights.supply.common.SupplyErrorDetailDTO;
@@ -25,7 +24,6 @@ public class CancelPnrResponseAdaptor implements MapTask {
     @Override
     public FlowState run(FlowState state) throws Exception {
         String cancelResponse = state.getValue(FlowStateKey.CANCEL_PNR_RESPONSE);
-        String splitPnrResponse = state.getValue(FlowStateKey.SPLIT_PNR_RESPONSE);
 
         // Parse cancel response
         CancelPnrResponse cancelPnrResponse = objectMapper.readValue(cancelResponse, CancelPnrResponse.class);
@@ -42,17 +40,6 @@ public class CancelPnrResponseAdaptor implements MapTask {
                 "CANCELLED".equalsIgnoreCase(cancelResponseDetails.getBookingStatus())) {
                 response.setCancellationStatus(SupplyStatus.SUCCESS);
                 response.setRefundStatus(SupplyStatus.SUCCESS);
-                
-                // Set split PNR reference if available - extract just the split PNR value
-                if (splitPnrResponse != null) {
-                    AirSplitPnrResponse splitPnrResponseObj = objectMapper.readValue(splitPnrResponse, AirSplitPnrResponse.class);
-                    if (splitPnrResponseObj != null && splitPnrResponseObj.getAirSplitPnrRS() != null) {
-                        String splitPnr = splitPnrResponseObj.getAirSplitPnrRS().getSplitedGdsBookingReference();
-                        if (splitPnr != null) {
-                            response.setSplitPnr(splitPnr);
-                        }
-                    }
-                }
             } else {
                 response.setCancellationStatus(SupplyStatus.FAILURE);
                 response.setRefundStatus(SupplyStatus.FAILURE);

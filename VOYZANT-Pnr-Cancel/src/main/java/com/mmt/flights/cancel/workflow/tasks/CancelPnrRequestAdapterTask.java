@@ -9,7 +9,6 @@ import com.mmt.flights.entity.cancel.request.CancelPnrRequest;
 import com.mmt.flights.entity.cancel.request.OrderCancelRQ;
 import com.mmt.flights.entity.cancel.request.Query;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
-import com.mmt.flights.entity.split.response.AirSplitPnrResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,13 +42,13 @@ public class CancelPnrRequestAdapterTask implements MapTask {
     private CancelPnrRequest createCancelPnrRequest(OrderViewRS retrieveResponse, String splitPnrResponse) throws Exception {
         CancelPnrRequest cancelPnrRequest = new CancelPnrRequest();
         OrderCancelRQ orderCancelRQ = new OrderCancelRQ();
-        
+
         // Set Document
         Document document = new Document();
         document.setName("MMT");
         document.setReferenceVersion("1.0");
         orderCancelRQ.setDocument(document);
-        
+
         // Set Party
         Party party = new Party();
         Sender sender = new Sender();
@@ -57,34 +56,26 @@ public class CancelPnrRequestAdapterTask implements MapTask {
         travelAgencySender.setName("MMT");
         travelAgencySender.setIataNumber("");
         travelAgencySender.setAgencyID("");
-        
+
         // Set Contacts
         Contacts contacts = new Contacts();
         Contact contact = new Contact();
         contact.setEmailContact("pst@claritytts.com");
         contacts.setContact(Arrays.asList(contact));
         travelAgencySender.setContacts(contacts);
-        
+
         sender.setTravelAgencySender(travelAgencySender);
         party.setSender(sender);
         orderCancelRQ.setParty(party);
-        
+
         // Set Query - use split PNR details if available, otherwise use main PNR
         Query query = new Query();
-        if (splitPnrResponse != null) {
-            AirSplitPnrResponse splitPnrResponseObj = objectMapper.readValue(splitPnrResponse, AirSplitPnrResponse.class);
-            if (splitPnrResponseObj != null && splitPnrResponseObj.getAirSplitPnrRS() != null) {
-                query.setOrderID(splitPnrResponseObj.getAirSplitPnrRS().getSplitedOrderID());
-                query.setGdsBookingReference(new String[]{splitPnrResponseObj.getAirSplitPnrRS().getSplitedGdsBookingReference()});
-            }
-        } else {
-            query.setOrderID(retrieveResponse.getOrder().get(0).getOrderID());
-            query.setGdsBookingReference(new String[]{retrieveResponse.getOrder().get(0).getGdsBookingReference()});
-        }
-        
+        query.setOrderID(retrieveResponse.getOrder().get(0).getOrderID());
+        query.setGdsBookingReference(new String[]{retrieveResponse.getOrder().get(0).getGdsBookingReference()});
+
         orderCancelRQ.setQuery(query);
         cancelPnrRequest.setOrderCancelRQ(orderCancelRQ);
-        
+
         return cancelPnrRequest;
     }
 }

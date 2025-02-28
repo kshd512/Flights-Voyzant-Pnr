@@ -53,26 +53,11 @@ public class CancelPnrRetrieveRequestAdapter implements MapTask {
         
         // Set Query
         Query query = new Query();
-        
-        // If splitPnrResponse exists, use the split PNR for retrieval
-        if (splitPnrResponse != null) {
-            // Convert splitPnrResponse to its schema bean
-            com.mmt.flights.entity.split.response.AirSplitPnrResponse splitPnrResponseObj = 
-                objectMapper.readValue(splitPnrResponse, com.mmt.flights.entity.split.response.AirSplitPnrResponse.class);
-            
-            // Use the split PNR details
-            if (splitPnrResponseObj != null && splitPnrResponseObj.getAirSplitPnrRS() != null) {
-                String orderId = splitPnrResponseObj.getAirSplitPnrRS().getSplitedOrderID();
-                String gdsRef = splitPnrResponseObj.getAirSplitPnrRS().getSplitedGdsBookingReference();
-                query.setOrderId(orderId);
-                query.setGdsBookingReference(Collections.singletonList(gdsRef));
-            }
-        } else {
+
             // Use original PNR details from the request
-            String pnr = supplyPnrRequestDTO.getRequestCore().getSupplierPnr();
-            query.setOrderId(pnr);
-            query.setGdsBookingReference(Collections.singletonList(pnr));
-        }
+        String pnr = supplyPnrRequestDTO.getRequestCore().getSupplierPnr();
+        query.setOrderId(pnr);
+        query.setGdsBookingReference(Collections.singletonList(pnr));
         
         orderRetreiveRQ.setQuery(query);
         orderRetrieveRequest.setOrderRetreiveRQ(orderRetreiveRQ);
