@@ -36,6 +36,13 @@ public enum MetricServices {
     VALIDATE_CANCEL_PNR_RETRIEVE_LATENCY("validate.cancel.pnr.retrieve.latency"),
     VALIDATE_CANCEL_REQUEST_SUCCESS("validate.cancel.request.success"),
 
+    // ODC related metrics
+    REQUEST_COUNTER("request.counter"),
+    REQUEST_ERROR("request.error"), 
+    REQUEST_SUCCESS("request.success"),
+    REQUEST_TIMEOUT("request.timeout"),
+    REQUEST_LATENCY("request.latency"),
+
     // Other metrics
     VOID_NETWORK_CALL_LATENCY("void.network.call.latency"),
     ODC_PENALTY_NOT_FOUND("odc.penalty.not.found"),

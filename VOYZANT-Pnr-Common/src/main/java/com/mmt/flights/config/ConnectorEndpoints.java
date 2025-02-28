@@ -18,6 +18,7 @@ public class ConnectorEndpoints {
     private String voidCancelOrderURL;
     private String cancelReleaseUrl;
     private String pnrSplitURL;
+    private String odcSearchURL;
 
     public String getPnrSplitURL() {
         return pnrSplitURL;
@@ -25,5 +26,13 @@ public class ConnectorEndpoints {
 
     public void setPnrSplitURL(String pnrSplitURL) {
         this.pnrSplitURL = pnrSplitURL;
+    }
+
+    public String getOdcSearchURL() {
+        return odcSearchURL;
+    }
+
+    public void setOdcSearchURL(String odcSearchURL) {
+        this.odcSearchURL = odcSearchURL;
     }
 }

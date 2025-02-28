@@ -21,7 +21,7 @@ public class CancelPnrRetrieveRequestAdapter implements MapTask {
     @Override
     public FlowState run(FlowState flowState) throws Exception {
         SupplyPnrCancelRequestDTO supplyPnrRequestDTO = flowState.getValue(FlowStateKey.REQUEST);
-        
+
         OrderRetrieveRequest orderRetrieveRequest = new OrderRetrieveRequest();
         OrderRetreiveRQ orderRetreiveRQ = new OrderRetreiveRQ();
         

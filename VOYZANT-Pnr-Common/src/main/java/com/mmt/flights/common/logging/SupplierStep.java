@@ -6,7 +6,8 @@ public enum SupplierStep {
     CANCEL_ORDER("CANCEL_ORDER"),
     CHECK_REFUND("CHECK_REFUND"),
     CANCEL_RELEASE("CANCEL_RELEASE"),
-    SPLIT_ORDER("SPLIT_ORDER");
+    SPLIT_ORDER("SPLIT_ORDER"),
+    ORDER_RESHOP("ORDER_RESHOP");  // Adding ORDER_RESHOP step
 
     private final String value;
 

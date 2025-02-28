@@ -35,7 +35,12 @@ public enum ErrorEnum implements PSErrorEnum {
     EXT_SPLIT_PNR_INVALID_PASSENGER_SELECTION(HttpStatus.BAD_REQUEST, "40082", "Invalid passenger selection for split PNR"),
     EXT_SPLIT_PNR_NOT_TICKETED(HttpStatus.BAD_REQUEST, "40083", "Cannot split non-ticketed PNR"),
     EXT_SPLIT_PNR_ALREADY_CHECKED_IN(HttpStatus.BAD_REQUEST, "40084", "Cannot split checked-in PNR"),
-    EXT_SPLIT_PNR_SINGLE_PAX(HttpStatus.BAD_REQUEST, "40085", "Cannot split PNR with single passenger");
+    EXT_SPLIT_PNR_SINGLE_PAX(HttpStatus.BAD_REQUEST, "40085", "Cannot split PNR with single passenger"),
+    
+    // ODC specific errors
+    EXT_SERVICE_TIMED_OUT(HttpStatus.GATEWAY_TIMEOUT, "50408", "External service timed out"),
+    FLT_UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "50500", "Unknown error occurred"),
+    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "40099", "Invalid request parameters");
 
     private final HttpStatus httpStatus;
     private final String errorCode;

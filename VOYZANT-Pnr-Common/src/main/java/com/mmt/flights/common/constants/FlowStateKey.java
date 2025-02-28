@@ -18,6 +18,10 @@ public class FlowStateKey {
     public static final String SPLIT_PNR_REQUEST = "SPLIT_PNR_REQUEST";
     public static final String SPLIT_PNR_RESPONSE = "SPLIT_PNR_RESPONSE";
 
+	// ODC Search related keys
+	public static final String ODC_SEARCH_REQUEST = "ODC_SEARCH_REQUEST";
+	public static final String ODC_SEARCH_RESPONSE = "ODC_SEARCH_RESPONSE";
+
 	public static final String FUNNEL_STEP = "FUNNEL_STEP";
 	public static final String REQUEST = "REQUEST";
 	public static final String RESPONSE = "RESPONSE";
