@@ -5,8 +5,8 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
-import com.mmt.flights.odc.search.DateChangeSearchRequest;
 import com.mmt.flights.entity.odc.*;
+import com.mmt.flights.odc.search.DateChangeSearchRequest;
 import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -79,7 +79,7 @@ public class ODCSearchRequestBuilderTask implements MapTask {
         for (DateChangeRequest.Passenger pax : request.getPassengers()) {
             Passenger passenger = new Passenger();
             passenger.setPassengerID(pax.getPassengerId());
-            passenger.setPTC(pax.getPassengerType());
+            passenger.setPtc(pax.getPassengerType());
             passenger.setNameTitle(pax.getNameTitle());
             passenger.setFirstName(pax.getFirstName());
             passenger.setMiddleName(pax.getMiddleName());
