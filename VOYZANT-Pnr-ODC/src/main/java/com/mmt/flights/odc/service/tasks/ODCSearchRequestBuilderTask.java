@@ -63,12 +63,12 @@ public class ODCSearchRequestBuilderTask implements MapTask {
         for (Itinerary itinerary : request.getItineraryList()) {
             OriginDestination od = new OriginDestination();
             // Previous flight details
-            od.setPreviousDeparture(new Airport(itinerary.getFrom(), itinerary.getDepDate()));
+            od.setPreviousDeparture(new Airport(itinerary.getFrom(), itinerary.getDepDate().toString()));
             od.setPreviousArrival(new Airport(itinerary.getTo(), null));
             od.setPreviousCabinType(request.getCabinClass());
 
             // New flight details
-            od.setDeparture(new Airport(itinerary.getFrom(), itinerary.getDepDate()));
+            od.setDeparture(new Airport(itinerary.getFrom(), itinerary.getDepDate().toString()));
             od.setArrival(new Airport(itinerary.getTo(), null));
             od.setCabinType(request.getCabinClass());
 
@@ -84,15 +84,15 @@ public class ODCSearchRequestBuilderTask implements MapTask {
         // Set passenger details
         DataLists dataLists = new DataLists();
         PassengerList passengerList = new PassengerList();
-        for (Passenger pax : request.getPassengers()) {
+        for (com.mmt.flights.entity.pnr.retrieve.response.Passenger pax : orderViewRS.getDataLists().getPassengerList().getPassengers()) {
             Passenger passenger = new Passenger();
-            passenger.setPassengerID(pax.getPassengerId());
-            passenger.setPtc(pax.getPassengerType());
+            passenger.setPassengerID(pax.getPassengerID());
+            passenger.setPtc(pax.getPtc());
             passenger.setNameTitle(pax.getNameTitle());
             passenger.setFirstName(pax.getFirstName());
             passenger.setMiddleName(pax.getMiddleName());
             passenger.setLastName(pax.getLastName());
-            passenger.setDocumentNumber(pax.getDocumentNumber());
+            passenger.setTravelDocument(pax.getTravelDocument());
             passengerList.getPassenger().add(passenger);
         }
         dataLists.setPassengerList(passengerList);
