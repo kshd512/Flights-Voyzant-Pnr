@@ -1,0 +1,82 @@
+Api-Endpoint: https://newapi.tltid.com/AirOrderReshop
+
+{
+    "OrderReshopRQ": {
+        "Document": {
+            "Name": "API GATEWAY",
+            "ReferenceVersion": "1.2"
+        },
+        "Party": {
+            "Sender": {
+                "TravelAgencySender": {
+                    "Name": "Diva Travels",
+                    "IATA_Number": "",
+                    "AgencyID": "Diva Travels",
+                    "Contacts": {
+                        "Contact": [
+                            {
+                                "EmailContact": "vakarram@gmail.com"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "ShoppingResponseId": "1721375083437470641",
+        "Query": {
+            "Reshop": {
+                "OrderServicing": {
+                    "Add": {
+                        "Qualifier": {
+                            "ExistingOrderQualifier": {
+                                "OrderKeys": {
+                                    "Offer": [
+                                        {
+                                            "OfferID": "1227102711721375087885644107"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "DataLists": {
+            "PassengerList": {
+                "Passenger": [
+                    {
+                        "PassengerID": "ADT1",
+                        "PTC": "ADT",
+                        "NameTitle": "Mr",
+                        "FirstName": "RAM",
+                        "MiddleName": "",
+                        "LastName": "KUMAR",
+                        "DocumentNumber": "9101305330348"
+                    },
+                    {
+                        "PassengerID": "ADT2",
+                        "PTC": "ADT",
+                        "NameTitle": "Mr",
+                        "FirstName": "RAJ",
+                        "MiddleName": "",
+                        "LastName": "KUMAR",
+                        "DocumentNumber": "9101305330347"
+                    },
+                    {
+                        "PassengerID": "CHD1",
+                        "PTC": "CHD",
+                        "NameTitle": "Mr",
+                        "FirstName": "SHANTHA",
+                        "MiddleName": "",
+                        "LastName": "KUMAR",
+                        "DocumentNumber": "9101305330349"
+                    }
+                ]
+            }
+        },
+        "MetaData": {
+            "TraceId": "166901478523"
+        }
+    }
+}

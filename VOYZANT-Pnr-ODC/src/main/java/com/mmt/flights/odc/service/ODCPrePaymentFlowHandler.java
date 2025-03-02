@@ -4,25 +4,26 @@ import com.mmt.api.rxflow.FlowHandler;
 import com.mmt.api.rxflow.FlowState;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.logging.HiveRequestResponseLogger;
-import com.mmt.flights.odc.search.DateChangeSearchRequest;
-import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
+import com.mmt.flights.odc.prepayment.DateChangePrePaymentRequest;
+import com.mmt.flights.odc.prepayment.DateChangePrePaymentResponse;
 import com.mmt.flights.postsales.logger.FunnelStep;
 
 import java.util.HashMap;
 
-public class ODCCommonFlowHandler implements FlowHandler<DateChangeSearchRequest, SimpleSearchResponseV2> {
+public class ODCPrePaymentFlowHandler implements FlowHandler<DateChangePrePaymentRequest, DateChangePrePaymentResponse> {
 
     private final HiveRequestResponseLogger hiveLogger;
     private final String api;
     private final FunnelStep funnelStep;
-    public ODCCommonFlowHandler(HiveRequestResponseLogger logger){
+
+    public ODCPrePaymentFlowHandler(HiveRequestResponseLogger logger){
         hiveLogger = logger;
         this.funnelStep = FunnelStep.Search;
         api = getApi();
     }
 
     @Override
-    public HashMap<String, Object> startAdapter(DateChangeSearchRequest request) {
+    public HashMap<String, Object> startAdapter(DateChangePrePaymentRequest request) {
         HashMap<String, Object> newMap = new HashMap<>();
         newMap.put(FlowStateKey.REQUEST, request);
         newMap.put(FlowStateKey.SUPPLIER_PNR, request.getPnr());
@@ -36,18 +37,18 @@ public class ODCCommonFlowHandler implements FlowHandler<DateChangeSearchRequest
     }
 
     @Override
-    public SimpleSearchResponseV2 successStateAdapter(FlowState flowState) {
+    public DateChangePrePaymentResponse successStateAdapter(FlowState flowState) {
         return flowState.getValue(FlowStateKey.RESPONSE);
     }
 
     @Override
-    public SimpleSearchResponseV2 failureStateHandler(FlowState state) {
+    public DateChangePrePaymentResponse failureStateHandler(FlowState state) {
         return null;
     }
 
-     String getErrorMetric(){
-         return null;
-     }
+    String getErrorMetric(){
+        return null;
+    }
 
     private String getApi(){
         return null;

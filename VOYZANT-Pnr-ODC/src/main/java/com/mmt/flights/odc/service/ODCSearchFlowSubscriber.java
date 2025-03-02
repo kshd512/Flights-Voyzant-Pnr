@@ -18,7 +18,7 @@ import rx.Subscriber;
 
 import java.util.concurrent.TimeUnit;
 
-public class ODCCommonFlowSubscriber extends Subscriber<SimpleSearchResponseV2> {
+public class ODCSearchFlowSubscriber extends Subscriber<SimpleSearchResponseV2> {
     private final DeferredResult<ResponseEntity<SimpleSearchResponseV2>> defResult;
     private final AbstractDateChangeRequest request;
     private volatile SimpleSearchResponseV2 response;
@@ -27,9 +27,9 @@ public class ODCCommonFlowSubscriber extends Subscriber<SimpleSearchResponseV2> 
     private final long serviceReplyTimeout;
     private final RequestType operation;
 
-    public ODCCommonFlowSubscriber(DeferredResult<ResponseEntity<SimpleSearchResponseV2>> deferredResult,
-                                  AbstractDateChangeRequest request, long startTime, 
-                                  long serviceReplyTimeout, RequestType operation) {
+    public ODCSearchFlowSubscriber(DeferredResult<ResponseEntity<SimpleSearchResponseV2>> deferredResult,
+                                   AbstractDateChangeRequest request, long startTime,
+                                   long serviceReplyTimeout, RequestType operation) {
         this.defResult = deferredResult;
         this.request = request;
         this.startTime = startTime;
@@ -51,7 +51,7 @@ public class ODCCommonFlowSubscriber extends Subscriber<SimpleSearchResponseV2> 
                 MMTLogger.error(
                         (new LogParams.LogParamsBuilder())
                                 .serviceName(operation.name() + "_TIMEOUT")
-                                .className(ODCCommonFlowSubscriber.class.getName())
+                                .className(ODCSearchFlowSubscriber.class.getName())
                                 .src(request.getSrc()).lob(request.getLob())
                                 .correlationId(request.getPnr())
                                 .httpStatus(HttpStatus.GATEWAY_TIMEOUT.value())
@@ -72,7 +72,7 @@ public class ODCCommonFlowSubscriber extends Subscriber<SimpleSearchResponseV2> 
         defResult.setResult(new ResponseEntity<>(response, getHttpStatusCode()));
         MMTLogger.info((new LogParams.LogParamsBuilder())
                 .serviceName(operation.name() + "_LATENCY")
-                .className(ODCCommonFlowSubscriber.class.getName())
+                .className(ODCSearchFlowSubscriber.class.getName())
                 .extraInfo("ODC Request completed")
                 .src(request.getSrc()).lob(request.getLob())
                 .correlationId(request.getPnr())
@@ -114,7 +114,7 @@ public class ODCCommonFlowSubscriber extends Subscriber<SimpleSearchResponseV2> 
         MMTLogger.error(
                 (new LogParams.LogParamsBuilder())
                         .serviceName(operation.name() + "_REQUEST_ERROR")
-                        .className(ODCCommonFlowSubscriber.class.getName())
+                        .className(ODCSearchFlowSubscriber.class.getName())
                         .src(request.getSrc()).lob(request.getLob())
                         .correlationId(request.getPnr()).throwable(e)
                         .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -130,7 +130,7 @@ public class ODCCommonFlowSubscriber extends Subscriber<SimpleSearchResponseV2> 
                             .serviceName(operation.name() + "_REQUEST_SUCCESS")
                             .src(request.getSrc()).lob(request.getLob())
                             .correlationId(request.getPnr())
-                            .className(ODCCommonFlowSubscriber.class.getName())
+                            .className(ODCSearchFlowSubscriber.class.getName())
                             .extraInfo("ODC response received").build(),
                     MetricType.LOG_FILE, MetricType.LOG_COUNTER);
         }
