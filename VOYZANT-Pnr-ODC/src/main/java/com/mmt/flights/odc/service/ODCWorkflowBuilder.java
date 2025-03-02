@@ -17,7 +17,7 @@ import static com.mmt.api.rxflow.rule.Rules.retry;
 @Component
 public class ODCWorkflowBuilder {
 
-    public static WorkFlow odcSearchV1() {
+    public static WorkFlow odcSearch() {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
                 .toMap(PnrRetrieveRequestAdapter.class)
