@@ -37,4 +37,5 @@ public class FlowStateKey {
 	public static final String PNR_CANCEL_RESPONSE = "PNR_CANCEL_RESPONSE";
 	public static final String GetPnr = "GetPnr";
 	public static final String ODC_EXCHANGE_PRICE_REQUEST = "ODC_EXCHANGE_PRICE_REQUEST";
+	public static final String ODC_EXCHANGE_PRICE_RESPONSE = "ODC_EXCHANGE_PRICE_RESPONSE";
 }

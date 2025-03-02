@@ -79,6 +79,9 @@ public class ReshopOffer {
     @JsonProperty("FopRef")
     private String fopRef;
 
+    @JsonProperty("ReshopDifferential")
+    private ReshopDifferential reshopDifferential;
+
     // Getters and setters for all fields
     public String getOfferID() {
         return offerID;
@@ -270,5 +273,13 @@ public class ReshopOffer {
 
     public void setFopRef(String fopRef) {
         this.fopRef = fopRef;
+    }
+
+    public ReshopDifferential getReshopDifferential() {
+        return reshopDifferential;
+    }
+
+    public void setReshopDifferential(ReshopDifferential reshopDifferential) {
+        this.reshopDifferential = reshopDifferential;
     }
 }
