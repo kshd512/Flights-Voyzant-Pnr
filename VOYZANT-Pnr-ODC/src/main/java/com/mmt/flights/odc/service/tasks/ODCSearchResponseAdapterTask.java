@@ -5,11 +5,12 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
-import com.mmt.flights.entity.odc.OrderReshopRS;
-import com.mmt.flights.entity.odc.ReshopOffer;
+import com.mmt.flights.entity.odc.*;
+import com.mmt.flights.entity.pnr.retrieve.response.FlightSegment;
 import com.mmt.flights.odc.common.ErrorDetails;
 import com.mmt.flights.odc.search.DateChangeSearchRequest;
 import com.mmt.flights.odc.search.Flight;
+import com.mmt.flights.odc.search.Fare;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
 import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,7 @@ public class ODCSearchResponseAdapterTask implements MapTask {
 
         // Process reshop offers
         for (ReshopOffer offer : response.getReshopOffers()) {
-            Flight flight = convertToFlight(offer, request);
+            Flight flight = convertToFlight(offer, request, response.getDataLists());
             searchResponseV2.getFlights().add(flight);
         }
 
@@ -60,37 +61,100 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                 .build();
     }
 
-    private Flight convertToFlight(ReshopOffer offer, DateChangeSearchRequest request) {
+    private Flight convertToFlight(ReshopOffer offer, DateChangeSearchRequest request, DataLists dataLists) {
         Flight flight = new Flight();
         
-        // Set basic flight info
-        flight.setFlightNumber(offer.getOwner() + "-" + offer.getFlightNumber());
+        // Set basic flight info from the ReshopOffer
         flight.setAirline(offer.getOwner());
         flight.setAirlineName(offer.getOwnerName());
         
-        // Set departure and arrival details
-        FlightSegment segment = offer.getFlightSegment();
-        flight.setOrigin(segment.getDeparture().getAirportCode());
-        flight.setDestination(segment.getArrival().getAirportCode());
-        flight.setDepartureTime(segment.getDeparture().getDate() + " " + segment.getDeparture().getTime());
-        flight.setArrivalTime(segment.getArrival().getDate() + " " + segment.getArrival().getTime());
-        
-        // Set fare details
-        Fare fare = new Fare();
-        fare.setBaseFare(offer.getBasePrice().getBookingCurrencyPrice());
-        fare.setTotalTax(offer.getTaxPrice().getBookingCurrencyPrice());
-        fare.setTotalFare(offer.getTotalPrice().getBookingCurrencyPrice());
-        fare.setCurrency(offer.getBookingCurrencyCode());
-        flight.setFare(fare);
-        
-        // Set cabin class and availability
-        flight.setCabinClass(request.getCabinClass());
-        flight.setSeatsAvailable(Integer.parseInt(segment.getFareBasis().getSeatLeft()));
-        
-        // Set additional info
-        flight.setRefundable("true".equalsIgnoreCase(offer.getRefundable()));
-        flight.setStops(segment.getFlightDetail().getStops().getValue());
-        flight.setDuration(segment.getFlightDetail().getFlightDuration().getValue());
+        // Get offer item details - use first add item since we're creating a single flight
+        if (offer.getAddOfferItem() != null && !offer.getAddOfferItem().isEmpty()) {
+            OfferItem offerItem = offer.getAddOfferItem().get(0);
+            
+            // Find flight reference from service
+            String flightRef = null;
+            if (offerItem.getService() != null && !offerItem.getService().isEmpty()) {
+                flightRef = offerItem.getService().get(0).getFlightRefs();
+            }
+            
+            // Set flight details from DataLists->FlightSegmentList
+            if (flightRef != null && dataLists != null && dataLists.getFlightSegmentList() != null && 
+                dataLists.getFlightSegmentList().getFlightSegment() != null && 
+                !dataLists.getFlightSegmentList().getFlightSegment().isEmpty()) {
+                
+                FlightSegment segment = dataLists.getFlightSegmentList().getFlightSegment().get(0);
+                
+                // Set flight number
+                if (segment.getMarketingCarrier() != null) {
+                    flight.setFlightNumber(offer.getOwner() + "-" + segment.getMarketingCarrier().getFlightNumber());
+                }
+                
+                // Set departure details
+                if (segment.getDeparture() != null) {
+                    flight.setOrigin(segment.getDeparture().getAirportCode());
+                    StringBuilder depDateTime = new StringBuilder();
+                    depDateTime.append(segment.getDeparture().getDate());
+                    if (segment.getDeparture().getTime() != null) {
+                        depDateTime.append(" ").append(segment.getDeparture().getTime());
+                    }
+                    flight.setDepartureTime(depDateTime.toString());
+                }
+                
+                // Set arrival details
+                if (segment.getArrival() != null) {
+                    flight.setDestination(segment.getArrival().getAirportCode());
+                    StringBuilder arrDateTime = new StringBuilder();
+                    arrDateTime.append(segment.getArrival().getDate());
+                    if (segment.getArrival().getTime() != null) {
+                        arrDateTime.append(" ").append(segment.getArrival().getTime());
+                    }
+                    flight.setArrivalTime(arrDateTime.toString());
+                }
+                
+                // Set stops and duration
+                if (segment.getFlightDetail() != null) {
+                    if (segment.getFlightDetail().getStops() != null) {
+                        flight.setStops(segment.getFlightDetail().getStops().getValue());
+                    }
+                    if (segment.getFlightDetail().getFlightDuration() != null) {
+                        flight.setDuration(segment.getFlightDetail().getFlightDuration().getValue());
+                    }
+                }
+            }
+            
+            // Set fare details
+            Fare fare = new Fare();
+            if (offerItem.getTotalPriceDetail() != null && offerItem.getTotalPriceDetail().getTotalAmount() != null) {
+                fare.setTotalFare(offerItem.getTotalPriceDetail().getTotalAmount().getBookingCurrencyPrice());
+            }
+            
+            if (offerItem.getFareDetail() != null && offerItem.getFareDetail().getPrice() != null) {
+                Price price = offerItem.getFareDetail().getPrice();
+                if (price.getBookingCurrencyPrice() > 0) {
+                    fare.setBaseFare(price.getBookingCurrencyPrice());
+                }
+            }
+            
+            fare.setCurrency(offer.getBookingCurrencyCode());
+            flight.setFare(fare);
+            
+            // Set cabin class and refundable status
+            flight.setCabinClass(request.getCabinClass());
+            flight.setRefundable("true".equalsIgnoreCase(offerItem.getRefundable()));
+            
+            // Set seats available
+            if (offerItem.getFareComponent() != null && !offerItem.getFareComponent().isEmpty() &&
+                offerItem.getFareComponent().get(0).getFareBasis() != null &&
+                offerItem.getFareComponent().get(0).getFareBasis().getSeatLeft() != null) {
+                try {
+                    flight.setSeatsAvailable(Integer.parseInt(
+                        offerItem.getFareComponent().get(0).getFareBasis().getSeatLeft()));
+                } catch (NumberFormatException e) {
+                    flight.setSeatsAvailable(0);
+                }
+            }
+        }
         
         return flight;
     }
