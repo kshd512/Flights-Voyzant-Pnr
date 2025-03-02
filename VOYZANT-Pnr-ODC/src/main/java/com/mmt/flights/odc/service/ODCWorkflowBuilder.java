@@ -26,7 +26,18 @@ public class ODCWorkflowBuilder {
                 .build();
     }
 
-    public static WorkFlow prePayment() {
+    public static WorkFlow odcPrePayment() {
+        return new WorkFlow.Builder()
+                .defineMap(CMSManagerTask.class)
+                .toMap(PnrRetrieveRequestAdapter.class)
+                .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(ODCWorkflowBuilder::retryable))
+                .toMap(ODCExchangePriceRequestBuilderTask.class)
+                .toMap(ODCExchangePriceInvokerTask.class, retry(2).onError(ODCWorkflowBuilder::retryable))
+                .toMap(ODCExchangePriceResponseAdapterTask.class, completeFlow())
+                .build();
+    }
+
+    public static WorkFlow odcCommit() {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
                 .toMap(PnrRetrieveRequestAdapter.class)
