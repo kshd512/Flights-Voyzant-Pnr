@@ -3,27 +3,52 @@ package com.mmt.flights.entity.odc;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Price {
-    @JsonProperty("BookingCurrencyPrice")
-    private double bookingCurrencyPrice;
 
-    @JsonProperty("EquivCurrencyPrice")
-    private double equivCurrencyPrice;
+    @JsonProperty("TotalAmount")
+    private PriceInstance totalAmount;
 
-    public double getBookingCurrencyPrice() {
-        return bookingCurrencyPrice;
+    @JsonProperty("BaseAmount")
+    private PriceInstance BaseAmount;
+
+    @JsonProperty("TaxAmount")
+    private PriceInstance TaxAmount;
+
+    @JsonProperty("BookingFee")
+    private PriceInstance bookingFee;
+
+    public PriceInstance getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setBookingCurrencyPrice(double bookingCurrencyPrice) {
-        this.bookingCurrencyPrice = bookingCurrencyPrice;
+    public void setTotalAmount(PriceInstance totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
-    public double getEquivCurrencyPrice() {
-        return equivCurrencyPrice;
+    public PriceInstance getBaseAmount() {
+        return BaseAmount;
     }
 
-    public void setEquivCurrencyPrice(double equivCurrencyPrice) {
-        this.equivCurrencyPrice = equivCurrencyPrice;
+    public void setBaseAmount(PriceInstance baseAmount) {
+        BaseAmount = baseAmount;
+    }
+
+    public PriceInstance getTaxAmount() {
+        return TaxAmount;
+    }
+
+    public void setTaxAmount(PriceInstance taxAmount) {
+        TaxAmount = taxAmount;
+    }
+
+    public PriceInstance getBookingFee() {
+        return bookingFee;
+    }
+
+    public void setBookingFee(PriceInstance bookingFee) {
+        this.bookingFee = bookingFee;
     }
 }

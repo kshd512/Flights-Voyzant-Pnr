@@ -74,93 +74,115 @@ public class ODCSearchResponseAdapterTask implements MapTask {
         flight.setAirline(offer.getOwner());
         flight.setAirlineName(offer.getOwnerName());
         
-        // Get offer item details - use first add item since we're creating a single flight
+        // Create fare object to accumulate fares across passenger types
+        Fare fare = new Fare();
+        fare.setCurrency(offer.getBookingCurrencyCode());
+        double totalFare = 0.0;
+        double baseFare = 0.0;
+        double taxFare = 0.0;
+        
+        // Track if we've set flight details already
+        boolean flightDetailsSet = false;
+        
+        // Process all offer items to accumulate fares
         if (offer.getAddOfferItem() != null && !offer.getAddOfferItem().isEmpty()) {
-            OfferItem offerItem = offer.getAddOfferItem().get(0);
-            
-            // Find flight reference from service
-            String flightRef = null;
-            if (offerItem.getService() != null && !offerItem.getService().isEmpty()) {
-                flightRef = offerItem.getService().get(0).getFlightRefs();
-            }
-            
-            // Set flight details from DataLists->FlightSegmentList
-            if (flightRef != null && dataLists != null && dataLists.getFlightSegmentList() != null && 
-                dataLists.getFlightSegmentList().getFlightSegment() != null && 
-                !dataLists.getFlightSegmentList().getFlightSegment().isEmpty()) {
-                
-                FlightSegment segment = dataLists.getFlightSegmentList().getFlightSegment().get(0);
-                
-                // Set flight number
-                if (segment.getMarketingCarrier() != null) {
-                    flight.setFlightNumber(offer.getOwner() + "-" + segment.getMarketingCarrier().getFlightNumber());
+            for (OfferItem offerItem : offer.getAddOfferItem()) {
+                // Sum up fares for all passenger types
+                if (offerItem.getTotalPriceDetail() != null && offerItem.getTotalPriceDetail().getTotalAmount() != null) {
+                    totalFare += offerItem.getTotalPriceDetail().getTotalAmount().getBookingCurrencyPrice();
                 }
                 
-                // Set departure details
-                if (segment.getDeparture() != null) {
-                    flight.setOrigin(segment.getDeparture().getAirportCode());
-                    StringBuilder depDateTime = new StringBuilder();
-                    depDateTime.append(segment.getDeparture().getDate());
-                    if (segment.getDeparture().getTime() != null) {
-                        depDateTime.append(" ").append(segment.getDeparture().getTime());
-                    }
-                    flight.setDepartureTime(depDateTime.toString());
-                }
-                
-                // Set arrival details
-                if (segment.getArrival() != null) {
-                    flight.setDestination(segment.getArrival().getAirportCode());
-                    StringBuilder arrDateTime = new StringBuilder();
-                    arrDateTime.append(segment.getArrival().getDate());
-                    if (segment.getArrival().getTime() != null) {
-                        arrDateTime.append(" ").append(segment.getArrival().getTime());
-                    }
-                    flight.setArrivalTime(arrDateTime.toString());
-                }
-                
-                // Set stops and duration
-                if (segment.getFlightDetail() != null) {
-                    if (segment.getFlightDetail().getStops() != null) {
-                        flight.setStops(segment.getFlightDetail().getStops().getValue());
-                    }
-                    if (segment.getFlightDetail().getFlightDuration() != null) {
-                        flight.setDuration(segment.getFlightDetail().getFlightDuration().getValue());
+                if (offerItem.getFareDetail() != null && offerItem.getFareDetail().getPrice() != null) {
+                    if (offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice() > 0) {
+                        baseFare += offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice();
                     }
                 }
-            }
-            
-            // Set fare details
-            Fare fare = new Fare();
-            if (offerItem.getTotalPriceDetail() != null && offerItem.getTotalPriceDetail().getTotalAmount() != null) {
-                fare.setTotalFare(offerItem.getTotalPriceDetail().getTotalAmount().getBookingCurrencyPrice());
-            }
-            
-            if (offerItem.getFareDetail() != null && offerItem.getFareDetail().getPrice() != null) {
-                Price price = offerItem.getFareDetail().getPrice();
-                if (price.getBookingCurrencyPrice() > 0) {
-                    fare.setBaseFare(price.getBookingCurrencyPrice());
+
+                if (offerItem.getFareDetail() != null && offerItem.getFareDetail().getPrice() != null) {
+                    if (offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice() > 0) {
+                        taxFare += offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice();
+                    }
                 }
-            }
-            
-            fare.setCurrency(offer.getBookingCurrencyCode());
-            flight.setFare(fare);
-            
-            // Set cabin class and refundable status
-            flight.setCabinClass(request.getCabinClass());
-            flight.setRefundable("true".equalsIgnoreCase(offerItem.getRefundable()));
-            
-            // Set seats available
-            if (offerItem.getFareComponent() != null && !offerItem.getFareComponent().isEmpty() &&
-                offerItem.getFareComponent().get(0).getFareBasis() != null &&
-                offerItem.getFareComponent().get(0).getFareBasis().getSeatLeft() != null) {
-                try {
-                    flight.setSeatsAvailable(Integer.parseInt(
-                        offerItem.getFareComponent().get(0).getFareBasis().getSeatLeft()));
-                } catch (NumberFormatException e) {
-                    flight.setSeatsAvailable(0);
+                
+                // Set flight details (only need to do this once from first item)
+                if (!flightDetailsSet) {
+                    // Find flight reference from service
+                    String flightRef = null;
+                    if (offerItem.getService() != null && !offerItem.getService().isEmpty()) {
+                        flightRef = offerItem.getService().get(0).getFlightRefs();
+                    }
+                    
+                    // Set flight details from DataLists->FlightSegmentList
+                    if (flightRef != null && dataLists != null && dataLists.getFlightSegmentList() != null && 
+                        dataLists.getFlightSegmentList().getFlightSegment() != null && 
+                        !dataLists.getFlightSegmentList().getFlightSegment().isEmpty()) {
+                        
+                        FlightSegment segment = dataLists.getFlightSegmentList().getFlightSegment().get(0);
+                        
+                        // Set flight number
+                        if (segment.getMarketingCarrier() != null) {
+                            flight.setFlightNumber(offer.getOwner() + "-" + segment.getMarketingCarrier().getFlightNumber());
+                        }
+                        
+                        // Set departure details
+                        if (segment.getDeparture() != null) {
+                            flight.setOrigin(segment.getDeparture().getAirportCode());
+                            StringBuilder depDateTime = new StringBuilder();
+                            depDateTime.append(segment.getDeparture().getDate());
+                            if (segment.getDeparture().getTime() != null) {
+                                depDateTime.append(" ").append(segment.getDeparture().getTime());
+                            }
+                            flight.setDepartureTime(depDateTime.toString());
+                        }
+                        
+                        // Set arrival details
+                        if (segment.getArrival() != null) {
+                            flight.setDestination(segment.getArrival().getAirportCode());
+                            StringBuilder arrDateTime = new StringBuilder();
+                            arrDateTime.append(segment.getArrival().getDate());
+                            if (segment.getArrival().getTime() != null) {
+                                arrDateTime.append(" ").append(segment.getArrival().getTime());
+                            }
+                            flight.setArrivalTime(arrDateTime.toString());
+                        }
+                        
+                        // Set stops and duration
+                        if (segment.getFlightDetail() != null) {
+                            if (segment.getFlightDetail().getStops() != null) {
+                                flight.setStops(segment.getFlightDetail().getStops().getValue());
+                            }
+                            if (segment.getFlightDetail().getFlightDuration() != null) {
+                                flight.setDuration(segment.getFlightDetail().getFlightDuration().getValue());
+                            }
+                        }
+                    }
+                    
+                    // Set cabin class and refundable status
+                    flight.setCabinClass(request.getCabinClass());
+                    flight.setRefundable("true".equalsIgnoreCase(offerItem.getRefundable()));
+                    
+                    // Set seats available
+                    if (offerItem.getFareComponent() != null && !offerItem.getFareComponent().isEmpty() &&
+                        offerItem.getFareComponent().get(0).getFareBasis() != null &&
+                        offerItem.getFareComponent().get(0).getFareBasis().getSeatLeft() != null) {
+                        try {
+                            flight.setSeatsAvailable(Integer.parseInt(
+                                offerItem.getFareComponent().get(0).getFareBasis().getSeatLeft()));
+                        } catch (NumberFormatException e) {
+                            flight.setSeatsAvailable(0);
+                        }
+                    }
+                    
+                    flightDetailsSet = true;
                 }
             }
         }
+        
+        // Set the accumulated fare values
+        fare.setTotalFare(totalFare);
+        fare.setBaseFare(baseFare);
+        fare.setTotalTax(taxFare);
+        flight.setFare(fare);
         
         return flight;
     }

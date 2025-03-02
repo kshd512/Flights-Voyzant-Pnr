@@ -6,13 +6,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TotalPriceDetail {
     @JsonProperty("TotalAmount")
-    private Price totalAmount;
+    private PriceInstance totalAmount;
 
-    public Price getTotalAmount() {
+    public PriceInstance getTotalAmount() {
         return totalAmount;
     }
 
-    public void setTotalAmount(Price totalAmount) {
+    public void setTotalAmount(PriceInstance totalAmount) {
         this.totalAmount = totalAmount;
     }
 }
