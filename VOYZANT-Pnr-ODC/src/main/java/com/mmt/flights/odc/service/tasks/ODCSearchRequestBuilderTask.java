@@ -63,13 +63,13 @@ public class ODCSearchRequestBuilderTask implements MapTask {
         for (Itinerary itinerary : request.getItineraryList()) {
             OriginDestination od = new OriginDestination();
             // Previous flight details
-            od.setPreviousDeparture(new Airport(itinerary.getFrom(), itinerary.getDepDate().toString()));
-            od.setPreviousArrival(new Airport(itinerary.getTo(), null));
+            od.setPreviousDeparture(new AirportInfo(itinerary.getFrom(), itinerary.getDepDate().toString()));
+            od.setPreviousArrival(new AirportInfo(itinerary.getTo(), null));
             od.setPreviousCabinType(request.getCabinClass());
 
             // New flight details
-            od.setDeparture(new Airport(itinerary.getFrom(), itinerary.getDepDate().toString()));
-            od.setArrival(new Airport(itinerary.getTo(), null));
+            od.setDeparture(new AirportInfo(itinerary.getFrom(), itinerary.getDepDate().toString()));
+            od.setArrival(new AirportInfo(itinerary.getTo(), null));
             od.setCabinType(request.getCabinClass());
 
             originDest.getOriginDestination().add(od);

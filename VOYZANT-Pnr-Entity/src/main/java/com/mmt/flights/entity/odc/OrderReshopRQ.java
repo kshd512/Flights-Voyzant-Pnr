@@ -2,8 +2,6 @@ package com.mmt.flights.entity.odc;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderReshopRQ {
@@ -15,6 +13,9 @@ public class OrderReshopRQ {
 
     @JsonProperty("Query")
     private Query query;
+    
+    @JsonProperty("ShoppingResponseId")
+    private String shoppingResponseId;
 
     @JsonProperty("DataLists")
     private DataLists dataLists;
@@ -47,6 +48,14 @@ public class OrderReshopRQ {
 
     public void setQuery(Query query) {
         this.query = query;
+    }
+    
+    public String getShoppingResponseId() {
+        return shoppingResponseId;
+    }
+
+    public void setShoppingResponseId(String shoppingResponseId) {
+        this.shoppingResponseId = shoppingResponseId;
     }
 
     public DataLists getDataLists() {

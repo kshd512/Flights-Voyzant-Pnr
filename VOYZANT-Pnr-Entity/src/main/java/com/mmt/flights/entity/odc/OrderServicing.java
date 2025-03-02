@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderServicing {
     @JsonProperty("Add")
-    private Add add = new Add();
+    private Add add;
 
     public Add getAdd() {
         return add;

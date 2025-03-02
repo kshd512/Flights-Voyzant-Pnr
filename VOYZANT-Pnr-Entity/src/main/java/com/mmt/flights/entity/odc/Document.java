@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Document {
     @JsonProperty("Name")
     private String name;
-    
+
     @JsonProperty("ReferenceVersion")
     private String referenceVersion;
 

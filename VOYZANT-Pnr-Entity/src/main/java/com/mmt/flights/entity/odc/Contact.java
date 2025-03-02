@@ -2,19 +2,17 @@ package com.mmt.flights.entity.odc;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Contact {
-    @JsonProperty("Contact")
-    private List<EmailContact> contact = new ArrayList<>();
+    @JsonProperty("EmailContact")
+    private String emailContact;
 
-    public List<EmailContact> getContact() {
-        return contact;
+    public String getEmailContact() {
+        return emailContact;
     }
 
-    public void setContact(List<EmailContact> contact) {
-        this.contact = contact;
+    public void setEmailContact(String emailContact) {
+        this.emailContact = emailContact;
     }
 }

@@ -98,7 +98,6 @@ public class ODCExchangePriceRequestBuilderTask implements MapTask {
             passenger.setFirstName(pax.getFirstName());
             passenger.setMiddleName(pax.getMiddleName());
             passenger.setLastName(pax.getLastName());
-            passenger.setDocumentNumber(pax.getDocumentNumber());
             passenger.setTravelDocument(pax.getTravelDocument());
             passengerList.getPassenger().add(passenger);
         }

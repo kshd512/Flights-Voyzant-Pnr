@@ -6,36 +6,36 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OriginDestination {
     @JsonProperty("PreviousDeparture")
-    private Airport previousDeparture;
+    private AirportInfo previousDeparture;
 
     @JsonProperty("PreviousArrival")
-    private Airport previousArrival;
+    private AirportInfo previousArrival;
 
     @JsonProperty("PreviousCabinType")
     private String previousCabinType;
 
     @JsonProperty("Departure")
-    private Airport departure;
+    private AirportInfo departure;
 
     @JsonProperty("Arrival")
-    private Airport arrival;
+    private AirportInfo arrival;
 
     @JsonProperty("CabinType")
     private String cabinType;
 
-    public Airport getPreviousDeparture() {
+    public AirportInfo getPreviousDeparture() {
         return previousDeparture;
     }
 
-    public void setPreviousDeparture(Airport previousDeparture) {
+    public void setPreviousDeparture(AirportInfo previousDeparture) {
         this.previousDeparture = previousDeparture;
     }
 
-    public Airport getPreviousArrival() {
+    public AirportInfo getPreviousArrival() {
         return previousArrival;
     }
 
-    public void setPreviousArrival(Airport previousArrival) {
+    public void setPreviousArrival(AirportInfo previousArrival) {
         this.previousArrival = previousArrival;
     }
 
@@ -47,19 +47,19 @@ public class OriginDestination {
         this.previousCabinType = previousCabinType;
     }
 
-    public Airport getDeparture() {
+    public AirportInfo getDeparture() {
         return departure;
     }
 
-    public void setDeparture(Airport departure) {
+    public void setDeparture(AirportInfo departure) {
         this.departure = departure;
     }
 
-    public Airport getArrival() {
+    public AirportInfo getArrival() {
         return arrival;
     }
 
-    public void setArrival(Airport arrival) {
+    public void setArrival(AirportInfo arrival) {
         this.arrival = arrival;
     }
 

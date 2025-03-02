@@ -7,15 +7,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TravelAgencySender {
     @JsonProperty("Name")
     private String name;
-
+    
     @JsonProperty("IATA_Number")
-    private String IATA_Number = "";
-
+    private String iataNumber;
+    
     @JsonProperty("AgencyID")
     private String agencyID;
-
+    
     @JsonProperty("Contacts")
-    private Contact contacts;
+    private Contacts contacts;
 
     public String getName() {
         return name;
@@ -25,12 +25,12 @@ public class TravelAgencySender {
         this.name = name;
     }
 
-    public String getIATA_Number() {
-        return IATA_Number;
+    public String getIataNumber() {
+        return iataNumber;
     }
 
-    public void setIATA_Number(String IATA_Number) {
-        this.IATA_Number = IATA_Number;
+    public void setIataNumber(String iataNumber) {
+        this.iataNumber = iataNumber;
     }
 
     public String getAgencyID() {
@@ -41,11 +41,11 @@ public class TravelAgencySender {
         this.agencyID = agencyID;
     }
 
-    public Contact getContacts() {
+    public Contacts getContacts() {
         return contacts;
     }
 
-    public void setContacts(Contact contacts) {
+    public void setContacts(Contacts contacts) {
         this.contacts = contacts;
     }
 }

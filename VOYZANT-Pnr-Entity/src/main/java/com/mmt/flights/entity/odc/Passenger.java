@@ -2,7 +2,6 @@ package com.mmt.flights.entity.odc;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mmt.flights.entity.pnr.retrieve.response.Preference;
 import com.mmt.flights.entity.pnr.retrieve.response.TravelDocument;
 
 import java.util.List;
@@ -11,30 +10,42 @@ import java.util.List;
 public class Passenger {
     @JsonProperty("PassengerID")
     private String passengerID;
+
     @JsonProperty("PTC")
     private String ptc;
+
     @JsonProperty("BirthDate")
     private String birthDate;
+
     @JsonProperty("NameTitle")
     private String nameTitle;
+
     @JsonProperty("FirstName")
     private String firstName;
+
     @JsonProperty("MiddleName")
     private String middleName;
+
     @JsonProperty("LastName")
     private String lastName;
+
     @JsonProperty("Gender")
     private String gender;
+
     @JsonProperty("TravelDocument")
-    private TravelDocument travelDocument;
-    @JsonProperty("Preference")
-    private com.mmt.flights.entity.pnr.retrieve.response.Preference preference;
+    private com.mmt.flights.entity.pnr.retrieve.response.TravelDocument travelDocument;
+
     @JsonProperty("LoyaltyProgramAccount")
     private List<Object> loyaltyProgramAccount;
+
     @JsonProperty("ContactInfoRef")
     private String contactInfoRef;
+
     @JsonProperty("attributes")
     private PassengerAttributes attributes;
+
+    @JsonProperty("DocumentNumber")
+    private String documentNumber;
 
     public String getPassengerID() {
         return passengerID;
@@ -100,20 +111,12 @@ public class Passenger {
         this.gender = gender;
     }
 
-    public TravelDocument getTravelDocument() {
+    public com.mmt.flights.entity.pnr.retrieve.response.TravelDocument getTravelDocument() {
         return travelDocument;
     }
 
     public void setTravelDocument(TravelDocument travelDocument) {
         this.travelDocument = travelDocument;
-    }
-
-    public com.mmt.flights.entity.pnr.retrieve.response.Preference getPreference() {
-        return preference;
-    }
-
-    public void setPreference(Preference preference) {
-        this.preference = preference;
     }
 
     public List<Object> getLoyaltyProgramAccount() {
@@ -138,5 +141,13 @@ public class Passenger {
 
     public void setAttributes(PassengerAttributes attributes) {
         this.attributes = attributes;
+    }
+
+    public String getDocumentNumber() {
+        return documentNumber;
+    }
+
+    public void setDocumentNumber(String documentNumber) {
+        this.documentNumber = documentNumber;
     }
 }
