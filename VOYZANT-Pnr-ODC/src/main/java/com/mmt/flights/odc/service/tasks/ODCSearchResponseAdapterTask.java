@@ -16,11 +16,13 @@ import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class ODCSearchResponseAdapterTask implements MapTask {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public FlowState run(FlowState state) throws Exception {
@@ -31,7 +33,8 @@ public class ODCSearchResponseAdapterTask implements MapTask {
             throw new PSErrorException(ErrorEnum.FLT_UNKNOWN_ERROR);
         }
 
-        OrderReshopRS response = objectMapper.readValue(searchResponse, OrderReshopRS.class);
+        OrderReshopResponse orderReshopResponse = objectMapper.readValue(searchResponse, OrderReshopResponse.class);
+        OrderReshopRS response = orderReshopResponse.getOrderReshopRS();
         SimpleSearchResponseV2 searchResponseV2 = new SimpleSearchResponseV2();
 
         if (!response.isSuccess() || response.getReshopOffers() == null || response.getReshopOffers().isEmpty()) {
@@ -45,9 +48,12 @@ public class ODCSearchResponseAdapterTask implements MapTask {
         }
 
         // Process reshop offers
-        for (ReshopOffer offer : response.getReshopOffers()) {
-            Flight flight = convertToFlight(offer, request, response.getDataLists());
-            searchResponseV2.getFlights().add(flight);
+        for (ReshopOfferInstance offerInstance : response.getReshopOffers()) {
+            List<ReshopOffer> offers = offerInstance.getReshopOffers();
+            for(ReshopOffer offer : offers){
+                Flight flight = convertToFlight(offer, request, response.getDataLists());
+                searchResponseV2.getFlights().add(flight);
+            }
         }
 
         // Set success status and metadata

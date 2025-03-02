@@ -13,14 +13,14 @@ public class OrderReshopRS {
     @JsonProperty("Party")
     private Party party;
 
-    @JsonProperty("ShoppingResponseID")
+    @JsonProperty("ShoppingResponseId")
     private String shoppingResponseId;
 
     @JsonProperty("Success")
     private Success success;
 
     @JsonProperty("ReshopOffers")
-    private List<ReshopOffer> reshopOffers;
+    private List<ReshopOfferInstance> reshopOffers;
 
     @JsonProperty("DataLists")
     private DataLists dataLists;
@@ -65,11 +65,11 @@ public class OrderReshopRS {
         this.success = success;
     }
 
-    public List<ReshopOffer> getReshopOffers() {
+    public List<ReshopOfferInstance> getReshopOffers() {
         return reshopOffers;
     }
 
-    public void setReshopOffers(List<ReshopOffer> reshopOffers) {
+    public void setReshopOffers(List<ReshopOfferInstance> reshopOffers) {
         this.reshopOffers = reshopOffers;
     }
 
