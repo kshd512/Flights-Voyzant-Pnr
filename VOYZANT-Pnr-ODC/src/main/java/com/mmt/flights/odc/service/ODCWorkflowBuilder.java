@@ -1,9 +1,7 @@
 package com.mmt.flights.odc.service;
 
 import com.mmt.api.rxflow.WorkFlow;
-import com.mmt.flights.odc.service.tasks.ODCSearchInvokerTask;
-import com.mmt.flights.odc.service.tasks.ODCSearchRequestBuilderTask;
-import com.mmt.flights.odc.service.tasks.ODCSearchResponseAdapterTask;
+import com.mmt.flights.odc.service.tasks.*;
 import com.mmt.flights.pnr.workflow.tasks.CMSManagerTask;
 import com.mmt.flights.pnr.workflow.tasks.PnrRetrieveNetworkCall;
 import com.mmt.flights.pnr.workflow.tasks.PnrRetrieveRequestAdapter;
@@ -25,6 +23,17 @@ public class ODCWorkflowBuilder {
                 .toMap(ODCSearchRequestBuilderTask.class)
                 .toMap(ODCSearchInvokerTask.class, retry(2).onError(ODCWorkflowBuilder::retryable))
                 .toMap(ODCSearchResponseAdapterTask.class, completeFlow())
+                .build();
+    }
+
+    public static WorkFlow prePayment() {
+        return new WorkFlow.Builder()
+                .defineMap(CMSManagerTask.class)
+                .toMap(PnrRetrieveRequestAdapter.class)
+                .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(ODCWorkflowBuilder::retryable))
+                .toMap(ODCExchangePriceRequestBuilderTask.class)
+                .toMap(ODCExchangePriceInvokerTask.class, retry(2).onError(ODCWorkflowBuilder::retryable))
+                .toMap(ODCExchangePriceResponseAdapterTask.class, completeFlow())
                 .build();
     }
 
