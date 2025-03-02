@@ -42,9 +42,9 @@ public class ODCWorkflowBuilder {
                 .defineMap(CMSManagerTask.class)
                 .toMap(PnrRetrieveRequestAdapter.class)
                 .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(ODCWorkflowBuilder::retryable))
-                .toMap(ODCExchangePriceRequestBuilderTask.class)
-                .toMap(ODCExchangePriceInvokerTask.class, retry(2).onError(ODCWorkflowBuilder::retryable))
-                .toMap(ODCExchangePriceResponseAdapterTask.class, completeFlow())
+                .toMap(ODCBookRequestBuilderTask.class)
+                .toMap(ODCBookInvokerTask.class, retry(2).onError(ODCWorkflowBuilder::retryable))
+                .toMap(ODCBookResponseAdapterTask.class, completeFlow())
                 .build();
     }
 
