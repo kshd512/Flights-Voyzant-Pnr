@@ -4,24 +4,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mmt.flights.entity.cancel.common.Document;
 import com.mmt.flights.entity.cancel.common.Party;
-import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OrderViewRS {
+public class TicketVoidRS {
+
     @JsonProperty("Document")
     private Document document;
-    
+
     @JsonProperty("Party")
     private Party party;
-    
+
     @JsonProperty("ShoppingResponseId")
     private String shoppingResponseId;
-    
+
     @JsonProperty("Success")
     private Success success;
-    
-    @JsonProperty("Response")
-    private List<Response> response;
+
+    @JsonProperty("Result")
+    private Result result;
 
     public Document getDocument() {
         return document;
@@ -55,11 +55,11 @@ public class OrderViewRS {
         this.success = success;
     }
 
-    public List<Response> getResponse() {
-        return response;
+    public Result getResult() {
+        return result;
     }
 
-    public void setResponse(List<Response> response) {
-        this.response = response;
+    public void setResult(Result result) {
+        this.result = result;
     }
 }

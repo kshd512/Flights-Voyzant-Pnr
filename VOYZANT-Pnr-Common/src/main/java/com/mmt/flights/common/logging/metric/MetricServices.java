@@ -47,7 +47,9 @@ public enum MetricServices {
     VOID_NETWORK_CALL_LATENCY("void.network.call.latency"),
     ODC_PENALTY_NOT_FOUND("odc.penalty.not.found"),
     PNR_SPLIT_NETWORK_CALL_LATENCY("pnr.split.network.call.latency"),
-    PNR_SPLIT_ADAPTER_LATENCY("pnr.split.adapter.latency");
+    PNR_SPLIT_ADAPTER_LATENCY("pnr.split.adapter.latency"),
+    PNR_VOID_NETWORK_CALL_LATENCY("pnr.void.network.call.latency"),
+    VOID_CANCEL_PNR_RESPONSE_ADAPTER_TASK_LATENCY("void.cancel.pnr.response.adapter.task.latency");
 
     private final String value;
 

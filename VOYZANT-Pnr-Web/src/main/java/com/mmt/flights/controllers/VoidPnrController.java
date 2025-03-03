@@ -36,8 +36,8 @@ public class VoidPnrController {
     private CancelPnrService cancelPnrService;
 
     @RequestMapping(value = EndpointConstants.VOID_CANCEL, method = RequestMethod.POST)
-    @ApiOperation(value = "VOYZANT Void API", response = SupplyValidateCancelResponseDTO.class, notes = "This API pnr with HITIT connector")
-    public DeferredResult<ResponseEntity<SupplyPnrCancelResponseDTO>> voidCancelPnrV1(
+    @ApiOperation(value = "VOYZANT Void API", response = SupplyValidateCancelResponseDTO.class, notes = "This API pnr with VOYZANT connector")
+    public DeferredResult<ResponseEntity<SupplyPnrCancelResponseDTO>> voidCancelPnr(
             @RequestBody SupplyPnrCancelRequestDTO request) {
         long startTime = System.currentTimeMillis();
         long timeout = techConfig.getPnrCancelTimeout();

@@ -23,13 +23,12 @@ public class CancelPnrRequestAdapterTask implements MapTask {
     @Override
     public FlowState run(FlowState flowState) throws Exception {
         String supplierPNRResponse = flowState.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
-        String splitPnrResponse = flowState.getValue(FlowStateKey.SPLIT_PNR_RESPONSE);
 
         // Convert supplier PNR response to OrderViewRS
         OrderViewRS retrieveResponse = objectMapper.readValue(supplierPNRResponse, OrderViewRS.class);
 
         // Create Cancel PNR Request
-        CancelPnrRequest cancelPnrRequest = createCancelPnrRequest(retrieveResponse, splitPnrResponse);
+        CancelPnrRequest cancelPnrRequest = createCancelPnrRequest(retrieveResponse);
 
         // Convert to JSON
         String cancelPnrRequestJson = objectMapper.writeValueAsString(cancelPnrRequest);
@@ -39,7 +38,7 @@ public class CancelPnrRequestAdapterTask implements MapTask {
                 .build();
     }
 
-    private CancelPnrRequest createCancelPnrRequest(OrderViewRS retrieveResponse, String splitPnrResponse) throws Exception {
+    private CancelPnrRequest createCancelPnrRequest(OrderViewRS retrieveResponse) {
         CancelPnrRequest cancelPnrRequest = new CancelPnrRequest();
         OrderCancelRQ orderCancelRQ = new OrderCancelRQ();
 

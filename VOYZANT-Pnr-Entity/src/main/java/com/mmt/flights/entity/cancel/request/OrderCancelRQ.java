@@ -1,9 +1,11 @@
 package com.mmt.flights.entity.cancel.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mmt.flights.entity.cancel.common.Document;
 import com.mmt.flights.entity.cancel.common.Party;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderCancelRQ {
     @JsonProperty("Document")
     private Document document;

@@ -34,10 +34,11 @@ public class FlowStateKey {
 
 
 	public static final String AIRLINE = "AIRLINE";
-	public static final String PNR_CANCEL_RESPONSE = "PNR_CANCEL_RESPONSE";
-	public static final String GetPnr = "GetPnr";
 	public static final String ODC_EXCHANGE_PRICE_REQUEST = "ODC_EXCHANGE_PRICE_REQUEST";
 	public static final String ODC_EXCHANGE_PRICE_RESPONSE = "ODC_EXCHANGE_PRICE_RESPONSE";
 	public static final String ODC_BOOK_REQUEST = "ODC_BOOK_REQUEST";
 	public static final String ODC_BOOK_RESPONSE = "ODC_BOOK_RESPONSE";
+	public static final String VOID_PNR_REQUEST = "VOID_PNR_REQUEST";
+	public static final String VOID_PNR_RESPONSE = "VOID_PNR_RESPONSE";
+	public static final String SUPPLY_PNR_CANCEL_RESPONSE = "SUPPLY_PNR_CANCEL_RESPONSE";
 }
