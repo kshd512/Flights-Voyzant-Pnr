@@ -3,6 +3,7 @@ package com.mmt.flights.cancel.workflow;
 import com.mmt.api.rxflow.WorkFlow;
 import com.mmt.flights.cancel.workflow.tasks.*;
 import com.mmt.flights.pnr.workflow.tasks.CMSManagerTask;
+import com.mmt.flights.pnr.workflow.tasks.DummyTask;
 import com.mmt.flights.pnr.workflow.tasks.PnrRetrieveNetworkCall;
 import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,18 @@ public class CancelPnrWorkflowBuilder {
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
                 .toMap(CancelPnrResponseAdaptor.class, completeFlow()).build();
+    }
+
+    public static WorkFlow voidCancelPnr() {
+        return new WorkFlow.Builder()
+                .defineMap(CMSManagerTask.class)
+                .toMap(CancelPnrRetrieveRequestAdapter.class)
+                .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
+                .toMap(VoidCancelValidateTask.class)
+                .toMap(VoidCancelRequestAdapterTask.class)
+                .toMap(VoidCancelPnrNetworkCallTask.class)
+                .toMap(VoidCancelPnrResponseAdapterTask.class)
+                .toMap(DummyTask.class, completeFlow()).build();
     }
 
     private static boolean retryable(Throwable e) {
