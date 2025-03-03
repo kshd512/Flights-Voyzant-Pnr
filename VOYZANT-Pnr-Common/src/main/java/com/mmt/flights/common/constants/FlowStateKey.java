@@ -39,4 +39,5 @@ public class FlowStateKey {
 	public static final String ODC_EXCHANGE_PRICE_REQUEST = "ODC_EXCHANGE_PRICE_REQUEST";
 	public static final String ODC_EXCHANGE_PRICE_RESPONSE = "ODC_EXCHANGE_PRICE_RESPONSE";
 	public static final String ODC_BOOK_REQUEST = "ODC_BOOK_REQUEST";
+	public static final String ODC_BOOK_RESPONSE = "ODC_BOOK_RESPONSE";
 }
