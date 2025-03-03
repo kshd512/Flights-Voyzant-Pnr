@@ -36,6 +36,9 @@ public class DataLists {
     @JsonProperty("FopList")
     private List<FopList> fopList;
 
+    @JsonProperty("ContactList")
+    private ContactList contactList;
+
     public PassengerList getPassengerList() {
         return passengerList;
     }
@@ -106,5 +109,13 @@ public class DataLists {
 
     public void setFopList(List<FopList> fopList) {
         this.fopList = fopList;
+    }
+
+    public ContactList getContactList() {
+        return contactList;
+    }
+
+    public void setContactList(ContactList contactList) {
+        this.contactList = contactList;
     }
 }

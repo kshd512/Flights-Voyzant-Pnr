@@ -2,6 +2,7 @@ package com.mmt.flights.entity.odc;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,9 @@ public class Query {
 
     @JsonProperty("Reshop")
     private Reshop reshop;
+
+    @JsonProperty("OrderServicing")
+    private OrderServicing orderServicing;
 
     public String getOrderID() {
         return orderID;
@@ -38,5 +42,13 @@ public class Query {
 
     public void setReshop(Reshop reshop) {
         this.reshop = reshop;
+    }
+
+    public OrderServicing getOrderServicing() {
+        return orderServicing;
+    }
+
+    public void setOrderServicing(OrderServicing orderServicing) {
+        this.orderServicing = orderServicing;
     }
 }

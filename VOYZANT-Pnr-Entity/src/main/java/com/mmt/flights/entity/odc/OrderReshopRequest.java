@@ -7,6 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class OrderReshopRequest {
     @JsonProperty("OrderReshopRQ")
     private OrderReshopRQ orderReshopRQ;
+    
+    @JsonProperty("OrderChangeRQ")
+    private OrderReshopRQ orderChangeRQ;
 
     public OrderReshopRQ getOrderReshopRQ() {
         return orderReshopRQ;
@@ -14,5 +17,13 @@ public class OrderReshopRequest {
 
     public void setOrderReshopRQ(OrderReshopRQ orderReshopRQ) {
         this.orderReshopRQ = orderReshopRQ;
+    }
+    
+    public OrderReshopRQ getOrderChangeRQ() {
+        return orderChangeRQ;
+    }
+
+    public void setOrderChangeRQ(OrderReshopRQ orderChangeRQ) {
+        this.orderChangeRQ = orderChangeRQ;
     }
 }
