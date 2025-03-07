@@ -847,11 +847,11 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                     .setMiddleName(StringUtils.defaultString(passenger.getMiddleName(), ""))
                     .setLastName(passenger.getLastName())
                     .setMealPreference("")
-                    .setGender(SupplyGenderOuterClass.SupplyGender.MALE)
+                    .setGender(mapGender(passenger.getGender()))
                     .setEmailId(getFirstOrEmpty(dataLists.getContactEmail()))
                     .setMobileNumber(getFirstOrEmpty(dataLists.getContactNumber()))
                     .setMobileNumberCountryCode("")
-                    .setPaxType(SupplyPaxType.ADULT)
+                    .setPaxType(mapPassengerType(passenger.getPtc()))
                     .setDateOfBirth("")
                     .setNationality("")
                     .setPwdLine("")
@@ -859,6 +859,35 @@ public class PnrRetrieveResponseAdapter implements MapTask {
                 
                 fareInfoBuilder.addTravelerInfos(travelerBuilder.build());
             }
+        }
+    }
+
+    private SupplyPaxType mapPassengerType(String ptc) {
+        if (StringUtils.isEmpty(ptc)) {
+            return SupplyPaxType.ADULT; // Default to ADULT if empty
+        }
+
+        switch (ptc.toUpperCase()) {
+            case "ADT":
+                return SupplyPaxType.ADULT;
+            case "CHD":
+                return SupplyPaxType.CHILD;
+            case "INF":
+                return SupplyPaxType.INFANT;
+            default:
+                LOG.warn("Unknown passenger type code: {}. Defaulting to ADULT", ptc);
+                return SupplyPaxType.ADULT;
+        }
+    }
+
+    /**
+     * Maps gender string to SupplyGender enum
+     */
+    private SupplyGenderOuterClass.SupplyGender mapGender(String gender) {
+        if ("Female".equalsIgnoreCase(gender)) {
+            return SupplyGenderOuterClass.SupplyGender.FEMALE;
+        } else {
+            return SupplyGenderOuterClass.SupplyGender.MALE;
         }
     }
 
