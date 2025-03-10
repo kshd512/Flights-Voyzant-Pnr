@@ -27,8 +27,8 @@ public class ODCBookResponseAdapterTask implements MapTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ODCBookResponseAdapterTask.class);
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    //@Autowired
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public FlowState run(FlowState state) throws Exception {
@@ -62,7 +62,7 @@ public class ODCBookResponseAdapterTask implements MapTask {
             Order order = orderViewRS.getOrder().get(0);
 
             commitResponse.setPnr(order.getGdsBookingReference());
-            commitResponse.setStatus(Status.COMPLETED);
+            commitResponse.setStatus(Status.SUCCESS);
 
             // Set ticketing required flag
             commitResponse.setIsTicketingRequired(order != null &&

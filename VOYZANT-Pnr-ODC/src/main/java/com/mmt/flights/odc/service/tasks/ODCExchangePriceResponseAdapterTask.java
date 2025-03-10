@@ -26,8 +26,8 @@ import java.util.Map;
 @Component
 public class ODCExchangePriceResponseAdapterTask implements MapTask {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    //@Autowired
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public FlowState run(FlowState state) throws Exception {
@@ -76,7 +76,7 @@ public class ODCExchangePriceResponseAdapterTask implements MapTask {
                     gpm.setCostPrice((double)originalTotal);
                     gpm.setProfitOrLoss(reshopDue);
                     gpm.setProvider(offer.getOwner());
-                    gpm.setType("EXCHANGE");
+                    //gpm.setType("EXCHANGE");
                     paymentResponse.setGpm(gpm);
                 }
                 

@@ -22,8 +22,12 @@ public class OrderViewRS {
     private List<Order> order;
     @JsonProperty("DataLists")
     private DataLists dataLists;
+    @JsonProperty("TicketDocInfos")
+    private TicketDocInfos ticketDocInfos;
     @JsonProperty("MetaData")
     private Map<String, Object> metaData;
+    @JsonProperty("threeDsResponse")
+    private String threeDsResponse;
 
     public Document getDocument() {
         return document;
@@ -81,11 +85,27 @@ public class OrderViewRS {
         this.dataLists = dataLists;
     }
 
+    public TicketDocInfos getTicketDocInfos() {
+        return ticketDocInfos;
+    }
+
+    public void setTicketDocInfos(TicketDocInfos ticketDocInfos) {
+        this.ticketDocInfos = ticketDocInfos;
+    }
+
     public Map<String, Object> getMetaData() {
         return metaData;
     }
 
     public void setMetaData(Map<String, Object> metaData) {
         this.metaData = metaData;
+    }
+
+    public String getThreeDsResponse() {
+        return threeDsResponse;
+    }
+
+    public void setThreeDsResponse(String threeDsResponse) {
+        this.threeDsResponse = threeDsResponse;
     }
 }
