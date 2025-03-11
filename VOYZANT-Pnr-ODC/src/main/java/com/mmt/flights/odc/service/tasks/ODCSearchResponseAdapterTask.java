@@ -39,8 +39,6 @@ public class ODCSearchResponseAdapterTask implements MapTask {
             OrderReshopResponse orderReshopResponse = objectMapper.readValue(orderReshopResponseJson, OrderReshopResponse.class);
             OrderReshopRS response = orderReshopResponse.getOrderReshopRS();
 
-            String supplierPNRResponse = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
-
             // Check if the response is successful
             if (!response.isSuccess() || response.getReshopOffers() == null || response.getReshopOffers().isEmpty()) {
                 throw new PSErrorException(ErrorEnum.FLT_UNKNOWN_ERROR);
@@ -195,13 +193,12 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                 odcDetails.setDateChangeFee(2999.0); // Example value from sample JSON
                 recommendation.setOdcDetails(odcDetails);
 
-                // Set fare family name and fare type from fare basis code
+                // Set fare family name and fare type from PriceClassRef
                 if (!reshopOffer.getAddOfferItem().isEmpty() && 
                     !reshopOffer.getAddOfferItem().get(0).getFareComponent().isEmpty()) {
-                    String fareBasisCode = reshopOffer.getAddOfferItem().get(0)
-                            .getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode();
-                    String cabinClass = fareBasisCode.substring(0, 1);
-                    recommendation.setFareFamilyName(determineFareFamily(cabinClass));
+                    String priceClassRef = reshopOffer.getAddOfferItem().get(0).getFareComponent().get(0).getPriceClassRef();
+                    String fareBasisCode = reshopOffer.getAddOfferItem().get(0).getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode();
+                    recommendation.setFareFamilyName(determineFareFamily(priceClassRef, state));
                     recommendation.setFareType(determineFareType(fareBasisCode));
                 }
 
@@ -450,18 +447,31 @@ public class ODCSearchResponseAdapterTask implements MapTask {
         }
     }
 
-    private String determineFareFamily(String cabinClass) {
-        switch (cabinClass.toUpperCase()) {
-            case "J":
-            case "C":
-            case "D":
-                return "BUSINESS";
-            case "Y":
-            case "M":
-                return "SAVER";
-            default:
-                return "SAVER";
+    private String determineFareFamily(String priceClassRef, FlowState state) {
+        // Get the PriceClass from DataLists.PriceClassList that matches the priceClassRef
+        try {
+            String orderReshopResponseJson = state.getValue(FlowStateKey.ODC_SEARCH_RESPONSE); 
+            if (orderReshopResponseJson != null) {
+                OrderReshopResponse orderReshopResponse = objectMapper.readValue(orderReshopResponseJson, OrderReshopResponse.class);
+                OrderReshopRS response = orderReshopResponse.getOrderReshopRS();
+
+                // Find matching PriceClass
+                if (response.getDataLists() != null && 
+                    response.getDataLists().getPriceClassList() != null &&
+                    response.getDataLists().getPriceClassList().getPriceClass() != null) {
+                    
+                    return response.getDataLists().getPriceClassList().getPriceClass().stream()
+                        .filter(priceClass -> priceClass.getPriceClassID().equals(priceClassRef))
+                        .map(priceClass -> priceClass.getName())
+                        .findFirst()
+                        .orElse("SAVER"); // Default to SAVER if not found
+                }
+            }
+        } catch (Exception e) {
+            // In case of any error, return default
+            return "SAVER";
         }
+        return "SAVER";
     }
 
     private String determineFareType(String fareBasisCode) {
