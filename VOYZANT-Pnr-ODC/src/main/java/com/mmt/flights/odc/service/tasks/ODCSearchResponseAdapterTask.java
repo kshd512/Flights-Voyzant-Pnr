@@ -32,11 +32,14 @@ public class ODCSearchResponseAdapterTask implements MapTask {
             OrderReshopRS response = orderReshopResponse.getOrderReshopRS();
             validateResponse(response);
 
+            DateChangeSearchRequest request = state.getValue(FlowStateKey.REQUEST);
+            String cmsId = request.getCmsId();
+
             SimpleSearchResponseV2 searchResponse = new SimpleSearchResponseV2();
             searchResponse.setConversionFactors(createConversionFactors(response));
 
             FlightJourneyContext journeyContext = processFlightJourneys(response);
-            RecommendationGroups recommendationGroups = processRecommendationGroups(response, journeyContext, state);
+            RecommendationGroups recommendationGroups = processRecommendationGroups(response, journeyContext, state, cmsId);
 
             searchResponse.setSameFareRcomGrps(recommendationGroups.sameFareGroups);
             searchResponse.setOtherFareRcomGrps(recommendationGroups.otherFareGroups);
@@ -185,10 +188,10 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                 .append(segment.getMarketingCarrier().getFlightNumber());
     }
 
-    private RecommendationGroups processRecommendationGroups(OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state) {
+    private RecommendationGroups processRecommendationGroups(OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state, String cmsId) {
         RecommendationGroups groups = new RecommendationGroups();
         for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffers()) {
-            SimpleSearchRecommendationGroupV2 group = createRecommendationGroup(reshopOffer, response, journeyContext, state);
+            SimpleSearchRecommendationGroupV2 group = createRecommendationGroup(reshopOffer, response, journeyContext, state, cmsId);
             if (group.getSingleAdultFare() != null) {
                 groups.sameFareGroups.add(group);
             }
@@ -196,18 +199,18 @@ public class ODCSearchResponseAdapterTask implements MapTask {
         return groups;
     }
 
-    private SimpleSearchRecommendationGroupV2 createRecommendationGroup(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state) {
+    private SimpleSearchRecommendationGroupV2 createRecommendationGroup(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state, String cmsId) {
         SimpleSearchRecommendationGroupV2 group = new SimpleSearchRecommendationGroupV2();
         group.setAirlines(Collections.singletonList(reshopOffer.getOwner()));
 
-        SimpleSearchRecommendationV2 recommendation = createRecommendation(reshopOffer, response, journeyContext, state);
+        SimpleSearchRecommendationV2 recommendation = createRecommendation(reshopOffer, response, journeyContext, state, cmsId);
         group.setSearchRecommendations(Collections.singletonList(recommendation));
         group.setSingleAdultFare(recommendation.getPaxWiseFare().get(PaxType.ADULT));
 
         return group;
     }
 
-    private SimpleSearchRecommendationV2 createRecommendation(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state) {
+    private SimpleSearchRecommendationV2 createRecommendation(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state, String cmsId) {
         SimpleSearchRecommendationV2 recommendation = new SimpleSearchRecommendationV2();
         recommendation.setHandBaggageFare(false);
         recommendation.setRefundable(Boolean.parseBoolean(reshopOffer.getAddOfferItem().get(0).getRefundable()));
@@ -228,7 +231,7 @@ public class ODCSearchResponseAdapterTask implements MapTask {
 
         setFareDetails(recommendation, reshopOffer, state);
         
-        String rKey = generateRKey(reshopOffer, response, recommendation);
+        String rKey = generateRKey(reshopOffer, response, recommendation, cmsId);
         recommendation.setrKey(rKey);
         
         String fareKey = response.getShoppingResponseId() + "," + reshopOffer.getOfferID();
@@ -281,10 +284,9 @@ public class ODCSearchResponseAdapterTask implements MapTask {
         }
     }
 
-    private String generateRKey(ReshopOffer reshopOffer, OrderReshopRS response, SimpleSearchRecommendationV2 recommendation) {
+    private String generateRKey(ReshopOffer reshopOffer, OrderReshopRS response, SimpleSearchRecommendationV2 recommendation, String cmsId) {
         Journey journey = createJourneyForRKey(reshopOffer, response);
         PaxCount paxCount = createPaxCount(reshopOffer);
-        String cmsId = "DOTREZ";
 
         // Check if return trip
         List<Segment> segments = journey.getSegments();

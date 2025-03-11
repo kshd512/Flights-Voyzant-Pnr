@@ -39,6 +39,7 @@ public class ODCSearchResponseAdapterTaskTest {
         request.setPnr("ABC123");
         request.setSupplierCode("WY");
         request.setCabinClass("Y");
+        request.setCmsId("TESTCMS");
 
         FlowState.Builder builder = new FlowState.Builder(System.currentTimeMillis());
 
@@ -72,6 +73,7 @@ public class ODCSearchResponseAdapterTaskTest {
         request.setPnr("ABC123");
         request.setSupplierCode("WY");
         request.setCabinClass("Y");
+        request.setCmsId("TESTCMS");
 
         FlowState.Builder builder = new FlowState.Builder(System.currentTimeMillis());
 
