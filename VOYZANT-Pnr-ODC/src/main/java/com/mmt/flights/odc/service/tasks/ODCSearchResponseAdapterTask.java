@@ -17,10 +17,8 @@ import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
 import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Component
 public class ODCSearchResponseAdapterTask implements MapTask {
@@ -139,10 +137,64 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                 // Create journey details
                 List<SimpleJourney> journeys = new ArrayList<>();
                 SimpleJourney journey = new SimpleJourney();
-                for (com.mmt.flights.entity.pnr.retrieve.response.FlightSegment segment : 
-                     response.getDataLists().getFlightSegmentList().getFlightSegment()) {
+                StringBuilder journeyKeyBuilder = new StringBuilder();
+                
+                // Get flight references from ReshopOffer's Service
+                String flightRefs = reshopOffer.getAddOfferItem().get(0).getService().get(0).getFlightRefs();
+                String[] flightKeys = flightRefs.split(" ");
+                
+                // Get flight segments for this flight
+                List<com.mmt.flights.entity.pnr.retrieve.response.FlightSegment> flightSegments = new ArrayList<>();
+                for (String flightKey : flightKeys) {
+                    String segmentRefs = response.getDataLists().getFlightList().getFlight().stream()
+                            .filter(f -> f.getFlightKey().equals(flightKey))
+                            .findFirst()
+                            .map(f -> f.getSegmentReferences())
+                            .orElse("");
+                            
+                    if (!segmentRefs.isEmpty()) {
+                        String[] segmentKeys = segmentRefs.split(" ");
+                        for (String segmentKey : segmentKeys) {
+                            response.getDataLists().getFlightSegmentList().getFlightSegment().stream()
+                                    .filter(s -> s.getSegmentKey().equals(segmentKey))
+                                    .findFirst()
+                                    .ifPresent(flightSegments::add);
+                        }
+                    }
+                }
+
+                // Process each segment to build journey key and flight details
+                boolean isFirst = true;
+                List<SimpleFlight> flights = new ArrayList<>();
+                for (com.mmt.flights.entity.pnr.retrieve.response.FlightSegment segment : flightSegments) {
+                    // Build journey key part for this segment
+                    if (!isFirst) {
+                        journeyKeyBuilder.append("|");
+                    }
                     
-                    List<SimpleFlight> flights = new ArrayList<>();
+                    // Format: Origin$Destination$DateTimeWithoutSeparators$Carrier-FlightNumber
+                    String[] dateParts = segment.getDeparture().getDate().split("-");
+                    // Convert YYYY-MM-DD to DDMMYY format
+                    String dateStr = String.format("%s%s%s", 
+                        dateParts[2],  // DD
+                        dateParts[1],  // MM
+                        dateParts[0].substring(2));  // YY (last 2 digits)
+                    String timeStr = segment.getDeparture().getTime().substring(0, 5).replace(":", "");
+                    String dateTime = dateStr + timeStr;
+                    
+                    journeyKeyBuilder.append(segment.getDeparture().getAirportCode())
+                            .append("$")
+                            .append(segment.getArrival().getAirportCode())
+                            .append("$")
+                            .append(dateTime)
+                            .append("$")
+                            .append(segment.getMarketingCarrier().getAirlineID())
+                            .append("-")
+                            .append(segment.getMarketingCarrier().getFlightNumber());
+
+                    isFirst = false;
+
+                    // Create flight details
                     SimpleFlight flight = new SimpleFlight();
                     flight.setMarketingAirline(segment.getMarketingCarrier().getAirlineID());
                     flight.setOperatingAirline(segment.getOperatingCarrier().getAirlineID());
@@ -165,14 +217,29 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                     flight.setDuration(parseFlightDuration(duration));
                     
                     flights.add(flight);
-                    journey.setFlights(flights);
-                    journey.setDuration(parseFlightDuration(segment.getFlightDetail().getFlightDuration().getValue()));
-                    journey.setJourneyKey(segment.getSegmentKey());
                 }
                 
-                if (!journey.getFlights().isEmpty()) {
-                    journey.setDepDate(journey.getFlights().get(0).getDepTime());
-                    journey.setArrDate(journey.getFlights().get(journey.getFlights().size()-1).getArrTime());
+                journey.setFlights(flights);
+                journey.setJourneyKey(journeyKeyBuilder.toString());
+
+                if (!flights.isEmpty()) {
+                    journey.setDepDate(flights.get(0).getDepTime());
+                    journey.setArrDate(flights.get(flights.size()-1).getArrTime());
+                    
+                    // Calculate total duration (difference between first departure and last arrival)
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    try {
+                        Date depDate = sdf.parse(flights.get(0).getDepTime());
+                        Date arrDate = sdf.parse(flights.get(flights.size()-1).getArrTime());
+                        long durationInMinutes = (arrDate.getTime() - depDate.getTime()) / (60 * 1000);
+                        journey.setDuration((int) durationInMinutes);
+                    } catch (Exception e) {
+                        // If date parsing fails, sum up individual flight durations
+                        journey.setDuration(flights.stream()
+                                .mapToInt(SimpleFlight::getDuration)
+                                .sum());
+                    }
+                    
                     journeys.add(journey);
                     
                     // Add the journey list to itineraryJourneyList
