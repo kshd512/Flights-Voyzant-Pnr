@@ -23,379 +23,427 @@ import java.util.*;
 
 @Component
 public class ODCSearchResponseAdapterTask implements MapTask {
-
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public FlowState run(FlowState state) throws Exception {
         try {
-            // Get OrderReshopResponse from state
-            String orderReshopResponseJson = state.getValue(FlowStateKey.ODC_SEARCH_RESPONSE);
-            if (orderReshopResponseJson == null) {
-                throw new PSErrorException(ErrorEnum.FLT_UNKNOWN_ERROR);
-            }
-
-            // Deserialize the JSON string to OrderReshopResponse
-            OrderReshopResponse orderReshopResponse = objectMapper.readValue(orderReshopResponseJson, OrderReshopResponse.class);
+            OrderReshopResponse orderReshopResponse = getOrderReshopResponse(state);
             OrderReshopRS response = orderReshopResponse.getOrderReshopRS();
+            validateResponse(response);
 
-            // Check if the response is successful
-            if (!response.isSuccess() || response.getReshopOffers() == null || response.getReshopOffers().isEmpty()) {
-                throw new PSErrorException(ErrorEnum.FLT_UNKNOWN_ERROR);
-            }
+            SimpleSearchResponseV2 searchResponse = new SimpleSearchResponseV2();
+            searchResponse.setConversionFactors(createConversionFactors(response));
 
-            // Create SimpleSearchResponseV2 object
-            SimpleSearchResponseV2 simpleSearchResponseV2 = new SimpleSearchResponseV2();
-            
-            // Set conversion factors
-            List<ConversionFactor> conversionFactors = new ArrayList<>();
-            ConversionFactor conversionFactor = new ConversionFactor();
-            conversionFactor.setFromCurrency(response.getReshopOffers().get(0).getReshopOffers().get(0).getBookingCurrencyCode());
-            conversionFactor.setToCurrency(response.getReshopOffers().get(0).getReshopOffers().get(0).getBookingCurrencyCode());
-            conversionFactor.setRoe(1.0);
-            conversionFactors.add(conversionFactor);
-            simpleSearchResponseV2.setConversionFactors(conversionFactors);
+            FlightJourneyContext journeyContext = processFlightJourneys(response);
+            RecommendationGroups recommendationGroups = processRecommendationGroups(response, journeyContext, state);
 
-            // Process recommendations and create groups
-            List<SimpleSearchRecommendationGroupV2> sameFareRcomGrps = new ArrayList<>();
-            List<SimpleSearchRecommendationGroupV2> otherFareRcomGrps = new ArrayList<>();
-            List<List<SimpleJourney>> itineraryJourneyList = new ArrayList<>();
-            List<SimpleJourney> allJourneys = new ArrayList<>(); // All journeys will go in this list
-            
-            // Process each ReshopOffer
-            Map<String, Integer> flightKeyToJourneyIndex = new HashMap<>();
-            int journeyIndex = 0;
-            
-            for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffers()) {
-                SimpleSearchRecommendationGroupV2 recommendationGroup = new SimpleSearchRecommendationGroupV2();
-                
-                // Set airline list
-                List<String> airlines = new ArrayList<>();
-                airlines.add(reshopOffer.getOwner());
-                recommendationGroup.setAirlines(airlines);
+            searchResponse.setSameFareRcomGrps(recommendationGroups.sameFareGroups);
+            searchResponse.setOtherFareRcomGrps(recommendationGroups.otherFareGroups);
+            searchResponse.setItineraryJourneyList(journeyContext.getItineraryJourneyList());
 
-                // Create recommendation
-                SimpleSearchRecommendationV2 recommendation = new SimpleSearchRecommendationV2();
-                recommendation.setHandBaggageFare(false);
-                recommendation.setRefundable(Boolean.parseBoolean(reshopOffer.getAddOfferItem().get(0).getRefundable()));
-                
-                // Get all flight references from service node
-                String[] flightRefs = reshopOffer.getAddOfferItem().get(0).getService().get(0).getFlightRefs().split(" ");
-                
-                // Create journeys for each flight if not already created
-                List<Integer> journeyIndices = new ArrayList<>();
-                for (String flightRef : flightRefs) {
-                    if (!flightKeyToJourneyIndex.containsKey(flightRef)) {
-                        // Process this flight and create journey
-                        String segmentRefs = response.getDataLists().getFlightList().getFlight().stream()
-                                .filter(f -> f.getFlightKey().equals(flightRef))
-                                .findFirst()
-                                .map(f -> f.getSegmentReferences())
-                                .orElse("");
-                                
-                        if (!segmentRefs.isEmpty()) {
-                            SimpleJourney journey = new SimpleJourney();
-                            StringBuilder journeyKeyBuilder = new StringBuilder();
-                            List<SimpleFlight> flights = new ArrayList<>();
-                            boolean isFirst = true;
-                            
-                            String[] segmentKeys = segmentRefs.split(" ");
-                            for (String segmentKey : segmentKeys) {
-                                com.mmt.flights.entity.pnr.retrieve.response.FlightSegment segment = 
-                                        response.getDataLists().getFlightSegmentList().getFlightSegment().stream()
-                                                .filter(s -> s.getSegmentKey().equals(segmentKey))
-                                                .findFirst()
-                                                .orElse(null);
-                                                
-                                if (segment != null) {
-                                    // Build journey key part for this segment
-                                    if (!isFirst) {
-                                        journeyKeyBuilder.append("|");
-                                    }
-                                    
-                                    // Format date for journey key (DDMMYY)
-                                    String[] dateParts = segment.getDeparture().getDate().split("-");
-                                    String dateStr = String.format("%s%s%s", 
-                                        dateParts[2],  // DD
-                                        dateParts[1],  // MM
-                                        dateParts[0].substring(2));  // YY
-                                    String timeStr = segment.getDeparture().getTime().substring(0, 5).replace(":", "");
-                                    String dateTime = dateStr + timeStr;
-                                    
-                                    // Build journey key
-                                    journeyKeyBuilder.append(segment.getDeparture().getAirportCode())
-                                            .append("$")
-                                            .append(segment.getArrival().getAirportCode())
-                                            .append("$")
-                                            .append(dateTime)
-                                            .append("$")
-                                            .append(segment.getMarketingCarrier().getAirlineID())
-                                            .append("-")
-                                            .append(segment.getMarketingCarrier().getFlightNumber());
-                                    
-                                    isFirst = false;
-
-                                    // Create flight details
-                                    SimpleFlight flight = createSimpleFlight(segment);
-                                    flights.add(flight);
-                                }
-                            }
-                            
-                            journey.setFlights(flights);
-                            journey.setJourneyKey(journeyKeyBuilder.toString());
-
-                            if (!flights.isEmpty()) {
-                                journey.setDepDate(flights.get(0).getDepTime());
-                                journey.setArrDate(flights.get(flights.size()-1).getArrTime());
-                                journey.setDuration(calculateJourneyDuration(flights));
-                                
-                                // Add journey to all journeys list
-                                allJourneys.add(journey);
-                                flightKeyToJourneyIndex.put(flightRef, journeyIndex++);
-                            }
-                        }
-                    }
-                    // Add this flight's journey index to the recommendation's indices
-                    Integer index = flightKeyToJourneyIndex.get(flightRef);
-                    if (index != null) {
-                        journeyIndices.add(index);
-                    }
-                }
-                
-                // Set journey indices for this recommendation
-                recommendation.setItneraryJrnyIndex(journeyIndices);
-                
-                // Set fare details for each passenger type
-                Map<PaxType, SimpleFare> paxWiseFare = new HashMap<>();
-                for (com.mmt.flights.entity.odc.OfferItem offerItem : reshopOffer.getAddOfferItem()) {
-                    PaxType paxType = null;
-                    // Match passenger type string with enum paxtype value
-                    for (PaxType type : PaxType.values()) {
-                        if (type.getPaxType().equals(offerItem.getPassengerType())) {
-                            paxType = type;
-                            break;
-                        }
-                    }
-                    if (paxType != null) {
-                        SimpleFare simpleFare = new SimpleFare();
-                        // Divide by passenger quantity to get per-passenger fare
-                        int paxCount = offerItem.getPassengerQuantity();
-                        simpleFare.setBase(offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice() / paxCount);
-                        simpleFare.setTaxes(offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice() / paxCount);
-                        paxWiseFare.put(paxType, simpleFare);
-                    }
-                }
-                recommendation.setPaxWiseFare(paxWiseFare);
-
-                // Set ODC details
-                SimpleDateChangeDetails odcDetails = new SimpleDateChangeDetails();
-                odcDetails.setRefundAllowed(false); // Based on the sample JSON
-                odcDetails.setDateChangeFee(2999.0); // Example value from sample JSON
-                recommendation.setOdcDetails(odcDetails);
-
-                // Set fare family name and fare type from PriceClassRef
-                if (!reshopOffer.getAddOfferItem().isEmpty() && 
-                    !reshopOffer.getAddOfferItem().get(0).getFareComponent().isEmpty()) {
-                    String priceClassRef = reshopOffer.getAddOfferItem().get(0).getFareComponent().get(0).getPriceClassRef();
-                    String fareBasisCode = reshopOffer.getAddOfferItem().get(0).getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode();
-                    recommendation.setFareFamilyName(determineFareFamily(priceClassRef, state));
-                    recommendation.setFareType(determineFareType(fareBasisCode));
-                }
-
-                // Prepare inputs for rKey generation
-                Journey journey = new Journey();
-                List<com.mmt.flights.supply.search.v4.response.Segment> segments = new ArrayList<>();
-                
-                // Process segments from the flight references
-                for (String ref : flightRefs) {  // Using existing flightRefs from above
-                    com.mmt.flights.entity.pnr.retrieve.response.Flight flight = response.getDataLists().getFlightList().getFlight().stream()
-                            .filter(f -> f.getFlightKey().equals(ref))
-                            .findFirst()
-                            .orElse(null);
-                            
-                    if (flight != null) {
-                        String segmentRefs = flight.getSegmentReferences();
-                        String[] segmentKeys = segmentRefs.split(" ");
-                        
-                        for (String segmentKey : segmentKeys) {
-                            com.mmt.flights.entity.pnr.retrieve.response.FlightSegment flightSegment = 
-                                    response.getDataLists().getFlightSegmentList().getFlightSegment().stream()
-                                            .filter(s -> s.getSegmentKey().equals(segmentKey))
-                                            .findFirst()
-                                            .orElse(null);
-                                            
-                            if (flightSegment != null) {
-                                com.mmt.flights.supply.search.v4.response.Segment segment = new com.mmt.flights.supply.search.v4.response.Segment();
-                                
-                                // Set identifier
-                                Identifier identifier = new Identifier();
-                                identifier.setCarrierCode(flightSegment.getMarketingCarrier().getAirlineID());
-                                identifier.setIdentifier(flightSegment.getMarketingCarrier().getFlightNumber());
-                                segment.setIdentifier(identifier);
-                                
-                                // Set designator
-                                Designator designator = new Designator();
-                                designator.setOrigin(flightSegment.getDeparture().getAirportCode());
-                                designator.setDestination(flightSegment.getArrival().getAirportCode());
-                                designator.setDeparture(flightSegment.getDeparture().getDate() + " " + flightSegment.getDeparture().getTime());
-                                designator.setArrival(flightSegment.getArrival().getDate() + " " + flightSegment.getArrival().getTime());
-                                segment.setDesignator(designator);
-                                
-                                // Create legs
-                                List<Leg> legs = new ArrayList<>();
-                                Leg leg = new Leg();
-                                LegInfo legInfo = new LegInfo();
-                                legInfo.setDepartureTerminal(flightSegment.getDeparture().getTerminal().getName());
-                                legInfo.setArrivalTerminal(flightSegment.getArrival().getTerminal().getName());
-                                leg.setLegInfo(legInfo);
-                                legs.add(leg);
-                                segment.setLegs(legs);
-                                
-                                segments.add(segment);
-                            }
-                        }
-                    }
-                }
-                
-                journey.setSegments(segments);
-                
-                // Create JourneyFare
-                JourneyFare journeyFare = new JourneyFare();
-                List<com.mmt.flights.supply.search.v4.response.Fare> supplyFares = new ArrayList<>();
-                
-                // Map fare details from reshopOffer
-                for (com.mmt.flights.entity.odc.OfferItem offerItem : reshopOffer.getAddOfferItem()) {
-                    if (!offerItem.getFareComponent().isEmpty()) {
-                        // Set fare basis code from the first fare component
-                        String fareBasisCode = offerItem.getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode();
-                        // Set cabin class
-                        String cabinClass = offerItem.getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode().substring(0, 1);
-
-                        // Map passenger fares
-                        List<PassengerFare> passengerFares = new ArrayList<>();
-                        PassengerFare passengerFare = new PassengerFare();
-                        passengerFare.setPassengerType(offerItem.getPassengerType());
-
-                        // Map service charges
-                        List<ServiceCharge> serviceCharges = new ArrayList<>();
-                        
-                        // Add base amount
-                        ServiceCharge baseCharge = new ServiceCharge();
-                        baseCharge.setAmount(offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice());
-                        //baseCharge.setType(ServiceChargeType.valueOf("BASE"));
-                        serviceCharges.add(baseCharge);
-                        
-                        // Add tax amount
-                        ServiceCharge taxCharge = new ServiceCharge();
-                        taxCharge.setAmount(offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice());
-                        //taxCharge.setType(ServiceChargeType.valueOf("TAX"));
-                        serviceCharges.add(taxCharge);
-
-                        passengerFare.setServiceCharges(serviceCharges);
-                        passengerFares.add(passengerFare);
-                        
-                        // Create and add fare with correct field mappings
-                        com.mmt.flights.supply.search.v4.response.Fare supplyFare = new com.mmt.flights.supply.search.v4.response.Fare();
-                        supplyFare.setFareBasisCode(fareBasisCode);
-                        supplyFare.setClassOfService(offerItem.getFareComponent().get(0).getFareBasis().getRbd());
-                        supplyFare.setFareClassOfService(fareBasisCode);
-                        supplyFare.setProductClass(offerItem.getFareComponent().get(0).getFareBasis().getCabinType());
-                        supplyFare.setTravelClassCode(cabinClass);
-                        supplyFare.setPassengerFares(passengerFares);
-                        supplyFares.add(supplyFare);
-                    }
-                }
-                journeyFare.setFares(supplyFares);
-
-                // Create PaxCount
-                PaxCount paxCount = new PaxCount();
-                Map<String, Integer> paxTypeCount = new HashMap<>();
-                for (com.mmt.flights.entity.odc.OfferItem offerItem : reshopOffer.getAddOfferItem()) {
-                    paxTypeCount.put(offerItem.getPassengerType(), offerItem.getPassengerQuantity());
-                }
-                paxCount.setAdult(paxTypeCount.getOrDefault("ADULT", 0));
-                paxCount.setChild(paxTypeCount.getOrDefault("CHILD", 0));
-                paxCount.setInfant(paxTypeCount.getOrDefault("INFANT", 0));
-
-                // Generate rKey using RKeyBuilderUtil
-                String rKey;
-                String cmsId = "DOTREZ";
-                
-                // Check if this is a return trip by looking at origin/destination pairs
-                boolean isReturnTrip = false;
-                if (segments.size() >= 2) {
-                    String firstOrigin = segments.get(0).getDesignator().getOrigin();
-                    String lastDestination = segments.get(segments.size()-1).getDesignator().getDestination();
-                    isReturnTrip = firstOrigin.equals(lastDestination);
-                }
-                
-                if (isReturnTrip) {
-                    // Split segments into onward and return journeys
-                    List<com.mmt.flights.supply.search.v4.response.Segment> rtSegments = new ArrayList<>();
-                    Journey rtJourney = new Journey();
-                    JourneyFare rtFare = new JourneyFare();
-                    
-                    // Simple split in half for return journey
-                    int mid = segments.size() / 2;
-                    rtSegments.addAll(segments.subList(mid, segments.size()));
-                    segments = new ArrayList<>(segments.subList(0, mid));
-                    
-                    journey.setSegments(segments);
-                    rtJourney.setSegments(rtSegments);
-                    
-                    // Split fares between onward and return
-                    List<com.mmt.flights.supply.search.v4.response.Fare> rtFares = 
-                            new ArrayList<>(supplyFares.subList(supplyFares.size()/2, supplyFares.size()));
-                    supplyFares = new ArrayList<>(supplyFares.subList(0, supplyFares.size()/2));
-                    
-                    journeyFare.setFares(supplyFares);
-                    rtFare.setFares(rtFares);
-                    
-                    rKey = RKeyBuilderUtil.buildRKey(recommendation.getPaxWiseFare(), journeyFare, rtFare, paxCount, journey, rtJourney, cmsId);
-                } else {
-                    rKey = RKeyBuilderUtil.buildRKey(recommendation.getPaxWiseFare(), journeyFare, paxCount, journey, cmsId);
-                }
-                
-                recommendation.setrKey(rKey);
-                
-                // Generate fareKey and set it
-                String fareKey = response.getShoppingResponseId() + "," + reshopOffer.getOfferID();
-                recommendation.setFareKey(fareKey);
-
-                // Set single adult fare for recommendation group - already per passenger
-                SimpleFare singleAdultFare = paxWiseFare.get(PaxType.ADULT);
-                if (singleAdultFare != null) {
-                    recommendationGroup.setSingleAdultFare(singleAdultFare);
-                }
-
-                List<SimpleSearchRecommendationV2> recs = new ArrayList<>();
-                recs.add(recommendation);
-                recommendationGroup.setSearchRecommendations(recs);
-
-                // Add recommendation group to appropriate list based on fare
-                if (recommendationGroup.getSingleAdultFare() != null) {
-                    sameFareRcomGrps.add(recommendationGroup);
-                }
-            }
-
-            // Add all journeys as a single list to itineraryJourneyList
-            if (!allJourneys.isEmpty()) {
-                itineraryJourneyList.add(allJourneys);
-            }
-
-            simpleSearchResponseV2.setSameFareRcomGrps(sameFareRcomGrps);
-            simpleSearchResponseV2.setOtherFareRcomGrps(otherFareRcomGrps);
-            simpleSearchResponseV2.setItineraryJourneyList(itineraryJourneyList);
-
-            // Add response to flow state
             return state.toBuilder()
-                    .addValue(FlowStateKey.RESPONSE, simpleSearchResponseV2)
+                    .addValue(FlowStateKey.RESPONSE, searchResponse)
                     .build();
         } catch (Exception e) {
-            throw new PSErrorException("",ErrorEnum.FLT_UNKNOWN_ERROR);
+            throw new PSErrorException("", ErrorEnum.FLT_UNKNOWN_ERROR);
         }
     }
 
+    private OrderReshopResponse getOrderReshopResponse(FlowState state) throws Exception {
+        String responseJson = state.getValue(FlowStateKey.ODC_SEARCH_RESPONSE);
+        if (responseJson == null) {
+            throw new PSErrorException(ErrorEnum.FLT_UNKNOWN_ERROR);
+        }
+        return objectMapper.readValue(responseJson, OrderReshopResponse.class);
+    }
+
+    private void validateResponse(OrderReshopRS response) throws PSErrorException {
+        if (!response.isSuccess() || response.getReshopOffers() == null || response.getReshopOffers().isEmpty()) {
+            throw new PSErrorException(ErrorEnum.FLT_UNKNOWN_ERROR);
+        }
+    }
+
+    private List<ConversionFactor> createConversionFactors(OrderReshopRS response) {
+        ConversionFactor factor = new ConversionFactor();
+        String currency = response.getReshopOffers().get(0).getReshopOffers().get(0).getBookingCurrencyCode();
+        factor.setFromCurrency(currency);
+        factor.setToCurrency(currency);
+        factor.setRoe(1.0);
+        return Collections.singletonList(factor);
+    }
+
+    private static class FlightJourneyContext {
+        private final Map<String, Integer> flightKeyToJourneyIndex = new HashMap<>();
+        private final List<SimpleJourney> allJourneys = new ArrayList<>();
+        private int journeyIndex = 0;
+
+        public Map<String, Integer> getFlightKeyToJourneyIndex() {
+            return flightKeyToJourneyIndex;
+        }
+
+        public List<SimpleJourney> getAllJourneys() {
+            return allJourneys;
+        }
+
+        public List<List<SimpleJourney>> getItineraryJourneyList() {
+            return Collections.singletonList(allJourneys);
+        }
+
+        public void addJourney(String flightRef, SimpleJourney journey) {
+            allJourneys.add(journey);
+            flightKeyToJourneyIndex.put(flightRef, journeyIndex++);
+        }
+    }
+
+    private static class RecommendationGroups {
+        private final List<SimpleSearchRecommendationGroupV2> sameFareGroups = new ArrayList<>();
+        private final List<SimpleSearchRecommendationGroupV2> otherFareGroups = new ArrayList<>();
+    }
+
+    private FlightJourneyContext processFlightJourneys(OrderReshopRS response) {
+        FlightJourneyContext context = new FlightJourneyContext();
+        for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffers()) {
+            String[] flightRefs = reshopOffer.getAddOfferItem().get(0).getService().get(0).getFlightRefs().split(" ");
+            for (String flightRef : flightRefs) {
+                if (!context.getFlightKeyToJourneyIndex().containsKey(flightRef)) {
+                    SimpleJourney journey = createJourneyFromFlight(flightRef, response);
+                    if (journey != null) {
+                        context.addJourney(flightRef, journey);
+                    }
+                }
+            }
+        }
+        return context;
+    }
+
+    private SimpleJourney createJourneyFromFlight(String flightRef, OrderReshopRS response) {
+        String segmentRefs = findSegmentReferences(flightRef, response);
+        if (segmentRefs.isEmpty()) {
+            return null;
+        }
+
+        List<SimpleFlight> flights = new ArrayList<>();
+        StringBuilder journeyKeyBuilder = new StringBuilder();
+        boolean isFirst = true;
+
+        for (String segmentKey : segmentRefs.split(" ")) {
+            com.mmt.flights.entity.pnr.retrieve.response.FlightSegment segment = findFlightSegment(segmentKey, response);
+            if (segment != null) {
+                appendJourneyKeyPart(journeyKeyBuilder, segment, isFirst);
+                flights.add(createSimpleFlight(segment));
+                isFirst = false;
+            }
+        }
+
+        if (flights.isEmpty()) {
+            return null;
+        }
+
+        SimpleJourney journey = new SimpleJourney();
+        journey.setFlights(flights);
+        journey.setJourneyKey(journeyKeyBuilder.toString());
+        journey.setDepDate(flights.get(0).getDepTime());
+        journey.setArrDate(flights.get(flights.size()-1).getArrTime());
+        journey.setDuration(calculateJourneyDuration(flights));
+
+        return journey;
+    }
+
+    private String findSegmentReferences(String flightRef, OrderReshopRS response) {
+        return response.getDataLists().getFlightList().getFlight().stream()
+                .filter(f -> f.getFlightKey().equals(flightRef))
+                .findFirst()
+                .map(f -> f.getSegmentReferences())
+                .orElse("");
+    }
+
+    private com.mmt.flights.entity.pnr.retrieve.response.FlightSegment findFlightSegment(String segmentKey, OrderReshopRS response) {
+        return response.getDataLists().getFlightSegmentList().getFlightSegment().stream()
+                .filter(s -> s.getSegmentKey().equals(segmentKey))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void appendJourneyKeyPart(StringBuilder journeyKeyBuilder, com.mmt.flights.entity.pnr.retrieve.response.FlightSegment segment, boolean isFirst) {
+        if (!isFirst) {
+            journeyKeyBuilder.append("|");
+        }
+        String[] dateParts = segment.getDeparture().getDate().split("-");
+        String dateStr = String.format("%s%s%s", dateParts[2], dateParts[1], dateParts[0].substring(2));
+        String timeStr = segment.getDeparture().getTime().substring(0, 5).replace(":", "");
+        String dateTime = dateStr + timeStr;
+
+        journeyKeyBuilder.append(segment.getDeparture().getAirportCode())
+                .append("$")
+                .append(segment.getArrival().getAirportCode())
+                .append("$")
+                .append(dateTime)
+                .append("$")
+                .append(segment.getMarketingCarrier().getAirlineID())
+                .append("-")
+                .append(segment.getMarketingCarrier().getFlightNumber());
+    }
+
+    private RecommendationGroups processRecommendationGroups(OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state) {
+        RecommendationGroups groups = new RecommendationGroups();
+        for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffers()) {
+            SimpleSearchRecommendationGroupV2 group = createRecommendationGroup(reshopOffer, response, journeyContext, state);
+            if (group.getSingleAdultFare() != null) {
+                groups.sameFareGroups.add(group);
+            }
+        }
+        return groups;
+    }
+
+    private SimpleSearchRecommendationGroupV2 createRecommendationGroup(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state) {
+        SimpleSearchRecommendationGroupV2 group = new SimpleSearchRecommendationGroupV2();
+        group.setAirlines(Collections.singletonList(reshopOffer.getOwner()));
+
+        SimpleSearchRecommendationV2 recommendation = createRecommendation(reshopOffer, response, journeyContext, state);
+        group.setSearchRecommendations(Collections.singletonList(recommendation));
+        group.setSingleAdultFare(recommendation.getPaxWiseFare().get(PaxType.ADULT));
+
+        return group;
+    }
+
+    private SimpleSearchRecommendationV2 createRecommendation(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state) {
+        SimpleSearchRecommendationV2 recommendation = new SimpleSearchRecommendationV2();
+        recommendation.setHandBaggageFare(false);
+        recommendation.setRefundable(Boolean.parseBoolean(reshopOffer.getAddOfferItem().get(0).getRefundable()));
+        
+        String[] flightRefs = reshopOffer.getAddOfferItem().get(0).getService().get(0).getFlightRefs().split(" ");
+        List<Integer> journeyIndices = getJourneyIndices(flightRefs, journeyContext);
+        recommendation.setItneraryJrnyIndex(journeyIndices);
+
+        Map<PaxType, SimpleFare> paxWiseFare = createPaxWiseFare(reshopOffer);
+        recommendation.setPaxWiseFare(paxWiseFare);
+
+        SimpleDateChangeDetails odcDetails = new SimpleDateChangeDetails();
+        odcDetails.setRefundAllowed(false);
+        odcDetails.setDateChangeFee(2999.0);
+        recommendation.setOdcDetails(odcDetails);
+
+        setFareDetails(recommendation, reshopOffer, state);
+        
+        String rKey = generateRKey(reshopOffer, response, journeyContext, recommendation);
+        recommendation.setrKey(rKey);
+        
+        String fareKey = response.getShoppingResponseId() + "," + reshopOffer.getOfferID();
+        recommendation.setFareKey(fareKey);
+
+        return recommendation;
+    }
+
+    private List<Integer> getJourneyIndices(String[] flightRefs, FlightJourneyContext journeyContext) {
+        List<Integer> indices = new ArrayList<>();
+        for (String flightRef : flightRefs) {
+            Integer index = journeyContext.getFlightKeyToJourneyIndex().get(flightRef);
+            if (index != null) {
+                indices.add(index);
+            }
+        }
+        return indices;
+    }
+
+    private Map<PaxType, SimpleFare> createPaxWiseFare(ReshopOffer reshopOffer) {
+        Map<PaxType, SimpleFare> paxWiseFare = new HashMap<>();
+        for (com.mmt.flights.entity.odc.OfferItem offerItem : reshopOffer.getAddOfferItem()) {
+            PaxType paxType = getPaxType(offerItem.getPassengerType());
+            if (paxType != null) {
+                int paxCount = offerItem.getPassengerQuantity();
+                SimpleFare simpleFare = new SimpleFare();
+                simpleFare.setBase(offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice() / paxCount);
+                simpleFare.setTaxes(offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice() / paxCount);
+                paxWiseFare.put(paxType, simpleFare);
+            }
+        }
+        return paxWiseFare;
+    }
+
+    private PaxType getPaxType(String passengerType) {
+        for (PaxType type : PaxType.values()) {
+            if (type.getPaxType().equals(passengerType)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    private void setFareDetails(SimpleSearchRecommendationV2 recommendation, ReshopOffer reshopOffer, FlowState state) {
+        if (!reshopOffer.getAddOfferItem().isEmpty() && !reshopOffer.getAddOfferItem().get(0).getFareComponent().isEmpty()) {
+            String priceClassRef = reshopOffer.getAddOfferItem().get(0).getFareComponent().get(0).getPriceClassRef();
+            String fareBasisCode = reshopOffer.getAddOfferItem().get(0).getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode();
+            recommendation.setFareFamilyName(determineFareFamily(priceClassRef, state));
+            recommendation.setFareType(determineFareType(fareBasisCode));
+        }
+    }
+
+    private String generateRKey(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, SimpleSearchRecommendationV2 recommendation) {
+        Journey journey = createJourneyForRKey(reshopOffer, response);
+        PaxCount paxCount = createPaxCount(reshopOffer);
+        String cmsId = "DOTREZ";
+
+        // Check if return trip
+        List<Segment> segments = journey.getSegments();
+        if (isReturnTrip(segments)) {
+            Journey rtJourney = splitReturnJourney(journey);
+            JourneyFare onwardFare = createJourneyFare(reshopOffer, true);
+            JourneyFare returnFare = createJourneyFare(reshopOffer, false);
+            return RKeyBuilderUtil.buildRKey(recommendation.getPaxWiseFare(), onwardFare, returnFare, paxCount, journey, rtJourney, cmsId);
+        } else {
+            JourneyFare journeyFare = createJourneyFare(reshopOffer, false);
+            return RKeyBuilderUtil.buildRKey(recommendation.getPaxWiseFare(), journeyFare, paxCount, journey, cmsId);
+        }
+    }
+
+    private Journey createJourneyForRKey(ReshopOffer reshopOffer, OrderReshopRS response) {
+        Journey journey = new Journey();
+        List<Segment> segments = new ArrayList<>();
+
+        String[] flightRefs = reshopOffer.getAddOfferItem().get(0).getService().get(0).getFlightRefs().split(" ");
+        for (String ref : flightRefs) {
+            segments.addAll(createSegmentsFromFlightRef(ref, response));
+        }
+
+        journey.setSegments(segments);
+        return journey;
+    }
+
+    private List<Segment> createSegmentsFromFlightRef(String flightRef, OrderReshopRS response) {
+        List<Segment> segments = new ArrayList<>();
+        String segmentRefs = findSegmentReferences(flightRef, response);
+        
+        for (String segmentKey : segmentRefs.split(" ")) {
+            com.mmt.flights.entity.pnr.retrieve.response.FlightSegment flightSegment = findFlightSegment(segmentKey, response);
+            if (flightSegment != null) {
+                segments.add(createSegment(flightSegment));
+            }
+        }
+        
+        return segments;
+    }
+
+    private Segment createSegment(com.mmt.flights.entity.pnr.retrieve.response.FlightSegment flightSegment) {
+        Segment segment = new Segment();
+        
+        Identifier identifier = new Identifier();
+        identifier.setCarrierCode(flightSegment.getMarketingCarrier().getAirlineID());
+        identifier.setIdentifier(flightSegment.getMarketingCarrier().getFlightNumber());
+        segment.setIdentifier(identifier);
+        
+        Designator designator = new Designator();
+        designator.setOrigin(flightSegment.getDeparture().getAirportCode());
+        designator.setDestination(flightSegment.getArrival().getAirportCode());
+        designator.setDeparture(flightSegment.getDeparture().getDate() + " " + flightSegment.getDeparture().getTime());
+        designator.setArrival(flightSegment.getArrival().getDate() + " " + flightSegment.getArrival().getTime());
+        segment.setDesignator(designator);
+        
+        List<Leg> legs = new ArrayList<>();
+        Leg leg = new Leg();
+        LegInfo legInfo = new LegInfo();
+        legInfo.setDepartureTerminal(flightSegment.getDeparture().getTerminal().getName());
+        legInfo.setArrivalTerminal(flightSegment.getArrival().getTerminal().getName());
+        leg.setLegInfo(legInfo);
+        legs.add(leg);
+        segment.setLegs(legs);
+        
+        return segment;
+    }
+
+    private boolean isReturnTrip(List<Segment> segments) {
+        if (segments.size() >= 2) {
+            String firstOrigin = segments.get(0).getDesignator().getOrigin();
+            String lastDestination = segments.get(segments.size()-1).getDesignator().getDestination();
+            return firstOrigin.equals(lastDestination);
+        }
+        return false;
+    }
+
+    private Journey splitReturnJourney(Journey journey) {
+        Journey rtJourney = new Journey();
+        List<Segment> segments = journey.getSegments();
+        int mid = segments.size() / 2;
+        
+        rtJourney.setSegments(new ArrayList<>(segments.subList(mid, segments.size())));
+        journey.setSegments(new ArrayList<>(segments.subList(0, mid)));
+        
+        return rtJourney;
+    }
+
+    private JourneyFare createJourneyFare(ReshopOffer reshopOffer, boolean isOnward) {
+        JourneyFare journeyFare = new JourneyFare();
+        List<com.mmt.flights.supply.search.v4.response.Fare> fares = createFares(reshopOffer);
+        
+        if (isOnward) {
+            journeyFare.setFares(new ArrayList<>(fares.subList(0, fares.size()/2)));
+        } else {
+            journeyFare.setFares(fares);
+        }
+        
+        return journeyFare;
+    }
+
+    private List<com.mmt.flights.supply.search.v4.response.Fare> createFares(ReshopOffer reshopOffer) {
+        List<com.mmt.flights.supply.search.v4.response.Fare> fares = new ArrayList<>();
+        
+        for (com.mmt.flights.entity.odc.OfferItem offerItem : reshopOffer.getAddOfferItem()) {
+            if (!offerItem.getFareComponent().isEmpty()) {
+                com.mmt.flights.supply.search.v4.response.Fare fare = new com.mmt.flights.supply.search.v4.response.Fare();
+                
+                String fareBasisCode = offerItem.getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode();
+                fare.setFareBasisCode(fareBasisCode);
+                fare.setClassOfService(offerItem.getFareComponent().get(0).getFareBasis().getRbd());
+                fare.setFareClassOfService(fareBasisCode);
+                fare.setProductClass(offerItem.getFareComponent().get(0).getFareBasis().getCabinType());
+                fare.setTravelClassCode(fareBasisCode.substring(0, 1));
+                
+                fare.setPassengerFares(createPassengerFares(offerItem));
+                
+                fares.add(fare);
+            }
+        }
+        
+        return fares;
+    }
+
+    private List<PassengerFare> createPassengerFares(com.mmt.flights.entity.odc.OfferItem offerItem) {
+        List<PassengerFare> passengerFares = new ArrayList<>();
+        PassengerFare passengerFare = new PassengerFare();
+        passengerFare.setPassengerType(offerItem.getPassengerType());
+        
+        List<ServiceCharge> serviceCharges = new ArrayList<>();
+        
+        ServiceCharge baseCharge = new ServiceCharge();
+        baseCharge.setAmount(offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice());
+        serviceCharges.add(baseCharge);
+        
+        ServiceCharge taxCharge = new ServiceCharge();
+        taxCharge.setAmount(offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice());
+        serviceCharges.add(taxCharge);
+        
+        passengerFare.setServiceCharges(serviceCharges);
+        passengerFares.add(passengerFare);
+        
+        return passengerFares;
+    }
+
+    private PaxCount createPaxCount(ReshopOffer reshopOffer) {
+        PaxCount paxCount = new PaxCount();
+        Map<String, Integer> paxTypeCount = new HashMap<>();
+        
+        for (com.mmt.flights.entity.odc.OfferItem offerItem : reshopOffer.getAddOfferItem()) {
+            paxTypeCount.put(offerItem.getPassengerType(), offerItem.getPassengerQuantity());
+        }
+        
+        paxCount.setAdult(paxTypeCount.getOrDefault("ADULT", 0));
+        paxCount.setChild(paxTypeCount.getOrDefault("CHILD", 0));
+        paxCount.setInfant(paxTypeCount.getOrDefault("INFANT", 0));
+        
+        return paxCount;
+    }
+
+    // Existing helper methods remain unchanged
     private SimpleFlight createSimpleFlight(com.mmt.flights.entity.pnr.retrieve.response.FlightSegment segment) {
         SimpleFlight flight = new SimpleFlight();
         flight.setMarketingAirline(segment.getMarketingCarrier().getAirlineID());
