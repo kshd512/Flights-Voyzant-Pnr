@@ -52,16 +52,16 @@
                             "EquivCurrencyPrice": 0
                         },
                         "TotalPrice": {
-                            "BookingCurrencyPrice": 160140,
-                            "EquivCurrencyPrice": 720.63
+                            "BookingCurrencyPrice": 320280,
+                            "EquivCurrencyPrice": 1441.26
                         },
                         "BasePrice": {
-                            "BookingCurrencyPrice": 87400,
-                            "EquivCurrencyPrice": 393.3
+                            "BookingCurrencyPrice": 174800,
+                            "EquivCurrencyPrice": 786.6
                         },
                         "TaxPrice": {
-                            "BookingCurrencyPrice": 72740,
-                            "EquivCurrencyPrice": 327.33
+                            "BookingCurrencyPrice": 145480,
+                            "EquivCurrencyPrice": 654.66
                         },
                         "Commission": {
                             "AgencyCommission": {
@@ -95,31 +95,31 @@
                                 "PassengerQuantity": 2,
                                 "TotalPriceDetail": {
                                     "TotalAmount": {
-                                        "BookingCurrencyPrice": 111100,
-                                        "EquivCurrencyPrice": 499.95
+                                        "BookingCurrencyPrice": 222200,
+                                        "EquivCurrencyPrice": 999.90
                                     }
                                 },
                                 "Service": [
                                     {
                                         "ServiceID": "SV1",
                                         "PassengerRefs": "ADT1 ADT2",
-                                        "FlightRefs": "Flight1"
+                                        "FlightRefs": "Flight1 Flight3"
                                     }
                                 ],
                                 "FareDetail": {
                                     "PassengerRefs": "ADT1 ADT2",
                                     "Price": {
                                         "TotalAmount": {
-                                            "BookingCurrencyPrice": 111100,
-                                            "EquivCurrencyPrice": 499.95
+                                            "BookingCurrencyPrice": 222200,
+                                            "EquivCurrencyPrice": 999.90
                                         },
                                         "BaseAmount": {
-                                            "BookingCurrencyPrice": 62400,
-                                            "EquivCurrencyPrice": 280.8
+                                            "BookingCurrencyPrice": 124800,
+                                            "EquivCurrencyPrice": 561.60
                                         },
                                         "TaxAmount": {
-                                            "BookingCurrencyPrice": 48700,
-                                            "EquivCurrencyPrice": 219.15
+                                            "BookingCurrencyPrice": 97400,
+                                            "EquivCurrencyPrice": 438.30
                                         },
                                         "Commission": {
                                             "AgencyCommission": {},
@@ -137,8 +137,8 @@
                                         "Taxes": [
                                             {
                                                 "TaxCode": "D",
-                                                "BookingCurrencyPrice": 46620,
-                                                "EquivCurrencyPrice": 209.79
+                                                "BookingCurrencyPrice": 93240,
+                                                "EquivCurrencyPrice": 419.58
                                             },
                                             {
                                                 "TaxCode": "B",
@@ -147,13 +147,13 @@
                                             },
                                             {
                                                 "TaxCode": "P",
-                                                "BookingCurrencyPrice": 46620,
-                                                "EquivCurrencyPrice": 209.79
+                                                "BookingCurrencyPrice": 93240,
+                                                "EquivCurrencyPrice": 419.58
                                             },
                                             {
                                                 "TaxCode": "A",
-                                                "BookingCurrencyPrice": 46620,
-                                                "EquivCurrencyPrice": 209.79
+                                                "BookingCurrencyPrice": 93240,
+                                                "EquivCurrencyPrice": 419.58
                                             },
                                             {
                                                 "TaxCode": "C",
@@ -166,7 +166,7 @@
                                 "FareComponent": [
                                     {
                                         "PriceClassRef": "PCR_1",
-                                        "SegmentRefs": "Segment1",
+                                        "SegmentRefs": "Segment1 Segment3",
                                         "FareBasis": {
                                             "FareBasisCode": {
                                                 "Refs": "FG_1",
@@ -186,31 +186,31 @@
                                 "PassengerQuantity": 1,
                                 "TotalPriceDetail": {
                                     "TotalAmount": {
-                                        "BookingCurrencyPrice": 49040,
-                                        "EquivCurrencyPrice": 220.68
+                                        "BookingCurrencyPrice": 98080,
+                                        "EquivCurrencyPrice": 441.36
                                     }
                                 },
                                 "Service": [
                                     {
                                         "ServiceID": "SV1",
                                         "PassengerRefs": "CHD1",
-                                        "FlightRefs": "Flight1"
+                                        "FlightRefs": "Flight1 Flight3"
                                     }
                                 ],
                                 "FareDetail": {
                                     "PassengerRefs": "CHD1",
                                     "Price": {
                                         "TotalAmount": {
-                                            "BookingCurrencyPrice": 49040,
-                                            "EquivCurrencyPrice": 220.68
+                                            "BookingCurrencyPrice": 98080,
+                                            "EquivCurrencyPrice": 441.36
                                         },
                                         "BaseAmount": {
-                                            "BookingCurrencyPrice": 25000,
-                                            "EquivCurrencyPrice": 112.5
+                                            "BookingCurrencyPrice": 50000,
+                                            "EquivCurrencyPrice": 225.00
                                         },
                                         "TaxAmount": {
-                                            "BookingCurrencyPrice": 24040,
-                                            "EquivCurrencyPrice": 108.18
+                                            "BookingCurrencyPrice": 48080,
+                                            "EquivCurrencyPrice": 216.36
                                         },
                                         "Commission": {
                                             "AgencyCommission": {},
@@ -228,8 +228,8 @@
                                         "Taxes": [
                                             {
                                                 "TaxCode": "D",
-                                                "BookingCurrencyPrice": 23310,
-                                                "EquivCurrencyPrice": 104.89
+                                                "BookingCurrencyPrice": 46620,
+                                                "EquivCurrencyPrice": 209.79
                                             },
                                             {
                                                 "TaxCode": "B",
@@ -238,13 +238,13 @@
                                             },
                                             {
                                                 "TaxCode": "P",
-                                                "BookingCurrencyPrice": 23310,
-                                                "EquivCurrencyPrice": 104.89
+                                                "BookingCurrencyPrice": 46620,
+                                                "EquivCurrencyPrice": 209.79
                                             },
                                             {
                                                 "TaxCode": "A",
-                                                "BookingCurrencyPrice": 23310,
-                                                "EquivCurrencyPrice": 104.89
+                                                "BookingCurrencyPrice": 46620,
+                                                "EquivCurrencyPrice": 209.79
                                             },
                                             {
                                                 "TaxCode": "C",
@@ -257,7 +257,7 @@
                                 "FareComponent": [
                                     {
                                         "PriceClassRef": "PCR_1",
-                                        "SegmentRefs": "Segment1",
+                                        "SegmentRefs": "Segment1 Segment3",
                                         "FareBasis": {
                                             "FareBasisCode": {
                                                 "Refs": "FG_1",
@@ -273,12 +273,12 @@
                         ],
                         "BaggageAllowance": [
                             {
-                                "SegmentRefs": "Segment1",
+                                "SegmentRefs": "Segment1 Segment3",
                                 "PassengerRefs": "ADT1 ADT2",
                                 "BaggageAllowanceRef": "Bag1"
                             },
                             {
-                                "SegmentRefs": "Segment1",
+                                "SegmentRefs": "Segment1 Segment3",
                                 "PassengerRefs": "CHD1",
                                 "BaggageAllowanceRef": "Bag1"
                             }
@@ -286,275 +286,6 @@
                         "SplitPaymentInfo": [
                             {
                                 "AirItineraryId": "1227102711721375087885644107",
-                                "MultipleFop": "N",
-                                "MaxCardsPerPax": 0,
-                                "MaxCardsPerPaxInMFOP": 0
-                            }
-                        ],
-                        "BookingToEquivExRate": 0.0045,
-                        "FopRef": "FOP_0_0_0_0_ALL_ALL"
-                    },
-                    {
-                        "OfferID": "1227102711721375087919515147",
-                        "Owner": "WY",
-                        "OwnerName": "Oman Air",
-                        "BrandedFareOptions": [],
-                        "InstantTicket": "N",
-                        "Eticket": "false",
-                        "AllowHold": "Y",
-                        "TimeLimits": {
-                            "OfferExpirationDateTime": "2024-07-19T15:14:47",
-                            "PaymentExpirationDateTime": "2024-07-22 07:44:47"
-                        },
-                        "PassportRequired": "N",
-                        "BookingCurrencyCode": "LKR",
-                        "EquivCurrencyCode": "CAD",
-                        "HstPercentage": "",
-                        "RewardSettings": {
-                            "RewardAvailable": "N",
-                            "PointTypes": [],
-                            "PointValues": {}
-                        },
-                        "BookingFeeInfo": {
-                            "FeeType": "",
-                            "BookingCurrencyPrice": 0,
-                            "EquivCurrencyPrice": 0
-                        },
-                        "TotalPrice": {
-                            "BookingCurrencyPrice": 167595,
-                            "EquivCurrencyPrice": 754.18
-                        },
-                        "BasePrice": {
-                            "BookingCurrencyPrice": 94500,
-                            "EquivCurrencyPrice": 425.25
-                        },
-                        "TaxPrice": {
-                            "BookingCurrencyPrice": 73095,
-                            "EquivCurrencyPrice": 328.93
-                        },
-                        "Commission": {
-                            "AgencyCommission": {
-                                "BookingCurrencyPrice": 0,
-                                "EquivCurrencyPrice": 0
-                            },
-                            "AgencyYqCommission": {
-                                "BookingCurrencyPrice": 0,
-                                "EquivCurrencyPrice": 0
-                            }
-                        },
-                        "PortalCharges": {
-                            "Markup": {
-                                "BookingCurrencyPrice": 0,
-                                "EquivCurrencyPrice": 0
-                            },
-                            "Surcharge": {
-                                "BookingCurrencyPrice": 0,
-                                "EquivCurrencyPrice": 0
-                            },
-                            "Discount": {
-                                "BookingCurrencyPrice": 0,
-                                "EquivCurrencyPrice": 0
-                            }
-                        },
-                        "AddOfferItem": [
-                            {
-                                "OfferItemID": "OFFERITEMID1",
-                                "Refundable": "false",
-                                "PassengerType": "ADT",
-                                "PassengerQuantity": 2,
-                                "TotalPriceDetail": {
-                                    "TotalAmount": {
-                                        "BookingCurrencyPrice": 116560,
-                                        "EquivCurrencyPrice": 524.52
-                                    }
-                                },
-                                "Service": [
-                                    {
-                                        "ServiceID": "SV1",
-                                        "PassengerRefs": "ADT1 ADT2",
-                                        "FlightRefs": "Flight2"
-                                    }
-                                ],
-                                "FareDetail": {
-                                    "PassengerRefs": "ADT1 ADT2",
-                                    "Price": {
-                                        "TotalAmount": {
-                                            "BookingCurrencyPrice": 116560,
-                                            "EquivCurrencyPrice": 524.52
-                                        },
-                                        "BaseAmount": {
-                                            "BookingCurrencyPrice": 67600,
-                                            "EquivCurrencyPrice": 304.2
-                                        },
-                                        "TaxAmount": {
-                                            "BookingCurrencyPrice": 48960,
-                                            "EquivCurrencyPrice": 220.32
-                                        },
-                                        "Commission": {
-                                            "AgencyCommission": {},
-                                            "AgencyYqCommission": {}
-                                        },
-                                        "BookingFee": {
-                                            "BookingCurrencyPrice": 0,
-                                            "EquivCurrencyPrice": 0
-                                        },
-                                        "PortalCharges": {
-                                            "Markup": {},
-                                            "Surcharge": {},
-                                            "Discount": {}
-                                        },
-                                        "Taxes": [
-                                            {
-                                                "TaxCode": "D",
-                                                "BookingCurrencyPrice": 52280,
-                                                "EquivCurrencyPrice": 235.26
-                                            },
-                                            {
-                                                "TaxCode": "B",
-                                                "BookingCurrencyPrice": 260,
-                                                "EquivCurrencyPrice": 1.17
-                                            },
-                                            {
-                                                "TaxCode": "P",
-                                                "BookingCurrencyPrice": 46620,
-                                                "EquivCurrencyPrice": 209.79
-                                            },
-                                            {
-                                                "TaxCode": "A",
-                                                "BookingCurrencyPrice": 52280,
-                                                "EquivCurrencyPrice": 235.26
-                                            },
-                                            {
-                                                "TaxCode": "C",
-                                                "BookingCurrencyPrice": 0,
-                                                "EquivCurrencyPrice": 0
-                                            }
-                                        ]
-                                    }
-                                },
-                                "FareComponent": [
-                                    {
-                                        "PriceClassRef": "PCR_1",
-                                        "SegmentRefs": "Segment2",
-                                        "FareBasis": {
-                                            "FareBasisCode": {
-                                                "Refs": "FG_2",
-                                                "Code": "L1ELOIA"
-                                            },
-                                            "RBD": "L",
-                                            "CabinType": "Y",
-                                            "SeatLeft": "7"
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "OfferItemID": "OFFERITEMID2",
-                                "Refundable": "false",
-                                "PassengerType": "CHD",
-                                "PassengerQuantity": 1,
-                                "TotalPriceDetail": {
-                                    "TotalAmount": {
-                                        "BookingCurrencyPrice": 51035,
-                                        "EquivCurrencyPrice": 229.66
-                                    }
-                                },
-                                "Service": [
-                                    {
-                                        "ServiceID": "SV1",
-                                        "PassengerRefs": "CHD1",
-                                        "FlightRefs": "Flight2"
-                                    }
-                                ],
-                                "FareDetail": {
-                                    "PassengerRefs": "CHD1",
-                                    "Price": {
-                                        "TotalAmount": {
-                                            "BookingCurrencyPrice": 51035,
-                                            "EquivCurrencyPrice": 229.66
-                                        },
-                                        "BaseAmount": {
-                                            "BookingCurrencyPrice": 26900,
-                                            "EquivCurrencyPrice": 121.05
-                                        },
-                                        "TaxAmount": {
-                                            "BookingCurrencyPrice": 24135,
-                                            "EquivCurrencyPrice": 108.61
-                                        },
-                                        "Commission": {
-                                            "AgencyCommission": {},
-                                            "AgencyYqCommission": {}
-                                        },
-                                        "BookingFee": {
-                                            "BookingCurrencyPrice": 0,
-                                            "EquivCurrencyPrice": 0
-                                        },
-                                        "PortalCharges": {
-                                            "Markup": {},
-                                            "Surcharge": {},
-                                            "Discount": {}
-                                        },
-                                        "Taxes": [
-                                            {
-                                                "TaxCode": "D",
-                                                "BookingCurrencyPrice": 25405,
-                                                "EquivCurrencyPrice": 114.32
-                                            },
-                                            {
-                                                "TaxCode": "B",
-                                                "BookingCurrencyPrice": 95,
-                                                "EquivCurrencyPrice": 0.43
-                                            },
-                                            {
-                                                "TaxCode": "P",
-                                                "BookingCurrencyPrice": 23310,
-                                                "EquivCurrencyPrice": 104.89
-                                            },
-                                            {
-                                                "TaxCode": "A",
-                                                "BookingCurrencyPrice": 25405,
-                                                "EquivCurrencyPrice": 114.32
-                                            },
-                                            {
-                                                "TaxCode": "C",
-                                                "BookingCurrencyPrice": 0,
-                                                "EquivCurrencyPrice": 0
-                                            }
-                                        ]
-                                    }
-                                },
-                                "FareComponent": [
-                                    {
-                                        "PriceClassRef": "PCR_1",
-                                        "SegmentRefs": "Segment2",
-                                        "FareBasis": {
-                                            "FareBasisCode": {
-                                                "Refs": "FG_2",
-                                                "Code": "L1ELOIA"
-                                            },
-                                            "RBD": "L",
-                                            "CabinType": "Y",
-                                            "SeatLeft": "7"
-                                        }
-                                    }
-                                ]
-                            }
-                        ],
-                        "BaggageAllowance": [
-                            {
-                                "SegmentRefs": "Segment2",
-                                "PassengerRefs": "ADT1 ADT2",
-                                "BaggageAllowanceRef": "Bag1"
-                            },
-                            {
-                                "SegmentRefs": "Segment2",
-                                "PassengerRefs": "CHD1",
-                                "BaggageAllowanceRef": "Bag1"
-                            }
-                        ],
-                        "SplitPaymentInfo": [
-                            {
-                                "AirItineraryId": "1227102711721375087919515147",
                                 "MultipleFop": "N",
                                 "MaxCardsPerPax": 0,
                                 "MaxCardsPerPaxInMFOP": 0
@@ -607,11 +338,6 @@
                         "FareGroupRef": "FG_1",
                         "FareCode": "70J",
                         "FareBasisCode": "UELOIA"
-                    },
-                    {
-                        "FareGroupRef": "FG_2",
-                        "FareCode": "70J",
-                        "FareBasisCode": "L1ELOIA"
                     }
                 ]
             },
@@ -667,21 +393,21 @@
                         "BrandId": ""
                     },
                     {
-                        "SegmentKey": "Segment2",
+                        "SegmentKey": "Segment3",
                         "Departure": {
-                            "AirportCode": "MAA",
-                            "Date": "2024-11-16",
-                            "Time": "15:00:00",
-                            "AirportName": "Chennai International Airport",
+                            "AirportCode": "MCT",
+                            "Date": "2024-11-23",
+                            "Time": "09:00:00",
+                            "AirportName": "Muscat International Airport",
                             "Terminal": {
                                 "Name": ""
                             }
                         },
                         "Arrival": {
-                            "AirportCode": "MCT",
-                            "Date": "2024-11-16",
-                            "Time": "17:40:00",
-                            "AirportName": "Muscat International Airport",
+                            "AirportCode": "MAA",
+                            "Date": "2024-11-23",
+                            "Time": "14:30:00",
+                            "AirportName": "Chennai International Airport",
                             "Terminal": {
                                 "Name": ""
                             }
@@ -689,12 +415,12 @@
                         "MarketingCarrier": {
                             "AirlineID": "WY",
                             "Name": "Oman Air",
-                            "FlightNumber": "254"
+                            "FlightNumber": "251"
                         },
                         "OperatingCarrier": {
                             "AirlineID": "WY",
                             "Name": "Oman Air",
-                            "FlightNumber": "254"
+                            "FlightNumber": "251"
                         },
                         "Equipment": {
                             "AircraftCode": "7M8",
@@ -705,7 +431,7 @@
                         },
                         "FlightDetail": {
                             "FlightDuration": {
-                                "Value": "4 H 10 M"
+                                "Value": "4 H 0 M"
                             },
                             "Stops": {
                                 "Value": 0
@@ -728,12 +454,12 @@
                         "SegmentReferences": "Segment1"
                     },
                     {
-                        "FlightKey": "Flight2",
+                        "FlightKey": "Flight3",
                         "Journey": {
-                            "Time": "4 H 10 M",
+                            "Time": "4 H 0 M",
                             "Stops": 0
                         },
-                        "SegmentReferences": "Segment2"
+                        "SegmentReferences": "Segment3"
                     }
                 ]
             },
@@ -743,7 +469,13 @@
                         "OriginDestinationKey": "OD1",
                         "DepartureCode": "MAA",
                         "ArrivalCode": "MCT",
-                        "FlightReferences": "Flight1 Flight2"
+                        "FlightReferences": "Flight1"
+                    },
+                    {
+                        "OriginDestinationKey": "OD2",
+                        "DepartureCode": "MCT",
+                        "ArrivalCode": "MAA",
+                        "FlightReferences": "Flight3"
                     }
                 ]
             },
