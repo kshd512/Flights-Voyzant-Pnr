@@ -751,8 +751,8 @@
                 "PriceClass": [
                     {
                         "PriceClassID": "PCR_1",
-                        "Name": "",
-                        "Code": "",
+                        "Name": "Basic",
+                        "Code": "Basic",
                         "Descriptions": {
                             "Description": []
                         }
