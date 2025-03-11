@@ -1,4 +1,4 @@
-package com.mmt.flights.odc.service.tasks;
+package com.mmt.flights.odc.util;
 
 import com.mmt.flights.flightutil.review.key.*;
 import com.mmt.flights.odc.common.enums.PaxType;

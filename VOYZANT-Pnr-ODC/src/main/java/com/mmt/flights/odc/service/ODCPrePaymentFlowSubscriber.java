@@ -1,12 +1,12 @@
-package com.mmt.flights.odc.service.tasks;
+package com.mmt.flights.odc.service;
 
 import com.mmt.flights.common.enums.ErrorEnum;
 import com.mmt.flights.common.logging.LogParams;
 import com.mmt.flights.common.logging.MMTLogger;
 import com.mmt.flights.common.logging.metric.MetricType;
-import com.mmt.flights.odc.commit.DateChangeCommitResponse;
 import com.mmt.flights.odc.common.AbstractDateChangeRequest;
 import com.mmt.flights.odc.constant.RequestType;
+import com.mmt.flights.odc.prepayment.DateChangePrePaymentResponse;
 import com.mmt.flights.odc.service.ODCSearchFlowSubscriber;
 import com.mmt.flights.odc.util.ODCUtil;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
@@ -20,19 +20,19 @@ import rx.Subscriber;
 
 import java.util.concurrent.TimeUnit;
 
-public class ODCCommitFlowSubscriber extends Subscriber<DateChangeCommitResponse> {
+public class ODCPrePaymentFlowSubscriber extends Subscriber<DateChangePrePaymentResponse> {
 
-    private final DeferredResult<ResponseEntity<DateChangeCommitResponse>> defResult;
+    private final DeferredResult<ResponseEntity<DateChangePrePaymentResponse>> defResult;
     private final AbstractDateChangeRequest request;
-    private volatile DateChangeCommitResponse response;
+    private volatile DateChangePrePaymentResponse response;
     private long subscriptionStartTime;
     private final long startTime;
     private final long serviceReplyTimeout;
     private final RequestType operation;
 
-    public ODCCommitFlowSubscriber(DeferredResult<ResponseEntity<DateChangeCommitResponse>> deferredResult,
-                                       AbstractDateChangeRequest request, long startTime,
-                                       long serviceReplyTimeout, RequestType operation) {
+    public ODCPrePaymentFlowSubscriber(DeferredResult<ResponseEntity<DateChangePrePaymentResponse>> deferredResult,
+                                   AbstractDateChangeRequest request, long startTime,
+                                   long serviceReplyTimeout, RequestType operation) {
         this.defResult = deferredResult;
         this.request = request;
         this.startTime = startTime;
@@ -126,7 +126,7 @@ public class ODCCommitFlowSubscriber extends Subscriber<DateChangeCommitResponse
     }
 
     @Override
-    public void onNext(DateChangeCommitResponse resp) {
+    public void onNext(DateChangePrePaymentResponse resp) {
         response = resp;
         if (resp != null && resp.getError() == null) {
             MMTLogger.info((new LogParams.LogParamsBuilder())

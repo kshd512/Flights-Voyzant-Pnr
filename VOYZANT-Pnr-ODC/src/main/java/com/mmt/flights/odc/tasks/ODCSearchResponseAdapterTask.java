@@ -1,4 +1,4 @@
-package com.mmt.flights.odc.service.tasks;
+package com.mmt.flights.odc.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmt.api.rxflow.FlowState;
@@ -11,6 +11,7 @@ import com.mmt.flights.entity.odc.ReshopOffer;
 import com.mmt.flights.odc.common.ConversionFactor;
 import com.mmt.flights.odc.common.enums.PaxType;
 import com.mmt.flights.odc.search.*;
+import com.mmt.flights.odc.util.RKeyBuilderUtil;
 import com.mmt.flights.odc.v2.SimpleSearchRecommendationGroupV2;
 import com.mmt.flights.odc.v2.SimpleSearchRecommendationV2;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;

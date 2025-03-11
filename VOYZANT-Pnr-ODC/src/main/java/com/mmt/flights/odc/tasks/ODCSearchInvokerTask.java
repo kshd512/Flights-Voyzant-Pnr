@@ -1,6 +1,5 @@
-package com.mmt.flights.odc.service.tasks;
+package com.mmt.flights.odc.tasks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.CMSConstants;
@@ -17,16 +16,9 @@ import com.mmt.flights.postsales.error.PSErrorEnum;
 import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Component
-public class ODCBookInvokerTask implements MapTask {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ODCBookInvokerTask.class);
-
-    @Autowired
-    private ObjectMapper objectMapper;
+public class ODCSearchInvokerTask implements MapTask {
 
     @Autowired
     private HttpClientUtil httpClientUtil;
@@ -36,43 +28,33 @@ public class ODCBookInvokerTask implements MapTask {
 
     @Override
     public FlowState run(FlowState state) throws Exception {
-        TaskLog taskLog = new TaskLog(SupplierStep.ORDER_CHANGE_BOOK);
-        String bookRequest = state.getValue(FlowStateKey.ODC_BOOK_REQUEST);
+        TaskLog taskLog = new TaskLog(SupplierStep.ORDER_RESHOP);
+        String searchRequest = state.getValue(FlowStateKey.ODC_SEARCH_REQUEST);
         CMSMapHolder cmsMap = state.getValue(FlowStateKey.CMS_MAP);
         PSErrorEnum errorCode = PSCommonErrorEnum.OK;
-        String bookResponse = null;
+        String searchResponse = null;
         long startTime = System.currentTimeMillis();
 
         try {
-            // Get the URL from the CMS map and endpoints
-            String url = cmsMap.getCmsMap().get(CMSConstants.HOST) + endpoints.getPnrSplitURL();
+            String url = cmsMap.getCmsMap().get(CMSConstants.HOST) + endpoints.getOdcSearchURL();
             taskLog.setUrl(url);
-            taskLog.setRequest(MMTLogger.convertToJson(bookRequest));
+            taskLog.setRequest(MMTLogger.convertToJson(searchRequest));
             
-            LOGGER.info("Making ODC book API call to URL: {}", url);
-            
-            // Make the API call
-            bookResponse = httpClientUtil.post(url, bookRequest, String.class, cmsMap.getCmsMap());
-            
-            LOGGER.info("Received ODC book response");
-            taskLog.setResponse(MMTLogger.convertToJson(bookResponse));
+            searchResponse = httpClientUtil.post(url, searchRequest, String.class, cmsMap.getCmsMap());
+            taskLog.setResponse(MMTLogger.convertToJson(searchResponse));
         } catch (PSErrorException e) {
-            LOGGER.error("PSErrorException during ODC book network call", e);
             errorCode = e.getPsErrorEnum();
             throw e;
         } catch (Exception e) {
-            LOGGER.error("Exception during ODC book network call", e);
             errorCode = PSCommonErrorEnum.FLT_UNKNOWN_ERROR;
-            throw new PSErrorException("Error during ODC book network call: " + e.getMessage(), 
-                                      PSCommonErrorEnum.FLT_UNKNOWN_ERROR);
+            throw new PSErrorException("Error during ODC search network call: " + e.getMessage(), PSCommonErrorEnum.FLT_UNKNOWN_ERROR);
         } finally {
             taskLog.setError(errorCode);
             MMTLogger.logTimeForNetworkCall(state, MetricServices.REQUEST_LATENCY.name(), startTime);
         }
 
-        // Add the response to the flow state for the adapter task to process
         return state.toBuilder()
-                .addValue(FlowStateKey.ODC_BOOK_RESPONSE, bookResponse)
+                .addValue(FlowStateKey.ODC_SEARCH_RESPONSE, searchResponse)
                 .build();
     }
 }

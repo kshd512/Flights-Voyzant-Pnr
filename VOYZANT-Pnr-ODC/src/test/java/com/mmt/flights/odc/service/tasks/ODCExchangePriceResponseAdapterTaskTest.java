@@ -5,11 +5,11 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.odc.prepayment.DateChangePrePaymentRequest;
 import com.mmt.flights.odc.prepayment.DateChangePrePaymentResponse;
+import com.mmt.flights.odc.tasks.ODCExchangePriceResponseAdapterTask;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;

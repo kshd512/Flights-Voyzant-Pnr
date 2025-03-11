@@ -1,4 +1,4 @@
-package com.mmt.flights.odc.service.tasks;
+package com.mmt.flights.odc.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmt.api.rxflow.FlowState;
@@ -14,7 +14,6 @@ import com.mmt.flights.odc.common.ErrorDetails;
 import com.mmt.flights.odc.common.enums.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

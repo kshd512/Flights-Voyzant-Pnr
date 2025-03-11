@@ -1,4 +1,4 @@
-package com.mmt.flights.odc.service.tasks;
+package com.mmt.flights.odc.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmt.api.rxflow.FlowState;
