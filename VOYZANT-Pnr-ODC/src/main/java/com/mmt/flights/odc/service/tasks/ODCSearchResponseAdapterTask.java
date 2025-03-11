@@ -67,7 +67,7 @@ public class ODCSearchResponseAdapterTask implements MapTask {
             
             // Process each ReshopOffer
             int journeyIndex = 0;
-            for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffer()) {
+            for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffers()) {
                 SimpleSearchRecommendationGroupV2 recommendationGroup = new SimpleSearchRecommendationGroupV2();
                 
                 // Set airline list
@@ -94,8 +94,10 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                     }
                     if (paxType != null) {
                         SimpleFare simpleFare = new SimpleFare();
-                        simpleFare.setBase(offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice());
-                        simpleFare.setTaxes(offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice());
+                        // Divide by passenger quantity to get per-passenger fare
+                        int paxCount = offerItem.getPassengerQuantity();
+                        simpleFare.setBase(offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice() / paxCount);
+                        simpleFare.setTaxes(offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice() / paxCount);
                         paxWiseFare.put(paxType, simpleFare);
                     }
                 }
@@ -129,7 +131,7 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                 String fareKey = response.getShoppingResponseId() + "," + reshopOffer.getOfferID();
                 recommendation.setFareKey(fareKey);
 
-                // Set single adult fare for recommendation group
+                // Set single adult fare for recommendation group - already per passenger
                 SimpleFare singleAdultFare = paxWiseFare.get(PaxType.ADULT);
                 if (singleAdultFare != null) {
                     recommendationGroup.setSingleAdultFare(singleAdultFare);
