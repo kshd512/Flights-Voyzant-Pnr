@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ODCExchangePriceRequestBuilderTask implements MapTask {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    //@Autowired
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public FlowState run(FlowState state) throws Exception {
