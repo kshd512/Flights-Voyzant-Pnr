@@ -63,10 +63,11 @@ public class ODCSearchResponseAdapterTask implements MapTask {
             List<SimpleSearchRecommendationGroupV2> sameFareRcomGrps = new ArrayList<>();
             List<SimpleSearchRecommendationGroupV2> otherFareRcomGrps = new ArrayList<>();
             List<List<SimpleJourney>> itineraryJourneyList = new ArrayList<>();
+            List<SimpleJourney> allJourneys = new ArrayList<>(); // All journeys will go in this list
             
             // Process each ReshopOffer
             int journeyIndex = 0;
-            for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffers()) {
+            for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffer()) {
                 SimpleSearchRecommendationGroupV2 recommendationGroup = new SimpleSearchRecommendationGroupV2();
                 
                 // Set airline list
@@ -240,12 +241,8 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                                 .sum());
                     }
                     
-                    journeys.add(journey);
-                    
-                    // Add the journey list to itineraryJourneyList
-                    List<SimpleJourney> journeyWrapper = new ArrayList<>();
-                    journeyWrapper.addAll(journeys);
-                    itineraryJourneyList.add(journeyWrapper);
+                    // Add journey to the all journeys list instead of creating new wrapper list
+                    allJourneys.add(journey);
                 }
 
                 List<SimpleSearchRecommendationV2> recs = new ArrayList<>();
@@ -258,6 +255,11 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                 }
                 
                 journeyIndex++;
+            }
+
+            // Add all journeys as a single list to itineraryJourneyList
+            if (!allJourneys.isEmpty()) {
+                itineraryJourneyList.add(allJourneys);
             }
 
             simpleSearchResponseV2.setSameFareRcomGrps(sameFareRcomGrps);
