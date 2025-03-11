@@ -221,12 +221,14 @@ public class ODCSearchResponseAdapterTask implements MapTask {
 
         SimpleDateChangeDetails odcDetails = new SimpleDateChangeDetails();
         odcDetails.setRefundAllowed(false);
-        odcDetails.setDateChangeFee(2999.0);
+
+        //we need to call penalties API and set penalty here.
+        //odcDetails.setDateChangeFee(2999.0);
         recommendation.setOdcDetails(odcDetails);
 
         setFareDetails(recommendation, reshopOffer, state);
         
-        String rKey = generateRKey(reshopOffer, response, journeyContext, recommendation);
+        String rKey = generateRKey(reshopOffer, response, recommendation);
         recommendation.setrKey(rKey);
         
         String fareKey = response.getShoppingResponseId() + "," + reshopOffer.getOfferID();
@@ -279,7 +281,7 @@ public class ODCSearchResponseAdapterTask implements MapTask {
         }
     }
 
-    private String generateRKey(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, SimpleSearchRecommendationV2 recommendation) {
+    private String generateRKey(ReshopOffer reshopOffer, OrderReshopRS response, SimpleSearchRecommendationV2 recommendation) {
         Journey journey = createJourneyForRKey(reshopOffer, response);
         PaxCount paxCount = createPaxCount(reshopOffer);
         String cmsId = "DOTREZ";
