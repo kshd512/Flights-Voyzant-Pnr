@@ -15,6 +15,7 @@ import com.mmt.flights.odc.v2.SimpleSearchRecommendationGroupV2;
 import com.mmt.flights.odc.v2.SimpleSearchRecommendationV2;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
 import com.mmt.flights.postsales.error.PSErrorException;
+import com.mmt.flights.supply.search.v4.response.*;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
@@ -39,8 +40,6 @@ public class ODCSearchResponseAdapterTask implements MapTask {
             OrderReshopRS response = orderReshopResponse.getOrderReshopRS();
 
             String supplierPNRResponse = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
-            //OrderViewRS orderViewRS = objectMapper.readValue(supplierPNRResponse, OrderViewRS.class);
-            //DateChangeSearchRequest odcRequest = state.getValue(FlowStateKey.REQUEST);
 
             // Check if the response is successful
             if (!response.isSuccess() || response.getReshopOffers() == null || response.getReshopOffers().isEmpty()) {
@@ -77,8 +76,7 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                 airlines.add(reshopOffer.getOwner());
                 recommendationGroup.setAirlines(airlines);
 
-                // Create recommendations
-                List<SimpleSearchRecommendationV2> recommendations = new ArrayList<>();
+                // Create recommendation
                 SimpleSearchRecommendationV2 recommendation = new SimpleSearchRecommendationV2();
                 recommendation.setHandBaggageFare(false);
                 recommendation.setRefundable(Boolean.parseBoolean(reshopOffer.getAddOfferItem().get(0).getRefundable()));
@@ -202,15 +200,168 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                     !reshopOffer.getAddOfferItem().get(0).getFareComponent().isEmpty()) {
                     String fareBasisCode = reshopOffer.getAddOfferItem().get(0)
                             .getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode();
-                    recommendation.setFareFamilyName("SAVER"); // Default from sample, can be derived from fareBasisCode
-                    recommendation.setFareType("REGULAR"); // Can be customized based on business logic
+                    String cabinClass = fareBasisCode.substring(0, 1);
+                    recommendation.setFareFamilyName(determineFareFamily(cabinClass));
+                    recommendation.setFareType(determineFareType(fareBasisCode));
                 }
 
-                // Generate rKey (can be customized based on your requirements)
-                String rKey = reshopOffer.getOfferID() + "_" + journeyIndex;
+                // Prepare inputs for rKey generation
+                Journey journey = new Journey();
+                List<com.mmt.flights.supply.search.v4.response.Segment> segments = new ArrayList<>();
+                
+                // Process segments from the flight references
+                for (String ref : flightRefs) {  // Using existing flightRefs from above
+                    com.mmt.flights.entity.pnr.retrieve.response.Flight flight = response.getDataLists().getFlightList().getFlight().stream()
+                            .filter(f -> f.getFlightKey().equals(ref))
+                            .findFirst()
+                            .orElse(null);
+                            
+                    if (flight != null) {
+                        String segmentRefs = flight.getSegmentReferences();
+                        String[] segmentKeys = segmentRefs.split(" ");
+                        
+                        for (String segmentKey : segmentKeys) {
+                            com.mmt.flights.entity.pnr.retrieve.response.FlightSegment flightSegment = 
+                                    response.getDataLists().getFlightSegmentList().getFlightSegment().stream()
+                                            .filter(s -> s.getSegmentKey().equals(segmentKey))
+                                            .findFirst()
+                                            .orElse(null);
+                                            
+                            if (flightSegment != null) {
+                                com.mmt.flights.supply.search.v4.response.Segment segment = new com.mmt.flights.supply.search.v4.response.Segment();
+                                
+                                // Set identifier
+                                Identifier identifier = new Identifier();
+                                identifier.setCarrierCode(flightSegment.getMarketingCarrier().getAirlineID());
+                                identifier.setIdentifier(flightSegment.getMarketingCarrier().getFlightNumber());
+                                segment.setIdentifier(identifier);
+                                
+                                // Set designator
+                                Designator designator = new Designator();
+                                designator.setOrigin(flightSegment.getDeparture().getAirportCode());
+                                designator.setDestination(flightSegment.getArrival().getAirportCode());
+                                designator.setDeparture(flightSegment.getDeparture().getDate() + " " + flightSegment.getDeparture().getTime());
+                                designator.setArrival(flightSegment.getArrival().getDate() + " " + flightSegment.getArrival().getTime());
+                                segment.setDesignator(designator);
+                                
+                                // Create legs
+                                List<Leg> legs = new ArrayList<>();
+                                Leg leg = new Leg();
+                                LegInfo legInfo = new LegInfo();
+                                legInfo.setDepartureTerminal(flightSegment.getDeparture().getTerminal().getName());
+                                legInfo.setArrivalTerminal(flightSegment.getArrival().getTerminal().getName());
+                                leg.setLegInfo(legInfo);
+                                legs.add(leg);
+                                segment.setLegs(legs);
+                                
+                                segments.add(segment);
+                            }
+                        }
+                    }
+                }
+                
+                journey.setSegments(segments);
+                
+                // Create JourneyFare
+                JourneyFare journeyFare = new JourneyFare();
+                List<com.mmt.flights.supply.search.v4.response.Fare> supplyFares = new ArrayList<>();
+                
+                // Map fare details from reshopOffer
+                for (com.mmt.flights.entity.odc.OfferItem offerItem : reshopOffer.getAddOfferItem()) {
+                    if (!offerItem.getFareComponent().isEmpty()) {
+                        // Set fare basis code from the first fare component
+                        String fareBasisCode = offerItem.getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode();
+                        // Set cabin class
+                        String cabinClass = offerItem.getFareComponent().get(0).getFareBasis().getFareBasisCode().getCode().substring(0, 1);
+
+                        // Map passenger fares
+                        List<PassengerFare> passengerFares = new ArrayList<>();
+                        PassengerFare passengerFare = new PassengerFare();
+                        passengerFare.setPassengerType(offerItem.getPassengerType());
+
+                        // Map service charges
+                        List<ServiceCharge> serviceCharges = new ArrayList<>();
+                        
+                        // Add base amount
+                        ServiceCharge baseCharge = new ServiceCharge();
+                        baseCharge.setAmount(offerItem.getFareDetail().getPrice().getBaseAmount().getBookingCurrencyPrice());
+                        //baseCharge.setType(ServiceChargeType.valueOf("BASE"));
+                        serviceCharges.add(baseCharge);
+                        
+                        // Add tax amount
+                        ServiceCharge taxCharge = new ServiceCharge();
+                        taxCharge.setAmount(offerItem.getFareDetail().getPrice().getTaxAmount().getBookingCurrencyPrice());
+                        //taxCharge.setType(ServiceChargeType.valueOf("TAX"));
+                        serviceCharges.add(taxCharge);
+
+                        passengerFare.setServiceCharges(serviceCharges);
+                        passengerFares.add(passengerFare);
+                        
+                        // Create and add fare with correct field mappings
+                        com.mmt.flights.supply.search.v4.response.Fare supplyFare = new com.mmt.flights.supply.search.v4.response.Fare();
+                        supplyFare.setFareBasisCode(fareBasisCode);
+                        supplyFare.setClassOfService(offerItem.getFareComponent().get(0).getFareBasis().getRbd());
+                        supplyFare.setFareClassOfService(fareBasisCode);
+                        supplyFare.setProductClass(offerItem.getFareComponent().get(0).getFareBasis().getCabinType());
+                        supplyFare.setTravelClassCode(cabinClass);
+                        supplyFare.setPassengerFares(passengerFares);
+                        supplyFares.add(supplyFare);
+                    }
+                }
+                journeyFare.setFares(supplyFares);
+
+                // Create PaxCount
+                PaxCount paxCount = new PaxCount();
+                Map<String, Integer> paxTypeCount = new HashMap<>();
+                for (com.mmt.flights.entity.odc.OfferItem offerItem : reshopOffer.getAddOfferItem()) {
+                    paxTypeCount.put(offerItem.getPassengerType(), offerItem.getPassengerQuantity());
+                }
+                paxCount.setAdult(paxTypeCount.getOrDefault("ADULT", 0));
+                paxCount.setChild(paxTypeCount.getOrDefault("CHILD", 0));
+                paxCount.setInfant(paxTypeCount.getOrDefault("INFANT", 0));
+
+                // Generate rKey using RKeyBuilderUtil
+                String rKey;
+                String cmsId = "DOTREZ";
+                
+                // Check if this is a return trip by looking at origin/destination pairs
+                boolean isReturnTrip = false;
+                if (segments.size() >= 2) {
+                    String firstOrigin = segments.get(0).getDesignator().getOrigin();
+                    String lastDestination = segments.get(segments.size()-1).getDesignator().getDestination();
+                    isReturnTrip = firstOrigin.equals(lastDestination);
+                }
+                
+                if (isReturnTrip) {
+                    // Split segments into onward and return journeys
+                    List<com.mmt.flights.supply.search.v4.response.Segment> rtSegments = new ArrayList<>();
+                    Journey rtJourney = new Journey();
+                    JourneyFare rtFare = new JourneyFare();
+                    
+                    // Simple split in half for return journey
+                    int mid = segments.size() / 2;
+                    rtSegments.addAll(segments.subList(mid, segments.size()));
+                    segments = new ArrayList<>(segments.subList(0, mid));
+                    
+                    journey.setSegments(segments);
+                    rtJourney.setSegments(rtSegments);
+                    
+                    // Split fares between onward and return
+                    List<com.mmt.flights.supply.search.v4.response.Fare> rtFares = 
+                            new ArrayList<>(supplyFares.subList(supplyFares.size()/2, supplyFares.size()));
+                    supplyFares = new ArrayList<>(supplyFares.subList(0, supplyFares.size()/2));
+                    
+                    journeyFare.setFares(supplyFares);
+                    rtFare.setFares(rtFares);
+                    
+                    rKey = RKeyBuilderUtil.buildRKey(recommendation.getPaxWiseFare(), journeyFare, rtFare, paxCount, journey, rtJourney, cmsId);
+                } else {
+                    rKey = RKeyBuilderUtil.buildRKey(recommendation.getPaxWiseFare(), journeyFare, paxCount, journey, cmsId);
+                }
+                
                 recommendation.setrKey(rKey);
                 
-                // Set fareKey as concatenation of shoppingResponseId and offerId
+                // Generate fareKey and set it
                 String fareKey = response.getShoppingResponseId() + "," + reshopOffer.getOfferID();
                 recommendation.setFareKey(fareKey);
 
@@ -297,5 +448,25 @@ public class ODCSearchResponseAdapterTask implements MapTask {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private String determineFareFamily(String cabinClass) {
+        switch (cabinClass.toUpperCase()) {
+            case "J":
+            case "C":
+            case "D":
+                return "BUSINESS";
+            case "Y":
+            case "M":
+                return "SAVER";
+            default:
+                return "SAVER";
+        }
+    }
+
+    private String determineFareType(String fareBasisCode) {
+        // Implement logic to determine fare type based on fare basis code
+        // This is a placeholder implementation
+        return "REGULAR";
     }
 }
