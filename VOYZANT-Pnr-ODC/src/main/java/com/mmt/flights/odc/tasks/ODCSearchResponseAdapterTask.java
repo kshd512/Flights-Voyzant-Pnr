@@ -77,34 +77,6 @@ public class ODCSearchResponseAdapterTask implements MapTask {
         return Collections.singletonList(factor);
     }
 
-    private static class FlightJourneyContext {
-        private final Map<String, Integer> flightKeyToJourneyIndex = new HashMap<>();
-        private final List<SimpleJourney> allJourneys = new ArrayList<>();
-        private int journeyIndex = 0;
-
-        public Map<String, Integer> getFlightKeyToJourneyIndex() {
-            return flightKeyToJourneyIndex;
-        }
-
-        public List<SimpleJourney> getAllJourneys() {
-            return allJourneys;
-        }
-
-        public List<List<SimpleJourney>> getItineraryJourneyList() {
-            return Collections.singletonList(allJourneys);
-        }
-
-        public void addJourney(String flightRef, SimpleJourney journey) {
-            allJourneys.add(journey);
-            flightKeyToJourneyIndex.put(flightRef, journeyIndex++);
-        }
-    }
-
-    private static class RecommendationGroups {
-        private final List<SimpleSearchRecommendationGroupV2> sameFareGroups = new ArrayList<>();
-        private final List<SimpleSearchRecommendationGroupV2> otherFareGroups = new ArrayList<>();
-    }
-
     private FlightJourneyContext processFlightJourneys(OrderReshopRS response) {
         FlightJourneyContext context = new FlightJourneyContext();
         for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffers()) {
