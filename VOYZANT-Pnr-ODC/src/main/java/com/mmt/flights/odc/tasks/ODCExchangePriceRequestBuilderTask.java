@@ -47,42 +47,39 @@ public class ODCExchangePriceRequestBuilderTask implements MapTask {
         party.setSender(sender);
         rq.setParty(party);
 
+        // Parse rKey to get shoppingResponseId and offerId
+        String[] rKeyParts = request.getRKey().split(",");
+        if (rKeyParts.length != 2) {
+            throw new PSErrorException("Invalid rKey format", ErrorEnum.INVALID_REQUEST);
+        }
+        String shoppingResponseId = rKeyParts[0];
+        String offerId = rKeyParts[1];
+
+        // Set shoppingResponseId
+        rq.setShoppingResponseId(shoppingResponseId);
+
         // Set query details
         Query query = new Query();
         query.setOrderID(request.getMmtId());
         query.getGdsBookingReference().add(request.getPnr());
 
-        // Set reshop details
+        // Set reshop details with offer ID from rKey
         Reshop reshop = new Reshop();
         OrderServicing servicing = new OrderServicing();
-        
-        // Set qualifier with offer ID
         Add add = new Add();
         Qualifier qualifier = new Qualifier();
         ExistingOrderQualifier existingOrderQualifier = new ExistingOrderQualifier();
         OrderKeys orderKeys = new OrderKeys();
         
-        // Add offer ID from journey keys if available
-        if (request.getJourneyKeys() != null && !request.getJourneyKeys().isEmpty()) {
-            for (String journeyKey : request.getJourneyKeys()) {
-                Offer offer = new Offer();
-                offer.setOfferID(journeyKey);
-                orderKeys.getOffer().add(offer);
-            }
-        } else if (request.getChangedJourneys() != null && !request.getChangedJourneys().isEmpty()) {
-            // Fall back to changed journeys if journey keys not available
-            for (String changedJourney : request.getChangedJourneys()) {
-                Offer offer = new Offer();
-                offer.setOfferID(changedJourney);
-                orderKeys.getOffer().add(offer);
-            }
-        }
+        // Add offer ID from rKey
+        Offer offer = new Offer();
+        offer.setOfferID(offerId);
+        orderKeys.getOffer().add(offer);
         
         existingOrderQualifier.setOrderKeys(orderKeys);
         qualifier.setExistingOrderQualifier(existingOrderQualifier);
         add.setQualifier(qualifier);
         servicing.setAdd(add);
-        
         reshop.setOrderServicing(servicing);
         query.setReshop(reshop);
         rq.setQuery(query);
