@@ -204,7 +204,6 @@
         <module>VOYZANT-Pnr-Common</module>
         <module>VOYZANT-Pnr-Entity</module>
         <module>VOYZANT-Pnr-ODC</module>
-        <module>VOYZANT-Pnr-ScheduleChange</module>
     </modules>
 
 

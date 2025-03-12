@@ -41,8 +41,8 @@ public class SwaggerConfig implements ApplicationListener<ObjectMapperConfigured
             SWAGGER_API_TITLE, 
             SWAGGER_API_DESCRIPTION, 
             SWAGGER_API_TERMS_OF_CONDITION,
-            SWAGGER_API_TERMS_OF_SERVICE, 
-            new Contact(SWAGGER_API_CONTACT_NAME, "", ""), 
+            SWAGGER_API_TERMS_OF_SERVICE,
+            "",
             SWAGGER_API_LICENSE,
             SWAGGER_API_LICENSE_URL);
     }
