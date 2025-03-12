@@ -97,7 +97,7 @@ public class VoidCancelRequestAdapterTask implements MapTask {
             
             query.setTicketNumber(ticketNumbers);
         }
-        query.setNeedToCancelBooking("true");
+        query.setNeedToCancelBooking("Y");
 
         orderCancelRQ.setQuery(query);
         voidPnrRequest.setAirTicketVoidRQ(orderCancelRQ);
