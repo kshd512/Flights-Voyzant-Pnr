@@ -93,13 +93,8 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
     
     private SupplyPnrCancelResponseMetaDataDTO buildMetadata(FlowState state) {
         SupplyPnrCancelResponseMetaDataDTO.Builder metaBuilder = SupplyPnrCancelResponseMetaDataDTO.newBuilder();
-        
-        //metaBuilder.setSupplierName(state.getValue(FlowStateKey.SUPPLIER_NAME, ""));
-        //metaBuilder.setCredentialId(state.getValue(FlowStateKey.CREDENTIAL_ID, ""));
         metaBuilder.setServiceName("VOID_PNR_SERVICE");
         metaBuilder.setLob("FLIGHTS");
-        
-        // Add trace info
         Map<String, String> traceInfo = new HashMap<>();
         traceInfo.put("operation", "VOID_TICKET");
         metaBuilder.putAllTraceInfo(traceInfo);

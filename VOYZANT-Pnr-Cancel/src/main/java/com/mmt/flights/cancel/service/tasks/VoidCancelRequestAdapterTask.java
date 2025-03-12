@@ -80,9 +80,7 @@ public class VoidCancelRequestAdapterTask implements MapTask {
 
         Query query = new Query();
         if (retrieveResponse.getOrder() != null && !retrieveResponse.getOrder().isEmpty()) {
-            // Use OrderID from the retrieved response
             query.setOrderID(retrieveResponse.getOrder().get(0).getOrderID());
-            // Use GDS Booking Reference from the retrieved response
             query.setGdsBookingReference(new String[]{retrieveResponse.getOrder().get(0).getGdsBookingReference()});
         }
 

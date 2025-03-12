@@ -49,11 +49,8 @@ public class CancelPnrRetrieveRequestAdapterTask implements MapTask {
         sender.setTravelAgencySender(travelAgencySender);
         party.setSender(sender);
         orderRetreiveRQ.setParty(party);
-        
-        // Set Query
-        Query query = new Query();
 
-            // Use original PNR details from the request
+        Query query = new Query();
         String pnr = supplyPnrRequestDTO.getRequestCore().getSupplierPnr();
         query.setOrderId(pnr);
         query.setGdsBookingReference(Collections.singletonList(pnr));
