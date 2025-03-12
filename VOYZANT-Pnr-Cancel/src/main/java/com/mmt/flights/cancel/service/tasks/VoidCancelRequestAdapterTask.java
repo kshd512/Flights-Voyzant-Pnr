@@ -86,6 +86,18 @@ public class VoidCancelRequestAdapterTask implements MapTask {
             query.setGdsBookingReference(new String[]{retrieveResponse.getOrder().get(0).getGdsBookingReference()});
         }
 
+        // Set ticket numbers from TicketDocInfos
+        if (retrieveResponse.getTicketDocInfos() != null && 
+            retrieveResponse.getTicketDocInfos().getTicketDocInfo() != null &&
+            !retrieveResponse.getTicketDocInfos().getTicketDocInfo().isEmpty()) {
+            
+            String[] ticketNumbers = retrieveResponse.getTicketDocInfos().getTicketDocInfo().stream()
+                .map(ticketDocInfo -> ticketDocInfo.getTicketDocument().getTicketDocNbr())
+                .toArray(String[]::new);
+            
+            query.setTicketNumber(ticketNumbers);
+        }
+
         orderCancelRQ.setQuery(query);
         voidPnrRequest.setAirTicketVoidRQ(orderCancelRQ);
 
