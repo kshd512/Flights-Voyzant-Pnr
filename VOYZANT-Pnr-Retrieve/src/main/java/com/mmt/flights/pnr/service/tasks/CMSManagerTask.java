@@ -25,9 +25,7 @@ public class CMSManagerTask implements MapTask {
     @Override
     public FlowState run(FlowState state) throws Exception {
         String cmsId = state.getValue(FlowStateKey.CMS_ID);
-
         CMSMapHolder cmsMapHolder = getCmsMap(cmsId);
-
         return state.toBuilder().addValue(FlowStateKey.CMS_MAP, cmsMapHolder).build();
     }
 

@@ -1,4 +1,4 @@
-package com.mmt.flights.odc.util;
+package com.mmt.flights.odc.service.util;
 
 import com.mmt.flights.odc.common.ErrorDetails;
 import com.mmt.flights.postsales.error.PSErrorEnum;

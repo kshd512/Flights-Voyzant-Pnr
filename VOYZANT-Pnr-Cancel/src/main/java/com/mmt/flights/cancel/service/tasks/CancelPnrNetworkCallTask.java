@@ -47,7 +47,6 @@ public class CancelPnrNetworkCallTask implements MapTask {
         return state.toBuilder().addValue(FlowStateKey.CANCEL_PNR_RESPONSE, cancelPnrResponse).build();
     }
 
-    // Extracts, validates and logs the response of the void cancel pnr network call
     private String extractAndValidateAndCancelPnrResponse(FlowState state, TaskLog taskLog, String cancelPnrRequest, CMSMapHolder cmsMap, PSErrorEnum errorCode) {
         String cancelPnrResponse = null;
         long startTime = System.currentTimeMillis();
@@ -57,7 +56,6 @@ public class CancelPnrNetworkCallTask implements MapTask {
             taskLog.setRequest(MMTLogger.convertToJson(cancelPnrRequest));
             cancelPnrResponse = httpClientUtil.post(url, cancelPnrRequest, String.class, cmsMap.getCmsMap());
             taskLog.setResponse(MMTLogger.convertToJson(cancelPnrResponse));
-            validateResponse(cancelPnrResponse);
         } catch (PSErrorException e) {
             errorCode = e.getPsErrorEnum();
             throw e;
@@ -70,9 +68,6 @@ public class CancelPnrNetworkCallTask implements MapTask {
             MMTLogger.logTimeForNetworkCall(state, MetricServices.PNR_CANCEL_NETWORK_CALL_LATENCY.name(), startTime);
         }
         return cancelPnrResponse;
-    }
-
-    private void validateResponse(String cancelPnrResponse) {
     }
 
     // Encrypts the response of the void cancel pnr network call

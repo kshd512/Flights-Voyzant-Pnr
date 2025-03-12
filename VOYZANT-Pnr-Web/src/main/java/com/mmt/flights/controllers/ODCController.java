@@ -19,7 +19,7 @@ import com.mmt.flights.odc.service.handler.ODCSearchFlowSubscriber;
 import com.mmt.flights.odc.service.PnrService;
 import com.mmt.flights.odc.service.handler.ODCCommitFlowSubscriber;
 import com.mmt.flights.odc.service.handler.ODCPrePaymentFlowSubscriber;
-import com.mmt.flights.odc.util.ODCUtil;
+import com.mmt.flights.odc.service.util.ODCUtil;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
 import com.mmt.flights.postsales.error.PSErrorEnum;
 import com.mmt.flights.postsales.error.PSErrorException;

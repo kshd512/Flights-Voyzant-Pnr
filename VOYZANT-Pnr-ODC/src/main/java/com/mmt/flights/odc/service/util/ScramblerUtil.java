@@ -1,4 +1,4 @@
-package com.mmt.flights.odc.util;
+package com.mmt.flights.odc.service.util;
 
 import com.mmt.flights.common.logging.MMTLogger;
 import com.mmt.flights.pii.clients.ScramblerClient;

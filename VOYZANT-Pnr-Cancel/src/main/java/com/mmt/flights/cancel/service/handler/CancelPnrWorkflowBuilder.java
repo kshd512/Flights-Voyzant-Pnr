@@ -5,11 +5,9 @@ import com.mmt.flights.cancel.service.tasks.*;
 import com.mmt.flights.pnr.service.tasks.CMSManagerTask;
 import com.mmt.flights.pnr.service.tasks.DummyTask;
 import com.mmt.flights.pnr.service.tasks.PnrRetrieveNetworkCall;
-import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.stereotype.Component;
 
 import static com.mmt.api.rxflow.rule.Rules.completeFlow;
-import static com.mmt.api.rxflow.rule.Rules.retry;
 
 @Component
 public class CancelPnrWorkflowBuilder {
@@ -18,7 +16,7 @@ public class CancelPnrWorkflowBuilder {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapterTask.class)
-                .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
+                .toMap(PnrRetrieveNetworkCall.class)
                 .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrResponseAdaptorTask.class, completeFlow()).build();
     }
@@ -27,7 +25,7 @@ public class CancelPnrWorkflowBuilder {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapterTask.class)
-                .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
+                .toMap(PnrRetrieveNetworkCall.class)
                 .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
@@ -38,15 +36,11 @@ public class CancelPnrWorkflowBuilder {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapterTask.class)
-                .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
+                .toMap(PnrRetrieveNetworkCall.class)
                 .toMap(VoidCancelValidateTask.class)
                 .toMap(VoidCancelRequestAdapterTask.class)
                 .toMap(VoidCancelPnrNetworkCallTask.class)
                 .toMap(VoidCancelPnrResponseAdapterTask.class)
                 .toMap(DummyTask.class, completeFlow()).build();
-    }
-
-    private static boolean retryable(Throwable e) {
-        return e instanceof PSErrorException && ((PSErrorException) e).getPsErrorEnum() == com.mmt.flights.postsales.error.PSCommonErrorEnum.SUPPLIER_ERROR;
     }
 }

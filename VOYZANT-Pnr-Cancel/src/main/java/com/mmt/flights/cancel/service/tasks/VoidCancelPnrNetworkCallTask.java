@@ -54,7 +54,6 @@ public class VoidCancelPnrNetworkCallTask implements MapTask {
         return state.toBuilder().addValue(FlowStateKey.VOID_PNR_RESPONSE, voidPnrResponse).build();
     }
 
-    // Extracts, validates and logs the response of the void cancel pnr network call
     private String extractAndValidateVoidPnrResponse(FlowState state, TaskLog taskLog, String voidPnrRequest, 
                                                     CMSMapHolder cmsMap, PSErrorEnum errorCode) {
         String voidPnrResponse = null;
@@ -66,8 +65,6 @@ public class VoidCancelPnrNetworkCallTask implements MapTask {
             
             voidPnrResponse = httpClientUtil.post(url, voidPnrRequest, String.class, cmsMap.getCmsMap());
             taskLog.setResponse(MMTLogger.convertToJson(voidPnrResponse));
-            
-            validateResponse(voidPnrResponse);
         } catch (PSErrorException e) {
             errorCode = e.getPsErrorEnum();
             throw e;
@@ -83,12 +80,6 @@ public class VoidCancelPnrNetworkCallTask implements MapTask {
         return voidPnrResponse;
     }
 
-    private void validateResponse(String voidPnrResponse) {
-        // Implement validation logic for void PNR response if needed
-        // For now, keeping it empty similar to CancelPnrNetworkCallTask
-    }
-
-    // Encrypts the response of the void cancel pnr network call
     private void logEncrypted(FlowState state, TaskLog taskLog) {
         String logKey = state.getValue(LOG_KEY);
         try {

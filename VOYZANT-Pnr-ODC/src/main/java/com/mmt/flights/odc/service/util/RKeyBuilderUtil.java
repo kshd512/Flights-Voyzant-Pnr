@@ -1,4 +1,4 @@
-package com.mmt.flights.odc.util;
+package com.mmt.flights.odc.service.util;
 
 import com.mmt.flights.entity.supply.search.v4.response.*;
 import com.mmt.flights.flightutil.review.key.*;

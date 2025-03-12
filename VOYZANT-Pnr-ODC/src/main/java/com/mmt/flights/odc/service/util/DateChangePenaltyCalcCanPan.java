@@ -1,4 +1,4 @@
-package com.mmt.flights.odc.util;
+package com.mmt.flights.odc.service.util;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;

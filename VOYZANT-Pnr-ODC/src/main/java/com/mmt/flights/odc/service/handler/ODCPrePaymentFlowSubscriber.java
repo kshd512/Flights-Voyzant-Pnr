@@ -7,7 +7,7 @@ import com.mmt.flights.common.logging.metric.MetricType;
 import com.mmt.flights.odc.common.AbstractDateChangeRequest;
 import com.mmt.flights.odc.constant.RequestType;
 import com.mmt.flights.odc.prepayment.DateChangePrePaymentResponse;
-import com.mmt.flights.odc.util.ODCUtil;
+import com.mmt.flights.odc.service.util.ODCUtil;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
 import com.mmt.flights.postsales.error.PSErrorEnum;
 import com.mmt.flights.postsales.error.PSErrorException;

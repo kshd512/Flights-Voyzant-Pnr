@@ -13,7 +13,7 @@ import com.mmt.flights.entity.supply.search.v4.response.*;
 import com.mmt.flights.odc.common.ConversionFactor;
 import com.mmt.flights.odc.common.enums.PaxType;
 import com.mmt.flights.odc.search.*;
-import com.mmt.flights.odc.util.RKeyBuilderUtil;
+import com.mmt.flights.odc.service.util.RKeyBuilderUtil;
 import com.mmt.flights.odc.v2.SimpleSearchRecommendationGroupV2;
 import com.mmt.flights.odc.v2.SimpleSearchRecommendationV2;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
