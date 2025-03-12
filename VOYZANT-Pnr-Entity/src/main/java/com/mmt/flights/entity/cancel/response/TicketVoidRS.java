@@ -2,8 +2,8 @@ package com.mmt.flights.entity.cancel.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mmt.flights.entity.cancel.common.Document;
-import com.mmt.flights.entity.cancel.common.Party;
+import com.mmt.flights.entity.common.Document;
+import com.mmt.flights.entity.common.Party;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TicketVoidRS {

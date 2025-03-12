@@ -5,11 +5,14 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
+import com.mmt.flights.entity.common.Document;
+import com.mmt.flights.entity.common.Party;
+import com.mmt.flights.entity.common.Sender;
+import com.mmt.flights.entity.common.TravelAgencySender;
 import com.mmt.flights.entity.odc.*;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
 import com.mmt.flights.odc.prepayment.DateChangePrePaymentRequest;
 import com.mmt.flights.postsales.error.PSErrorException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component

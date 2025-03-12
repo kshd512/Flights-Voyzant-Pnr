@@ -1,9 +1,9 @@
-package com.mmt.flights.entity.pnr.retrieve.request;
+package com.mmt.flights.entity.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Sender {
-    @JsonProperty("travelagencysender")
+    @JsonProperty("TravelAgencySender")
     private TravelAgencySender travelAgencySender;
 
     public TravelAgencySender getTravelAgencySender() {

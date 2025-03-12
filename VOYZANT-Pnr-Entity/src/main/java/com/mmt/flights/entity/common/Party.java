@@ -1,9 +1,7 @@
-package com.mmt.flights.entity.odc;
+package com.mmt.flights.entity.common;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Party {
     @JsonProperty("Sender")
     private Sender sender;

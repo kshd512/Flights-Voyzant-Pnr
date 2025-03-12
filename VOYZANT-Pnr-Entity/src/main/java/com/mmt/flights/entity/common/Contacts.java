@@ -1,4 +1,4 @@
-package com.mmt.flights.entity.cancel.common;
+package com.mmt.flights.entity.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;

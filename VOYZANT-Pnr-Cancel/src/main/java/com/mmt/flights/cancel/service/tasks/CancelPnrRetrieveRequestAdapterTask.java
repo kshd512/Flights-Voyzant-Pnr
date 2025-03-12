@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
+import com.mmt.flights.entity.common.*;
 import com.mmt.flights.entity.pnr.retrieve.request.*;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class CancelPnrRetrieveRequestAdapterTask implements MapTask {
         // Set Document
         Document document = new Document();
         document.setName("MMT");
-        document.setReferenceversion("1.0");
+        document.setReferenceVersion("1.0");
         orderRetreiveRQ.setDocument(document);
         
         // Set Party
@@ -37,7 +38,7 @@ public class CancelPnrRetrieveRequestAdapterTask implements MapTask {
         TravelAgencySender travelAgencySender = new TravelAgencySender();
         travelAgencySender.setName("MMT");
         travelAgencySender.setIataNumber("");
-        travelAgencySender.setAgencyId("");
+        travelAgencySender.setAgencyID("");
         
         // Set Contacts
         Contacts contacts = new Contacts();

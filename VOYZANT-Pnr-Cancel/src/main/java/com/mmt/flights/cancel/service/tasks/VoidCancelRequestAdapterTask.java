@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
-import com.mmt.flights.entity.cancel.common.*;
+import com.mmt.flights.common.service.CommonDocumentService;
 import com.mmt.flights.entity.cancel.request.OrderCancelRQ;
 import com.mmt.flights.entity.cancel.request.Query;
 import com.mmt.flights.entity.cancel.request.VoidPnrRequest;
@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-
 @Component
 public class VoidCancelRequestAdapterTask implements MapTask {
 
@@ -24,6 +22,9 @@ public class VoidCancelRequestAdapterTask implements MapTask {
 
     @Autowired
     private ObjectMapper objectMapper;
+    
+    @Autowired
+    private CommonDocumentService commonDocumentService;
 
     @Override
     public FlowState run(FlowState flowState) throws Exception {
@@ -53,38 +54,30 @@ public class VoidCancelRequestAdapterTask implements MapTask {
         VoidPnrRequest voidPnrRequest = new VoidPnrRequest();
         OrderCancelRQ orderCancelRQ = new OrderCancelRQ();
 
-        // Set Document
-        Document document = new Document();
-        document.setName("MMT");
-        document.setReferenceVersion("1.0");
-        orderCancelRQ.setDocument(document);
+        orderCancelRQ.setDocument(commonDocumentService.createDocument());
+        orderCancelRQ.setParty(commonDocumentService.createParty());
+        orderCancelRQ.setQuery(createQuery(retrieveResponse));
 
-        // Set Party
-        Party party = new Party();
-        Sender sender = new Sender();
-        TravelAgencySender travelAgencySender = new TravelAgencySender();
-        travelAgencySender.setName("MMT");
-        travelAgencySender.setIataNumber("");
-        travelAgencySender.setAgencyID("");
+        voidPnrRequest.setAirTicketVoidRQ(orderCancelRQ);
+        return voidPnrRequest;
+    }
 
-        // Set Contacts
-        Contacts contacts = new Contacts();
-        Contact contact = new Contact();
-        contact.setEmailContact("pst@claritytts.com");
-        contacts.setContact(Collections.singletonList(contact));
-        travelAgencySender.setContacts(contacts);
-
-        sender.setTravelAgencySender(travelAgencySender);
-        party.setSender(sender);
-        orderCancelRQ.setParty(party);
-
+    private Query createQuery(OrderViewRS retrieveResponse) {
         Query query = new Query();
+        setOrderDetails(query, retrieveResponse);
+        setTicketNumbers(query, retrieveResponse);
+        query.setNeedToCancelBooking("Y");
+        return query;
+    }
+
+    private void setOrderDetails(Query query, OrderViewRS retrieveResponse) {
         if (retrieveResponse.getOrder() != null && !retrieveResponse.getOrder().isEmpty()) {
             query.setOrderID(retrieveResponse.getOrder().get(0).getOrderID());
             query.setGdsBookingReference(new String[]{retrieveResponse.getOrder().get(0).getGdsBookingReference()});
         }
+    }
 
-        // Set ticket numbers from TicketDocInfos
+    private void setTicketNumbers(Query query, OrderViewRS retrieveResponse) {
         if (retrieveResponse.getTicketDocInfos() != null && 
             retrieveResponse.getTicketDocInfos().getTicketDocInfo() != null &&
             !retrieveResponse.getTicketDocInfos().getTicketDocInfo().isEmpty()) {
@@ -95,11 +88,5 @@ public class VoidCancelRequestAdapterTask implements MapTask {
             
             query.setTicketNumber(ticketNumbers);
         }
-        query.setNeedToCancelBooking("Y");
-
-        orderCancelRQ.setQuery(query);
-        voidPnrRequest.setAirTicketVoidRQ(orderCancelRQ);
-
-        return voidPnrRequest;
     }
 }

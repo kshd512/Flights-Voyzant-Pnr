@@ -2,6 +2,8 @@ package com.mmt.flights.entity.pnr.retrieve.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mmt.flights.entity.common.Document;
+import com.mmt.flights.entity.common.Party;
 
 import java.util.List;
 import java.util.Map;

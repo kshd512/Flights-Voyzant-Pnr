@@ -5,6 +5,7 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
+import com.mmt.flights.entity.common.*;
 import com.mmt.flights.entity.odc.*;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
 import com.mmt.flights.entity.pnr.retrieve.response.Payment;

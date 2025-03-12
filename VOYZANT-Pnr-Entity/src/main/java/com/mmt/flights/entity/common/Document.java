@@ -1,4 +1,4 @@
-package com.mmt.flights.entity.odc;
+package com.mmt.flights.entity.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Document {
     @JsonProperty("Name")
     private String name;
-
+    
     @JsonProperty("ReferenceVersion")
     private String referenceVersion;
 

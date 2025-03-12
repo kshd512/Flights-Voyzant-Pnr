@@ -1,6 +1,8 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mmt.flights.entity.common.Document;
+import com.mmt.flights.entity.common.Party;
 
 public class OrderRetreiveRQ {
     @JsonProperty("Document")
