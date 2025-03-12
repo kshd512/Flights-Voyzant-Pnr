@@ -9,7 +9,7 @@ import com.mmt.flights.common.logging.metric.MetricType;
 import com.mmt.flights.common.util.AdapterUtil;
 import com.mmt.flights.constants.EndpointConstants;
 import com.mmt.flights.pnr.service.RetrievePnrService;
-import com.mmt.flights.pnr.service.RetrievePnrSubscriber;
+import com.mmt.flights.pnr.service.handler.RetrievePnrSubscriber;
 import com.mmt.flights.postsales.error.PSCommonErrorEnum;
 import com.mmt.flights.supply.book.v4.response.SupplyBookingResponseDTO;
 import com.mmt.flights.supply.pnr.v4.request.SupplyPnrRequestDTO;

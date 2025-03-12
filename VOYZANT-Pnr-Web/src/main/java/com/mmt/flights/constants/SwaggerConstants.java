@@ -9,7 +9,6 @@ package com.mmt.flights.constants;
 public class SwaggerConstants {
 	public static final String SWAGGER_API_LICENSE_URL = "API license URL";
 	public static final String SWAGGER_API_LICENSE = "License of API";
-	public static final String SWAGGER_API_CONTACT_NAME = "dev@go-mmt.com";
 	public static final String SWAGGER_API_TERMS_OF_SERVICE = "Terms of service";
 	public static final String SWAGGER_API_TERMS_OF_CONDITION = "API TOS";
 	public static final String SWAGGER_API_DESCRIPTION = "Provides VOYZANT PNR API's details .";

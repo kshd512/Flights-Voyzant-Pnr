@@ -1,10 +1,10 @@
 package com.mmt.flights.odc.util;
 
+import com.mmt.flights.entity.supply.search.v4.response.*;
 import com.mmt.flights.flightutil.review.key.*;
 import com.mmt.flights.odc.common.enums.PaxType;
 import com.mmt.flights.odc.search.SimpleFare;
-import com.mmt.flights.supply.search.v4.response.*;
-import com.mmt.flights.supply.common.SupplyPaxType;
+import com.mmt.flights.entity.supply.search.v4.response.SupplyPaxType;
 
 import java.math.BigDecimal;
 import java.util.*;

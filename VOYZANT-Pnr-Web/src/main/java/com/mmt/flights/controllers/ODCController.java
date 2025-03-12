@@ -15,10 +15,10 @@ import com.mmt.flights.odc.prepayment.DateChangePrePaymentRequest;
 import com.mmt.flights.odc.prepayment.DateChangePrePaymentResponse;
 import com.mmt.flights.odc.search.DateChangeSearchRequest;
 import com.mmt.flights.odc.search.SimpleSearchResponse;
-import com.mmt.flights.odc.service.ODCSearchFlowSubscriber;
-import com.mmt.flights.odc.service.PnrServices;
-import com.mmt.flights.odc.service.ODCCommitFlowSubscriber;
-import com.mmt.flights.odc.service.ODCPrePaymentFlowSubscriber;
+import com.mmt.flights.odc.service.handler.ODCSearchFlowSubscriber;
+import com.mmt.flights.odc.service.PnrService;
+import com.mmt.flights.odc.service.handler.ODCCommitFlowSubscriber;
+import com.mmt.flights.odc.service.handler.ODCPrePaymentFlowSubscriber;
 import com.mmt.flights.odc.util.ODCUtil;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
 import com.mmt.flights.postsales.error.PSErrorEnum;
@@ -43,7 +43,7 @@ public class ODCController {
     private TechConfig techConfig;
 
     @Autowired
-    private PnrServices pnrServices;
+    private PnrService pnrService;
 
     @ApiResponses(@ApiResponse(code = 200, message = "List flights for date change"))
     @RequestMapping(value = DATE_CHANGE_SEARCH_V1, method = RequestMethod.POST)
@@ -66,7 +66,7 @@ public class ODCController {
                             .build(),
                     MetricType.LOG_FILE, MetricType.LOG_COUNTER);
 
-            Observable<SimpleSearchResponseV2> observableResponse = pnrServices.odcSearch(request);
+            Observable<SimpleSearchResponseV2> observableResponse = pnrService.odcSearch(request);
             observableResponse.subscribe(new ODCSearchFlowSubscriber(deferredResult, request, startTime, techConfig.getPnrCancelTimeout(), operation));
         } catch (Exception e) {
             PSErrorEnum errorCode = ErrorEnum.INVALID_REQUEST;
@@ -103,7 +103,7 @@ public class ODCController {
                             .request(MMTLogger.convertToJson(request))
                             .build(),
                     MetricType.LOG_FILE, MetricType.LOG_COUNTER);
-            Observable<DateChangePrePaymentResponse> observableResponse = pnrServices.odcPrePayment(request);
+            Observable<DateChangePrePaymentResponse> observableResponse = pnrService.odcPrePayment(request);
             observableResponse.subscribe(new ODCPrePaymentFlowSubscriber(deferredResult, request, startTime, techConfig.getPnrCancelTimeout(), operation));
         } catch (Exception e) {
             PSErrorEnum errorCode = ErrorEnum.INVALID_REQUEST;
@@ -140,7 +140,7 @@ public class ODCController {
                             .request(MMTLogger.convertToJson(request))
                             .build(),
                     MetricType.LOG_FILE, MetricType.LOG_COUNTER);
-            Observable<DateChangeCommitResponse> observableResponse = pnrServices.odcCommit(request);
+            Observable<DateChangeCommitResponse> observableResponse = pnrService.odcCommit(request);
             observableResponse.subscribe(new ODCCommitFlowSubscriber(deferredResult, request, startTime, techConfig.getPnrCancelTimeout(), operation));
         } catch (Exception e) {
             PSErrorEnum errorCode = ErrorEnum.INVALID_REQUEST;
