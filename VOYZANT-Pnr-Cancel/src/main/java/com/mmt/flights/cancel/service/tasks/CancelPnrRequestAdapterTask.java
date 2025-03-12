@@ -4,24 +4,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
+import com.mmt.flights.common.service.CommonDocumentService;
 import com.mmt.flights.entity.cancel.request.CancelPnrRequest;
 import com.mmt.flights.entity.cancel.request.OrderCancelRQ;
 import com.mmt.flights.entity.cancel.request.Query;
 import com.mmt.flights.entity.common.*;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
 
 @Component
 public class CancelPnrRequestAdapterTask implements MapTask {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CancelPnrRequestAdapterTask.class);
+
     @Autowired
     private ObjectMapper objectMapper;
+    
+    @Autowired
+    private CommonDocumentService commonDocumentService;
 
     @Override
     public FlowState run(FlowState flowState) throws Exception {
+        LOGGER.info("Starting CancelPnrRequestAdapterTask");
+        
         String supplierPNRResponse = flowState.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
 
         // Convert supplier PNR response to OrderViewRS
@@ -33,6 +41,8 @@ public class CancelPnrRequestAdapterTask implements MapTask {
         // Convert to JSON
         String cancelPnrRequestJson = objectMapper.writeValueAsString(cancelPnrRequest);
 
+        LOGGER.info("CancelPnrRequestAdapterTask completed successfully");
+        
         return flowState.toBuilder()
                 .addValue(FlowStateKey.CANCEL_PNR_REQUEST, cancelPnrRequestJson)
                 .build();
@@ -41,40 +51,28 @@ public class CancelPnrRequestAdapterTask implements MapTask {
     private CancelPnrRequest createCancelPnrRequest(OrderViewRS retrieveResponse) {
         CancelPnrRequest cancelPnrRequest = new CancelPnrRequest();
         OrderCancelRQ orderCancelRQ = new OrderCancelRQ();
-
-        // Set Document
-        Document document = new Document();
-        document.setName("MMT");
-        document.setReferenceVersion("1.0");
-        orderCancelRQ.setDocument(document);
-
-        // Set Party
-        Party party = new Party();
-        Sender sender = new Sender();
-        TravelAgencySender travelAgencySender = new TravelAgencySender();
-        travelAgencySender.setName("MMT");
-        travelAgencySender.setIataNumber("");
-        travelAgencySender.setAgencyID("");
-
-        // Set Contacts
-        Contacts contacts = new Contacts();
-        Contact contact = new Contact();
-        contact.setEmailContact("pst@claritytts.com");
-        contacts.setContact(Arrays.asList(contact));
-        travelAgencySender.setContacts(contacts);
-
-        sender.setTravelAgencySender(travelAgencySender);
-        party.setSender(sender);
-        orderCancelRQ.setParty(party);
-
-        // Set Query - use split PNR details if available, otherwise use main PNR
-        Query query = new Query();
-        query.setOrderID(retrieveResponse.getOrder().get(0).getOrderID());
-        query.setGdsBookingReference(new String[]{retrieveResponse.getOrder().get(0).getGdsBookingReference()});
-
-        orderCancelRQ.setQuery(query);
+        
+        // Set Document and Party using CommonDocumentService
+        orderCancelRQ.setDocument(commonDocumentService.createDocument());
+        orderCancelRQ.setParty(commonDocumentService.createParty());
+        
+        // Set Query
+        orderCancelRQ.setQuery(createQuery(retrieveResponse));
+        
         cancelPnrRequest.setOrderCancelRQ(orderCancelRQ);
-
         return cancelPnrRequest;
+    }
+    
+    private Query createQuery(OrderViewRS retrieveResponse) {
+        Query query = new Query();
+        setOrderDetails(query, retrieveResponse);
+        return query;
+    }
+    
+    private void setOrderDetails(Query query, OrderViewRS retrieveResponse) {
+        if (retrieveResponse.getOrder() != null && !retrieveResponse.getOrder().isEmpty()) {
+            query.setOrderID(retrieveResponse.getOrder().get(0).getOrderID());
+            query.setGdsBookingReference(new String[]{retrieveResponse.getOrder().get(0).getGdsBookingReference()});
+        }
     }
 }

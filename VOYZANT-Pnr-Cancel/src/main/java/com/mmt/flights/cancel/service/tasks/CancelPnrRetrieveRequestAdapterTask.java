@@ -4,65 +4,80 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
-import com.mmt.flights.entity.common.*;
+import com.mmt.flights.common.service.CommonDocumentService;
 import com.mmt.flights.entity.pnr.retrieve.request.*;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 @Component
 public class CancelPnrRetrieveRequestAdapterTask implements MapTask {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CancelPnrRetrieveRequestAdapterTask.class);
+
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private CommonDocumentService commonDocumentService;
+
     @Override
     public FlowState run(FlowState flowState) throws Exception {
+        LOGGER.info("Starting CancelPnrRetrieveRequestAdapterTask");
+        
         SupplyPnrCancelRequestDTO supplyPnrRequestDTO = flowState.getValue(FlowStateKey.REQUEST);
-
-        OrderRetrieveRequest orderRetrieveRequest = new OrderRetrieveRequest();
-        OrderRetreiveRQ orderRetreiveRQ = new OrderRetreiveRQ();
         
-        // Set Document
-        Document document = new Document();
-        document.setName("MMT");
-        document.setReferenceVersion("1.0");
-        orderRetreiveRQ.setDocument(document);
+        // Create Order Retrieve Request
+        OrderRetrieveRequest orderRetrieveRequest = createOrderRetrieveRequest(supplyPnrRequestDTO);
         
-        // Set Party
-        Party party = new Party();
-        Sender sender = new Sender();
-        TravelAgencySender travelAgencySender = new TravelAgencySender();
-        travelAgencySender.setName("MMT");
-        travelAgencySender.setIataNumber("");
-        travelAgencySender.setAgencyID("");
-        
-        // Set Contacts
-        Contacts contacts = new Contacts();
-        Contact contact = new Contact();
-        contact.setEmailContact("pst@claritytts.com");
-        contacts.setContact(Arrays.asList(contact));
-        travelAgencySender.setContacts(contacts);
-        
-        sender.setTravelAgencySender(travelAgencySender);
-        party.setSender(sender);
-        orderRetreiveRQ.setParty(party);
-
-        Query query = new Query();
-        String pnr = supplyPnrRequestDTO.getRequestCore().getSupplierPnr();
-        query.setOrderId(pnr);
-        query.setGdsBookingReference(Collections.singletonList(pnr));
-        
-        orderRetreiveRQ.setQuery(query);
-        orderRetrieveRequest.setOrderRetreiveRQ(orderRetreiveRQ);
-        
+        // Convert to JSON
         String retrievePnrRequest = objectMapper.writeValueAsString(orderRetrieveRequest);
+        
+        LOGGER.info("CancelPnrRetrieveRequestAdapterTask completed successfully");
         
         return flowState.toBuilder()
                 .addValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_REQUEST, retrievePnrRequest)
                 .build();
+    }
+
+    /**
+     * Creates an OrderRetrieveRequest object
+     */
+    private OrderRetrieveRequest createOrderRetrieveRequest(SupplyPnrCancelRequestDTO supplyPnrRequestDTO) {
+        OrderRetrieveRequest orderRetrieveRequest = new OrderRetrieveRequest();
+        OrderRetreiveRQ orderRetreiveRQ = createOrderRetrieveRQ(supplyPnrRequestDTO);
+        orderRetrieveRequest.setOrderRetreiveRQ(orderRetreiveRQ);
+        return orderRetrieveRequest;
+    }
+
+    /**
+     * Creates an OrderRetreiveRQ object with document, party, and query
+     */
+    private OrderRetreiveRQ createOrderRetrieveRQ(SupplyPnrCancelRequestDTO supplyPnrRequestDTO) {
+        OrderRetreiveRQ orderRetreiveRQ = new OrderRetreiveRQ();
+        
+        // Use CommonDocumentService for document and party
+        orderRetreiveRQ.setDocument(commonDocumentService.createDocument());
+        orderRetreiveRQ.setParty(commonDocumentService.createParty());
+        
+        // Set query with PNR details
+        orderRetreiveRQ.setQuery(createQuery(supplyPnrRequestDTO));
+        
+        return orderRetreiveRQ;
+    }
+
+    /**
+     * Creates a Query object with the PNR information
+     */
+    private Query createQuery(SupplyPnrCancelRequestDTO supplyPnrRequestDTO) {
+        Query query = new Query();
+        String pnr = supplyPnrRequestDTO.getRequestCore().getSupplierPnr();
+        query.setOrderId(pnr);
+        query.setGdsBookingReference(Collections.singletonList(pnr));
+        return query;
     }
 }
