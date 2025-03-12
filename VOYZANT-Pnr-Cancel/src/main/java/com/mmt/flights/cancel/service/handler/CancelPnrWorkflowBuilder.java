@@ -4,7 +4,7 @@ import com.mmt.api.rxflow.WorkFlow;
 import com.mmt.flights.cancel.service.tasks.*;
 import com.mmt.flights.pnr.service.tasks.CMSManagerTask;
 import com.mmt.flights.pnr.service.tasks.DummyTask;
-import com.mmt.flights.pnr.service.tasks.PnrRetrieveNetworkCall;
+import com.mmt.flights.pnr.service.tasks.PnrRetrieveInvokerTask;
 import org.springframework.stereotype.Component;
 
 import static com.mmt.api.rxflow.rule.Rules.completeFlow;
@@ -16,7 +16,7 @@ public class CancelPnrWorkflowBuilder {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapterTask.class)
-                .toMap(PnrRetrieveNetworkCall.class)
+                .toMap(PnrRetrieveInvokerTask.class)
                 .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrResponseAdaptorTask.class, completeFlow()).build();
     }
@@ -25,7 +25,7 @@ public class CancelPnrWorkflowBuilder {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapterTask.class)
-                .toMap(PnrRetrieveNetworkCall.class)
+                .toMap(PnrRetrieveInvokerTask.class)
                 .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
@@ -36,7 +36,7 @@ public class CancelPnrWorkflowBuilder {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
                 .toMap(CancelPnrRetrieveRequestAdapterTask.class)
-                .toMap(PnrRetrieveNetworkCall.class)
+                .toMap(PnrRetrieveInvokerTask.class)
                 .toMap(VoidCancelValidateTask.class)
                 .toMap(VoidCancelRequestAdapterTask.class)
                 .toMap(VoidCancelPnrInvokerTask.class)

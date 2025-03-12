@@ -14,9 +14,9 @@ public class PnrWorkFlowBuilder {
     public static WorkFlow retrievePnr() {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
-                .toMap(PnrRetrieveRequestAdapter.class)
-                .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(PnrWorkFlowBuilder::retryable))
-                .toMap(PnrRetrieveResponseAdapter.class)
+                .toMap(PnrRetrieveRequestAdapterTask.class)
+                .toMap(PnrRetrieveInvokerTask.class, retry(2).onError(PnrWorkFlowBuilder::retryable))
+                .toMap(PnrRetrieveResponseAdapterTask.class)
                 .toMap(DummyTask.class, completeFlow()).build();
     }
 

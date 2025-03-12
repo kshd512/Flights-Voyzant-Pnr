@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 import static com.mmt.flights.common.constants.FlowStateKey.LOG_KEY;
 
 @Component
-public class PnrRetrieveNetworkCall implements MapTask {
+public class PnrRetrieveInvokerTask implements MapTask {
 
     @Autowired
     private HttpClientUtil httpClientUtil;

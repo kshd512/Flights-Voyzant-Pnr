@@ -39,8 +39,8 @@ import java.util.stream.IntStream;
  * Adapter for processing PNR retrieve responses from supplier
  */
 @Component
-public class PnrRetrieveResponseAdapter implements MapTask {
-    private static final Logger LOG = LoggerFactory.getLogger(PnrRetrieveResponseAdapter.class);
+public class PnrRetrieveResponseAdapterTask implements MapTask {
+    private static final Logger LOG = LoggerFactory.getLogger(PnrRetrieveResponseAdapterTask.class);
     private static final DateTimeFormatter INPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss").withLocale(Locale.US);
     private static final DateTimeFormatter OUTPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm").withLocale(Locale.US);
     private static final String TIME_DELIMITER = " ";

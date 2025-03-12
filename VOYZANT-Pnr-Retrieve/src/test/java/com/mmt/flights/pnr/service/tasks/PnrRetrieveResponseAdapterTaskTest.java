@@ -28,10 +28,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PnrRetrieveResponseAdapterTest {
+public class PnrRetrieveResponseAdapterTaskTest {
 
     @InjectMocks
-    private PnrRetrieveResponseAdapter adapter;
+    private PnrRetrieveResponseAdapterTask adapter;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();

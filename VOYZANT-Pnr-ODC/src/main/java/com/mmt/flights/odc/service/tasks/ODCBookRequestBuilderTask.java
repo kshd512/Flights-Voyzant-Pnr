@@ -5,6 +5,7 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
+import com.mmt.flights.common.service.CommonDocumentService;
 import com.mmt.flights.entity.common.*;
 import com.mmt.flights.entity.odc.*;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
@@ -14,74 +15,89 @@ import com.mmt.flights.odc.commit.DateChangeCommitRequest;
 import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 @Component
 public class ODCBookRequestBuilderTask implements MapTask {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ODCBookRequestBuilderTask.class);
+
     @Autowired
     private ObjectMapper objectMapper;
+    
+    @Autowired
+    private CommonDocumentService commonDocumentService;
 
     @Override
     public FlowState run(FlowState state) throws Exception {
-        DateChangeCommitRequest request = state.getValue(FlowStateKey.REQUEST);
-        String pnrResponseData = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
-        OrderViewRS orderViewRS = objectMapper.readValue(pnrResponseData, OrderViewRS.class);
+        DateChangeCommitRequest request = validateAndGetRequest(state);
+        OrderViewRS orderViewRS = getOrderViewRS(state);
         
+        OrderReshopRequest orderChangeRequest = new OrderReshopRequest();
+        OrderReshopRQ rq = buildOrderReshopRQ(request, orderViewRS);
+        orderChangeRequest.setOrderReshopRQ(rq);
+        
+        String orderChangeRequestStr = objectMapper.writeValueAsString(orderChangeRequest);
+        return state.toBuilder()
+                .addValue(FlowStateKey.ODC_BOOK_REQUEST, orderChangeRequestStr)
+                .build();
+    }
+
+    private DateChangeCommitRequest validateAndGetRequest(FlowState state) throws PSErrorException {
+        DateChangeCommitRequest request = state.getValue(FlowStateKey.REQUEST);
         if (request == null || request.getPnr() == null || request.getPnr().isEmpty()) {
             throw new PSErrorException(ErrorEnum.INVALID_REQUEST);
         }
+        return request;
+    }
 
-        // Build OrderChangeRequest
-        OrderReshopRequest orderChangeRequest = new OrderReshopRequest();
+    private OrderViewRS getOrderViewRS(FlowState state) throws Exception {
+        String pnrResponseData = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
+        return objectMapper.readValue(pnrResponseData, OrderViewRS.class);
+    }
+
+    private OrderReshopRQ buildOrderReshopRQ(DateChangeCommitRequest request, OrderViewRS orderViewRS) {
         OrderReshopRQ rq = new OrderReshopRQ();
+        rq.setDocument(commonDocumentService.createDocument());
+        rq.setParty(buildParty(request));
+        rq.setBookingType("BOOK");
+        
+        setResponseIds(rq, request);
+        rq.setQuery(buildQuery(request));
+        rq.setPayments(buildPayments(request));
+        rq.setDataLists(buildDataLists(orderViewRS, request));
+        rq.setMetaData(buildMetaData(request));
+        
+        return rq;
+    }
 
-        // Set document info
-        Document document = new Document();
-        document.setName("API GATEWAY");
-        document.setReferenceVersion("1.2");
-        rq.setDocument(document);
-
-        // Set party info
-        Party party = new Party();
-        Sender sender = new Sender();
-        TravelAgencySender agencySender = new TravelAgencySender();
-        agencySender.setName("MMT");
-        agencySender.setAgencyID("MMT");
+    private Party buildParty(DateChangeCommitRequest request) {
+        Party party = commonDocumentService.createParty();
+        Sender sender = party.getSender();
+        TravelAgencySender agencySender = sender.getTravelAgencySender();
         
         // Add contacts if available
-        Contacts contacts = new Contacts();
-        Contact contact = new Contact();
-        
-        // Try to get email from extra information or default to a placeholder
         String email = extractEmail(request.getExtraInformation());
+        Contact contact = new Contact();
         contact.setEmailContact(email);
-        contacts.getContact().add(contact);
+        agencySender.getContacts().getContact().add(contact);
         
-        agencySender.setContacts(contacts);
-        sender.setTravelAgencySender(agencySender);
-        party.setSender(sender);
-        rq.setParty(party);
+        return party;
+    }
 
-        // Extract shopping response ID and offer response ID from extras if available
-        String shoppingResponseId = extractFromExtras(request.getExtraInformation(), "shoppingResponseId");
-        String offerResponseId = extractFromExtras(request.getExtraInformation(), "offerResponseId");
-        
-        rq.setShoppingResponseId(shoppingResponseId);
-        rq.setOfferResponseId(offerResponseId);
+    private void setResponseIds(OrderReshopRQ rq, DateChangeCommitRequest request) {
+        rq.setShoppingResponseId(extractFromExtras(request.getExtraInformation(), "shoppingResponseId"));
+        rq.setOfferResponseId(extractFromExtras(request.getExtraInformation(), "offerResponseId"));
+    }
 
-        // Set metadata
-        MetaData metadata = new MetaData();
-        metadata.setTraceId(request.getMmtId());
-        rq.setMetaData(metadata);
-
-        // Set query with OrderServicing
+    private Query buildQuery(DateChangeCommitRequest request) {
         Query query = new Query();
         OrderServicing orderServicing = new OrderServicing();
         AcceptOffer acceptOffer = new AcceptOffer();
         
-        // Add offer IDs from the request's extra information
         String offerId = extractFromExtras(request.getExtraInformation(), "offerId");
         if (offerId != null && !offerId.isEmpty()) {
             Offer offer = new Offer();
@@ -91,60 +107,64 @@ public class ODCBookRequestBuilderTask implements MapTask {
         
         orderServicing.setAcceptOffer(acceptOffer);
         query.setOrderServicing(orderServicing);
-        rq.setQuery(query);
-        
-        // Set booking type
-        rq.setBookingType("BOOK");
-        
-        // Set payment details
+        return query;
+    }
+
+    private Payments buildPayments(DateChangeCommitRequest request) {
         Payments payments = new Payments();
         Payment payment = new Payment();
         
-        // Set payment type based on fopCode
         payment.setType(mapPaymentType(request.getFopCode()));
         payment.setPassengerID("ALL");
         
-        // Set amount from extras if available
         String amountStr = extractFromExtras(request.getExtraInformation(), "amount");
         if (amountStr != null && !amountStr.isEmpty()) {
             try {
                 payment.setAmount(Double.parseDouble(amountStr));
             } catch (NumberFormatException e) {
-                // Default amount or handle error
+                LOGGER.warn("Invalid amount format in extra information: {}", amountStr);
             }
         }
         
         payments.getPayment().add(payment);
-        rq.setPayments(payments);
-        
-        // Set passenger and contact information from the PNR response
+        return payments;
+    }
+
+    private DataLists buildDataLists(OrderViewRS orderViewRS, DateChangeCommitRequest request) {
         DataLists dataLists = new DataLists();
+        dataLists.setPassengerList(buildPassengerList(orderViewRS));
+        dataLists.setContactList(buildContactList(request));
+        return dataLists;
+    }
+
+    private PassengerList buildPassengerList(OrderViewRS orderViewRS) {
         PassengerList passengerList = new PassengerList();
-        
-        // Copy passengers from order view
         for (com.mmt.flights.entity.pnr.retrieve.response.Passenger pax : 
                 orderViewRS.getDataLists().getPassengerList().getPassengers()) {
-            Passenger passenger = new Passenger();
-            passenger.setPassengerID(pax.getPassengerID());
-            passenger.setPtc(pax.getPtc());
-            passenger.setNameTitle(pax.getNameTitle());
-            passenger.setFirstName(pax.getFirstName());
-            passenger.setMiddleName(pax.getMiddleName());
-            passenger.setLastName(pax.getLastName());
-            passenger.setDocumentNumber(pax.getTravelDocument().getDocumentNumber());
-            passengerList.getPassenger().add(passenger);
+            passengerList.getPassenger().add(buildPassenger(pax));
         }
-        
-        dataLists.setPassengerList(passengerList);
-        
-        // Add contact information
+        return passengerList;
+    }
+
+    private Passenger buildPassenger(com.mmt.flights.entity.pnr.retrieve.response.Passenger pax) {
+        Passenger passenger = new Passenger();
+        passenger.setPassengerID(pax.getPassengerID());
+        passenger.setPtc(pax.getPtc());
+        passenger.setNameTitle(pax.getNameTitle());
+        passenger.setFirstName(pax.getFirstName());
+        passenger.setMiddleName(pax.getMiddleName());
+        passenger.setLastName(pax.getLastName());
+        passenger.setDocumentNumber(pax.getTravelDocument().getDocumentNumber());
+        return passenger;
+    }
+
+    private ContactList buildContactList(DateChangeCommitRequest request) {
         ContactList contactList = new ContactList();
         ContactInformation contactInfo = new ContactInformation();
         contactInfo.setContactID("CTC1");
         contactInfo.setAgencyName("MMT");
-        contactInfo.setEmailAddress(email);
+        contactInfo.setEmailAddress(extractEmail(request.getExtraInformation()));
         
-        // Add phone/mobile if available from request
         String phone = extractFromExtras(request.getExtraInformation(), "phone");
         if (phone != null && !phone.isEmpty()) {
             Mobile mobile = new Mobile();
@@ -153,21 +173,15 @@ public class ODCBookRequestBuilderTask implements MapTask {
         }
         
         contactList.getContactInformation().add(contactInfo);
-        dataLists.setContactList(contactList);
-        
-        rq.setDataLists(dataLists);
-        
-        // Set the full request
-        orderChangeRequest.setOrderChangeRQ(rq);
-        
-        // Convert to JSON string
-        String orderChangeRequestStr = objectMapper.writeValueAsString(orderChangeRequest);
-        
-        return state.toBuilder()
-                .addValue(FlowStateKey.ODC_BOOK_REQUEST, orderChangeRequestStr)
-                .build();
+        return contactList;
     }
-    
+
+    private MetaData buildMetaData(DateChangeCommitRequest request) {
+        MetaData metadata = new MetaData();
+        metadata.setTraceId(request.getMmtId());
+        return metadata;
+    }
+
     private String extractEmail(Map<String, Object> extraInfo) {
         if (extraInfo != null) {
             Object email = extraInfo.get("email");
