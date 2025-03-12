@@ -202,9 +202,13 @@ public class ODCSearchResponseAdapterTask implements MapTask {
     }
 
     private String getFareFamily(ReshopOffer reshopOffer, OrderReshopRS response) {
-        if (!reshopOffer.getAddOfferItem().isEmpty() 
-            && !reshopOffer.getAddOfferItem().get(0).getFareComponent().isEmpty()) {
-            String priceClassRef = reshopOffer.getAddOfferItem().get(0).getFareComponent().get(0).getPriceClassRef();
+        // Find the OfferItem for adult passenger
+        Optional<com.mmt.flights.entity.odc.OfferItem> adultOfferItem = reshopOffer.getAddOfferItem().stream()
+            .filter(item -> "ADT".equals(item.getPassengerType()))
+            .findFirst();
+
+        if (adultOfferItem.isPresent() && !adultOfferItem.get().getFareComponent().isEmpty()) {
+            String priceClassRef = adultOfferItem.get().getFareComponent().get(0).getPriceClassRef();
             if (response.getDataLists() != null 
                 && response.getDataLists().getPriceClassList() != null 
                 && response.getDataLists().getPriceClassList().getPriceClass() != null) {
