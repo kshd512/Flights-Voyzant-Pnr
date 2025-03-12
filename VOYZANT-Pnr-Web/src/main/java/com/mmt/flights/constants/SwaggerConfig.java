@@ -43,6 +43,4 @@ public class SwaggerConfig implements ApplicationListener<ObjectMapperConfigured
 		omc.getObjectMapper().registerModule(new ProtobufModule());
 		omc.getObjectMapper().registerModule(new ProtobufPropertiesModule());
 	}
-	
-	
 }
