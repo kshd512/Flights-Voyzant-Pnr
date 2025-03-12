@@ -8,6 +8,7 @@ import com.mmt.flights.common.enums.ErrorEnum;
 import com.mmt.flights.entity.odc.OrderReshopRS;
 import com.mmt.flights.entity.odc.OrderReshopResponse;
 import com.mmt.flights.entity.odc.ReshopOffer;
+import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
 import com.mmt.flights.odc.common.ConversionFactor;
 import com.mmt.flights.odc.common.enums.PaxType;
 import com.mmt.flights.odc.search.*;
@@ -17,6 +18,7 @@ import com.mmt.flights.odc.v2.SimpleSearchRecommendationV2;
 import com.mmt.flights.odc.v2.SimpleSearchResponseV2;
 import com.mmt.flights.postsales.error.PSErrorException;
 import com.mmt.flights.supply.search.v4.response.*;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
@@ -40,10 +42,11 @@ public class ODCSearchResponseAdapterTask implements MapTask {
             searchResponse.setConversionFactors(createConversionFactors(response));
 
             FlightJourneyContext journeyContext = processFlightJourneys(response);
-            RecommendationGroups recommendationGroups = processRecommendationGroups(response, journeyContext, state, cmsId);
+            Pair<List<SimpleSearchRecommendationGroupV2>, List<SimpleSearchRecommendationGroupV2>> recommendationGroups =
+                processRecommendationGroups(response, journeyContext, state, cmsId);
 
-            searchResponse.setSameFareRcomGrps(recommendationGroups.sameFareGroups);
-            searchResponse.setOtherFareRcomGrps(recommendationGroups.otherFareGroups);
+            searchResponse.setSameFareRcomGrps(recommendationGroups.getLeft());
+            searchResponse.setOtherFareRcomGrps(recommendationGroups.getRight());
             searchResponse.setItineraryJourneyList(journeyContext.getItineraryJourneyList());
 
             return state.toBuilder()
@@ -161,15 +164,58 @@ public class ODCSearchResponseAdapterTask implements MapTask {
                 .append(segment.getMarketingCarrier().getFlightNumber());
     }
 
-    private RecommendationGroups processRecommendationGroups(OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state, String cmsId) {
-        RecommendationGroups groups = new RecommendationGroups();
+    private Pair<List<SimpleSearchRecommendationGroupV2>, List<SimpleSearchRecommendationGroupV2>>
+            processRecommendationGroups(OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state, String cmsId) throws Exception {
+        List<SimpleSearchRecommendationGroupV2> sameFareGroups = new ArrayList<>();
+        List<SimpleSearchRecommendationGroupV2> otherFareGroups = new ArrayList<>();
+
+        // Get original PNR fare family
+        String pnrResponseData = state.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
+        OrderViewRS orderViewRS = objectMapper.readValue(pnrResponseData, OrderViewRS.class);
+        String originalFareFamily = getOriginalPnrFareFamily(orderViewRS);
+
         for (ReshopOffer reshopOffer : response.getReshopOffers().get(0).getReshopOffers()) {
             SimpleSearchRecommendationGroupV2 group = createRecommendationGroup(reshopOffer, response, journeyContext, state, cmsId);
             if (group.getSingleAdultFare() != null) {
-                groups.sameFareGroups.add(group);
+                // Get fare family for current offer
+                String offerFareFamily = getFareFamily(reshopOffer, response);
+                
+                // Compare fare families
+                if (originalFareFamily != null && originalFareFamily.equals(offerFareFamily)) {
+                    sameFareGroups.add(group);
+                } else {
+                    otherFareGroups.add(group);
+                }
             }
         }
-        return groups;
+        return Pair.of(sameFareGroups, otherFareGroups);
+    }
+
+    private String getOriginalPnrFareFamily(OrderViewRS orderViewRS) {
+        if (orderViewRS != null && orderViewRS.getDataLists() != null 
+            && orderViewRS.getDataLists().getPriceClassList() != null 
+            && orderViewRS.getDataLists().getPriceClassList().getPriceClass() != null 
+            && !orderViewRS.getDataLists().getPriceClassList().getPriceClass().isEmpty()) {
+            return orderViewRS.getDataLists().getPriceClassList().getPriceClass().get(0).getName();
+        }
+        return null;
+    }
+
+    private String getFareFamily(ReshopOffer reshopOffer, OrderReshopRS response) {
+        if (!reshopOffer.getAddOfferItem().isEmpty() 
+            && !reshopOffer.getAddOfferItem().get(0).getFareComponent().isEmpty()) {
+            String priceClassRef = reshopOffer.getAddOfferItem().get(0).getFareComponent().get(0).getPriceClassRef();
+            if (response.getDataLists() != null 
+                && response.getDataLists().getPriceClassList() != null 
+                && response.getDataLists().getPriceClassList().getPriceClass() != null) {
+                return response.getDataLists().getPriceClassList().getPriceClass().stream()
+                    .filter(priceClass -> priceClass.getPriceClassID().equals(priceClassRef))
+                    .map(priceClass -> priceClass.getName())
+                    .findFirst()
+                    .orElse(null);
+            }
+        }
+        return null;
     }
 
     private SimpleSearchRecommendationGroupV2 createRecommendationGroup(ReshopOffer reshopOffer, OrderReshopRS response, FlightJourneyContext journeyContext, FlowState state, String cmsId) {
