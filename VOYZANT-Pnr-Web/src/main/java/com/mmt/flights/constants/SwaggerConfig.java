@@ -4,6 +4,7 @@ import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.schema.configuration.ObjectMapperConfigured;
 import springfox.documentation.service.ApiInfo;
@@ -22,25 +23,33 @@ import static com.mmt.flights.constants.SwaggerConstants.*;
  */
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig implements ApplicationListener<ObjectMapperConfigured>{
+public class SwaggerConfig implements ApplicationListener<ObjectMapperConfigured> {
 
-	@Bean
-	public Docket productApi() {
-		return new Docket(DocumentationType.SWAGGER_2).select()
-				.apis(RequestHandlerSelectors.basePackage(SWAGER_CONTROLLER_SCANNER_PACKAGE)).build().apiInfo(apiInfo())
-				.useDefaultResponseMessages(false);
-	}
+    @Bean
+    public Docket productApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.basePackage(SWAGER_CONTROLLER_SCANNER_PACKAGE))
+                .paths(PathSelectors.any())
+                .build()
+                .apiInfo(apiInfo())
+                .useDefaultResponseMessages(false);
+    }
 
-	private ApiInfo apiInfo() {
-		ApiInfo apiInfo = new ApiInfo(SWAGGER_API_TITLE, SWAGGER_API_DESCRIPTION, SWAGGER_API_TERMS_OF_CONDITION,
-				SWAGGER_API_TERMS_OF_SERVICE, new Contact(SWAGGER_API_CONTACT_NAME, "", ""), SWAGGER_API_LICENSE,
-				SWAGGER_API_LICENSE_URL);
-		return apiInfo;
-	}
+    private ApiInfo apiInfo() {
+        return new ApiInfo(
+            SWAGGER_API_TITLE, 
+            SWAGGER_API_DESCRIPTION, 
+            SWAGGER_API_TERMS_OF_CONDITION,
+            SWAGGER_API_TERMS_OF_SERVICE, 
+            new Contact(SWAGGER_API_CONTACT_NAME, "", ""), 
+            SWAGGER_API_LICENSE,
+            SWAGGER_API_LICENSE_URL);
+    }
 
-	@Override
-	public void onApplicationEvent(ObjectMapperConfigured omc) {
-		omc.getObjectMapper().registerModule(new ProtobufModule());
-		omc.getObjectMapper().registerModule(new ProtobufPropertiesModule());
-	}
+    @Override
+    public void onApplicationEvent(ObjectMapperConfigured omc) {
+        omc.getObjectMapper().registerModule(new ProtobufModule());
+        omc.getObjectMapper().registerModule(new ProtobufPropertiesModule());
+    }
 }

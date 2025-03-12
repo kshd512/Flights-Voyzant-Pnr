@@ -3,6 +3,9 @@
 spring:
   application:
     name: flights-voyzant-pnr
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 server:
     port: 8081
     error:
@@ -18,7 +21,12 @@ server:
         suffix: .log
         rotate: false
         pattern: '%h %l %u %t "%r" %s %b %D %F %{X-Request-ID}o %{X-Forwarded-For}i'
----
+
+# Swagger UI configuration
+springfox:
+  documentation:
+    swagger-ui:
+      base-url: /flights-voyzant-pnr
 
 # Health is enabled and made sensitive.
 management:
