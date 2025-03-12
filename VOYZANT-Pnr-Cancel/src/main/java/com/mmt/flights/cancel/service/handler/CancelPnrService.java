@@ -1,4 +1,4 @@
-package com.mmt.flights.cancel.service;
+package com.mmt.flights.cancel.service.handler;
 
 import com.mmt.api.rxflow.FlowExecutor;
 import com.mmt.flights.cancel.service.handler.CancelPnrWorkflowBuilder;
