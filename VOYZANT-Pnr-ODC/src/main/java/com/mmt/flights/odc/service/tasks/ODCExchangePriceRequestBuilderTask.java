@@ -6,6 +6,7 @@ import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
 import com.mmt.flights.common.service.CommonDocumentService;
+import com.mmt.flights.entity.common.Query;
 import com.mmt.flights.entity.odc.*;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
 import com.mmt.flights.odc.prepayment.DateChangePrePaymentRequest;
@@ -75,8 +76,8 @@ public class ODCExchangePriceRequestBuilderTask implements MapTask {
 
     private Query buildQuery(DateChangePrePaymentRequest request, String offerId) {
         Query query = new Query();
-        query.setOrderID(request.getMmtId());
-        query.getGdsBookingReference().add(request.getPnr());
+        query.setOrderId(request.getMmtId());
+        query.setGdsBookingReference(new String[]{request.getPnr()});
         query.setReshop(buildReshop(offerId));
         return query;
     }

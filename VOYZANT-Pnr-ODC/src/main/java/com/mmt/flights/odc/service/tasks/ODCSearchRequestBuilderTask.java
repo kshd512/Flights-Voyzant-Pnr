@@ -65,8 +65,8 @@ public class ODCSearchRequestBuilderTask implements MapTask {
 
     private Query buildQuery(DateChangeSearchRequest request) {
         Query query = new Query();
-        query.setOrderID(request.getMmtId());
-        query.getGdsBookingReference().add(request.getPnr());
+        query.setOrderId(request.getMmtId());
+        query.setGdsBookingReference(new String[]{request.getPnr()});
         query.setReshop(buildReshop(request));
         return query;
     }

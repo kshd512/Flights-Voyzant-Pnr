@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mmt.flights.entity.common.Document;
 import com.mmt.flights.entity.common.Party;
+import com.mmt.flights.entity.common.Query;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderCancelRQ {

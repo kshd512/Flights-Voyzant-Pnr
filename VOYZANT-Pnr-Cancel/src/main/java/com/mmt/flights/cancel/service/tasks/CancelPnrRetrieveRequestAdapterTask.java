@@ -5,14 +5,14 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.service.CommonDocumentService;
-import com.mmt.flights.entity.pnr.retrieve.request.*;
+import com.mmt.flights.entity.common.Query;
+import com.mmt.flights.entity.pnr.retrieve.request.OrderRetreiveRQ;
+import com.mmt.flights.entity.pnr.retrieve.request.OrderRetrieveRequest;
 import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
 
 @Component
 public class CancelPnrRetrieveRequestAdapterTask implements MapTask {
@@ -77,7 +77,7 @@ public class CancelPnrRetrieveRequestAdapterTask implements MapTask {
         Query query = new Query();
         String pnr = supplyPnrRequestDTO.getRequestCore().getSupplierPnr();
         query.setOrderId(pnr);
-        query.setGdsBookingReference(Collections.singletonList(pnr));
+        query.setGdsBookingReference(new String[]{pnr});
         return query;
     }
 }

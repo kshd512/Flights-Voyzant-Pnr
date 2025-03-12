@@ -1,10 +1,14 @@
-package com.mmt.flights.entity.cancel.request;
+package com.mmt.flights.entity.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mmt.flights.entity.odc.OrderServicing;
+import com.mmt.flights.entity.odc.Reshop;
+
+import java.util.List;
 
 public class Query {
     @JsonProperty("OrderID")
-    private String orderID;
+    private String orderId;
     
     @JsonProperty("GdsBookingReference")
     private String[] gdsBookingReference;
@@ -15,12 +19,18 @@ public class Query {
     @JsonProperty("NeedToCancelBooking")
     private String needToCancelBooking;
 
-    public String getOrderID() {
-        return orderID;
+    @JsonProperty("Reshop")
+    private Reshop reshop;
+
+    @JsonProperty("OrderServicing")
+    private OrderServicing orderServicing;
+
+    public String getOrderId() {
+        return orderId;
     }
 
-    public void setOrderID(String orderID) {
-        this.orderID = orderID;
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
     public String[] getGdsBookingReference() {
@@ -45,5 +55,21 @@ public class Query {
 
     public void setNeedToCancelBooking(String needToCancelBooking) {
         this.needToCancelBooking = needToCancelBooking;
+    }
+
+    public Reshop getReshop() {
+        return reshop;
+    }
+
+    public void setReshop(Reshop reshop) {
+        this.reshop = reshop;
+    }
+
+    public OrderServicing getOrderServicing() {
+        return orderServicing;
+    }
+
+    public void setOrderServicing(OrderServicing orderServicing) {
+        this.orderServicing = orderServicing;
     }
 }
