@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 @Component
-public class CancelPnrRetrieveRequestAdapter implements MapTask {
+public class CancelPnrRetrieveRequestAdapterTask implements MapTask {
 
     @Autowired
     private ObjectMapper objectMapper;

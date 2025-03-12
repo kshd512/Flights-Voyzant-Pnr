@@ -17,27 +17,27 @@ public class CancelPnrWorkflowBuilder {
     public static WorkFlow validateCancelPnr() {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
-                .toMap(CancelPnrRetrieveRequestAdapter.class)
+                .toMap(CancelPnrRetrieveRequestAdapterTask.class)
                 .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
                 .toMap(ValidateCancelPnrTask.class)
-                .toMap(CancelPnrResponseAdaptor.class, completeFlow()).build();
+                .toMap(CancelPnrResponseAdaptorTask.class, completeFlow()).build();
     }
 
     public static WorkFlow cancelPnr() {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
-                .toMap(CancelPnrRetrieveRequestAdapter.class)
+                .toMap(CancelPnrRetrieveRequestAdapterTask.class)
                 .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
                 .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
                 .toMap(CancelPnrNetworkCallTask.class)
-                .toMap(CancelPnrResponseAdaptor.class, completeFlow()).build();
+                .toMap(CancelPnrResponseAdaptorTask.class, completeFlow()).build();
     }
 
     public static WorkFlow voidCancelPnr() {
         return new WorkFlow.Builder()
                 .defineMap(CMSManagerTask.class)
-                .toMap(CancelPnrRetrieveRequestAdapter.class)
+                .toMap(CancelPnrRetrieveRequestAdapterTask.class)
                 .toMap(PnrRetrieveNetworkCall.class, retry(2).onError(CancelPnrWorkflowBuilder::retryable))
                 .toMap(VoidCancelValidateTask.class)
                 .toMap(VoidCancelRequestAdapterTask.class)

@@ -17,7 +17,7 @@ import static com.mmt.flights.common.constants.CommonConstants.SERVICE_NAME;
 import static com.mmt.flights.common.constants.CommonConstants.SUPPLIER_NAME;
 
 @Component
-public class CancelPnrResponseAdaptor implements MapTask {
+public class CancelPnrResponseAdaptorTask implements MapTask {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
