@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -25,8 +27,8 @@ public class ODCBookRequestBuilderTask implements MapTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ODCBookRequestBuilderTask.class);
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    //@Autowired
+    private ObjectMapper objectMapper = new ObjectMapper();
     
     @Autowired
     private CommonDocumentService commonDocumentService;
@@ -62,7 +64,7 @@ public class ODCBookRequestBuilderTask implements MapTask {
     private OrderReshopRQ buildOrderReshopRQ(DateChangeCommitRequest request, OrderViewRS orderViewRS) {
         OrderReshopRQ rq = new OrderReshopRQ();
         rq.setDocument(commonDocumentService.createDocument());
-        rq.setParty(buildParty(request));
+        rq.setParty(commonDocumentService.createParty());
         rq.setBookingType("BOOK");
         
         setResponseIds(rq, request);
@@ -72,20 +74,6 @@ public class ODCBookRequestBuilderTask implements MapTask {
         rq.setMetaData(buildMetaData(request));
         
         return rq;
-    }
-
-    private Party buildParty(DateChangeCommitRequest request) {
-        Party party = commonDocumentService.createParty();
-        Sender sender = party.getSender();
-        TravelAgencySender agencySender = sender.getTravelAgencySender();
-        
-        // Add contacts if available
-        String email = extractEmail(request.getExtraInformation());
-        Contact contact = new Contact();
-        contact.setEmailContact(email);
-        agencySender.getContacts().getContact().add(contact);
-        
-        return party;
     }
 
     private void setResponseIds(OrderReshopRQ rq, DateChangeCommitRequest request) {
@@ -125,8 +113,10 @@ public class ODCBookRequestBuilderTask implements MapTask {
                 LOGGER.warn("Invalid amount format in extra information: {}", amountStr);
             }
         }
-        
-        payments.getPayment().add(payment);
+
+        List<Payment> paymentList = new ArrayList<>();
+        paymentList.add(payment);
+        payments.setPayment(paymentList);
         return payments;
     }
 

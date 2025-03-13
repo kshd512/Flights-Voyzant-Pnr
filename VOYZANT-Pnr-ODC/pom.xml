@@ -20,6 +20,12 @@
             <artifactId>VOYZANT-Pnr-Cancel</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.14.0</version> <!-- Ensure compatibility -->
+        </dependency>
         
         <dependency>
             <groupId>org.apache.commons</groupId>
