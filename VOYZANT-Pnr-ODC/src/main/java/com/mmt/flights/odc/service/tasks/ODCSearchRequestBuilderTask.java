@@ -74,7 +74,9 @@ public class ODCSearchRequestBuilderTask implements MapTask {
     private Reshop buildReshop(DateChangeSearchRequest request) {
         Reshop reshop = new Reshop();
         OrderServicing servicing = new OrderServicing();
-        servicing.getAdd().setFlightQuery(buildFlightQuery(request));
+        Add add=  new Add();
+        add.setFlightQuery(buildFlightQuery(request));
+        servicing.setAdd(add);
         reshop.setOrderServicing(servicing);
         return reshop;
     }
