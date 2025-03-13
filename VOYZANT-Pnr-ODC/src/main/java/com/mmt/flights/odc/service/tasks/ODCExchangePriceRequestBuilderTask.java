@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ODCExchangePriceRequestBuilderTask implements MapTask {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    //@Autowired
+    private ObjectMapper objectMapper = new ObjectMapper();
     
     @Autowired
     private CommonDocumentService commonDocumentService;
@@ -76,8 +76,6 @@ public class ODCExchangePriceRequestBuilderTask implements MapTask {
 
     private Query buildQuery(DateChangePrePaymentRequest request, String offerId) {
         Query query = new Query();
-        query.setOrderId(request.getMmtId());
-        query.setGdsBookingReference(new String[]{request.getPnr()});
         query.setReshop(buildReshop(offerId));
         return query;
     }

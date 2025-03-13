@@ -1,10 +1,14 @@
 package com.mmt.flights.entity.pnr.retrieve.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mmt.flights.entity.common.Document;
 import com.mmt.flights.entity.common.Party;
 import com.mmt.flights.entity.common.Query;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderRetreiveRQ {
     @JsonProperty("Document")
     private Document document;
