@@ -16,7 +16,6 @@ import com.mmt.flights.supply.common.SupplyErrorDetailDTO;
 import com.mmt.flights.supply.common.enums.SupplyStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -29,65 +28,41 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VoidCancelPnrResponseAdapterTask.class);
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    //@Autowired
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public FlowState run(FlowState state) throws Exception {
-        LOGGER.info("Starting VoidCancelPnrResponseAdapterTask");
         long startTime = System.currentTimeMillis();
-        
         try {
-            // Get the void PNR response from the flow state
             String voidPnrResponseStr = state.getValue(FlowStateKey.VOID_PNR_RESPONSE);
-            LOGGER.debug("Void PNR Response: {}", voidPnrResponseStr);
-            
-            // Deserialize the response
             VoidPnrResponse voidPnrResponse = objectMapper.readValue(voidPnrResponseStr, VoidPnrResponse.class);
-            
-            // Adapt the response to SupplyPnrCancelResponseDTO
             SupplyPnrCancelResponseDTO responseDTO = adaptToSupplyPnrCancelResponseDTO(voidPnrResponse, state);
-            
-            // Add the adapted response to flow state
             state = state.toBuilder().addValue(FlowStateKey.SUPPLY_PNR_CANCEL_RESPONSE, responseDTO).build();
-            
-            LOGGER.info("VoidCancelPnrResponseAdapterTask completed successfully");
         } catch (Exception e) {
             LOGGER.error("Error in VoidCancelPnrResponseAdapterTask", e);
             throw new PSErrorException("Error adapting void PNR response", PSCommonErrorEnum.FLT_UNKNOWN_ERROR);
         } finally {
             MMTLogger.logTime(state, MetricServices.VOID_CANCEL_PNR_RESPONSE_ADAPTER_TASK_LATENCY.name(), startTime);
         }
-        
         return state;
     }
     
     private SupplyPnrCancelResponseDTO adaptToSupplyPnrCancelResponseDTO(VoidPnrResponse voidPnrResponse, FlowState state) {
         SupplyPnrCancelResponseDTO.Builder builder = SupplyPnrCancelResponseDTO.newBuilder();
-        
-        // Set metadata
         builder.setMeta(buildMetadata(state));
-        
-        // Determine cancellation status
         boolean isSuccessful = isVoidOperationSuccessful(voidPnrResponse);
         builder.setCancellationStatus(SupplyStatus.FAILURE);
         if(isSuccessful){
             builder.setCancellationStatus(SupplyStatus.SUCCESS);
         }
-        
-        // Set refund status as NOT_APPLICABLE for void operations
-        builder.setRefundStatus(SupplyStatus.ST_NOT_SET); // 3=NOT_APPLICABLE
-        
-        // Add error details if operation failed
+        builder.setRefundStatus(SupplyStatus.ST_NOT_SET);
         if (!isSuccessful) {
             List<SupplyErrorDetailDTO> errors = extractErrors(voidPnrResponse);
             builder.addAllErr(errors);
         }
-        
-        // Add supplier cancellation info
         Map<String, String> supplierInfo = extractSupplierCancellationInfo(voidPnrResponse);
         builder.putAllSupplierCancellationInfo(supplierInfo);
-        
         return builder.build();
     }
     
@@ -127,8 +102,7 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
                 errorBuilder.setStatusCode("ERROR");
                 errors.add(errorBuilder.build());
             }
-            
-            // Add errors from ticket details
+
             if (response.getTicketVoidRS().getResult().getTicketDetails() != null) {
                 for (TicketDetail detail : response.getTicketVoidRS().getResult().getTicketDetails()) {
                     if (!"SUCCESS".equalsIgnoreCase(detail.getStatus())) {
@@ -142,8 +116,7 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
                 }
             }
         }
-        
-        // Add default error if no specific errors found
+
         if (errors.isEmpty()) {
             SupplyErrorDetailDTO.Builder defaultErrorBuilder = SupplyErrorDetailDTO.newBuilder();
             defaultErrorBuilder.setEc("VOID_OPERATION_FAILED");
@@ -151,7 +124,6 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
             defaultErrorBuilder.setStatusCode("ERROR");
             errors.add(defaultErrorBuilder.build());
         }
-        
         return errors;
     }
     
@@ -160,26 +132,19 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
         
         if (response != null && response.getTicketVoidRS() != null && 
             response.getTicketVoidRS().getResult() != null) {
-            
-            // Add booking status
             String bookingStatus = response.getTicketVoidRS().getResult().getBookingStatus();
             if (bookingStatus != null) {
                 info.put("bookingStatus", bookingStatus);
             }
-            
-            // Add request ID
             String requestId = response.getTicketVoidRS().getResult().getTktRequestId();
             if (requestId != null) {
                 info.put("tktRequestId", requestId);
             }
-            
-            // Add shopping response ID
             String shoppingResponseId = response.getTicketVoidRS().getResult().getShoppingResponseId();
             if (shoppingResponseId != null) {
                 info.put("shoppingResponseId", shoppingResponseId);
             }
-            
-            // Add ticket numbers
+
             if (response.getTicketVoidRS().getResult().getTicketDetails() != null) {
                 StringBuilder ticketNumbers = new StringBuilder();
                 for (TicketDetail detail : response.getTicketVoidRS().getResult().getTicketDetails()) {
@@ -195,7 +160,6 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
                 }
             }
         }
-        
         return info;
     }
 }
