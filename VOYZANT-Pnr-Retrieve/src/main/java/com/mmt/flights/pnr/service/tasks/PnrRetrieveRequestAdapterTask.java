@@ -17,8 +17,8 @@ import java.util.Collections;
 @Component
 public class PnrRetrieveRequestAdapterTask implements MapTask {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    //@Autowired
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private CommonDocumentService commonDocumentService;
