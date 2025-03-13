@@ -9,48 +9,30 @@ import com.mmt.flights.entity.cancel.request.OrderCancelRQ;
 import com.mmt.flights.entity.cancel.request.VoidPnrRequest;
 import com.mmt.flights.entity.common.Query;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
-import com.mmt.flights.supply.cancel.v4.request.SupplyPnrCancelRequestDTO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class VoidCancelRequestAdapterTask implements MapTask {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VoidCancelRequestAdapterTask.class);
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    //@Autowired
+    private ObjectMapper objectMapper = new ObjectMapper();
     
     @Autowired
     private CommonDocumentService commonDocumentService;
 
     @Override
     public FlowState run(FlowState flowState) throws Exception {
-        LOGGER.info("Starting VoidCancelRequestAdapterTask");
-        
         String supplierPNRResponse = flowState.getValue(FlowStateKey.SUPPLIER_PNR_RETRIEVE_RESPONSE);
-        SupplyPnrCancelRequestDTO supplyPnrRequestDTO = flowState.getValue(FlowStateKey.REQUEST);
-        
-        // Convert supplier PNR response to OrderViewRS
         OrderViewRS retrieveResponse = objectMapper.readValue(supplierPNRResponse, OrderViewRS.class);
-
-        // Create and populate the Void PNR Request
-        VoidPnrRequest voidPnrRequest = createVoidPnrRequest(retrieveResponse, supplyPnrRequestDTO);
-
-        // Convert to JSON
+        VoidPnrRequest voidPnrRequest = createVoidPnrRequest(retrieveResponse);
         String voidPnrRequestJson = objectMapper.writeValueAsString(voidPnrRequest);
-
-        LOGGER.info("VoidCancelRequestAdapterTask completed successfully");
-        
-        // Add to FlowState and return
         return flowState.toBuilder()
                 .addValue(FlowStateKey.VOID_PNR_REQUEST, voidPnrRequestJson)
                 .build();
     }
 
-    private VoidPnrRequest createVoidPnrRequest(OrderViewRS retrieveResponse, SupplyPnrCancelRequestDTO supplyPnrRequestDTO) {
+    private VoidPnrRequest createVoidPnrRequest(OrderViewRS retrieveResponse) {
         VoidPnrRequest voidPnrRequest = new VoidPnrRequest();
         OrderCancelRQ orderCancelRQ = new OrderCancelRQ();
 
