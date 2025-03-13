@@ -35,7 +35,7 @@ public class Passenger {
     private String gender;
 
     @JsonProperty("TravelDocument")
-    private com.mmt.flights.entity.pnr.retrieve.response.TravelDocument travelDocument;
+    private TravelDocument travelDocument;
 
     @JsonProperty("LoyaltyProgramAccount")
     private List<Object> loyaltyProgramAccount;
@@ -113,7 +113,7 @@ public class Passenger {
         this.gender = gender;
     }
 
-    public com.mmt.flights.entity.pnr.retrieve.response.TravelDocument getTravelDocument() {
+    public TravelDocument getTravelDocument() {
         return travelDocument;
     }
 
