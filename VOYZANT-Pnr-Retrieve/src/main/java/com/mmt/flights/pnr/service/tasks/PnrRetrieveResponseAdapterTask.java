@@ -163,7 +163,8 @@ public class PnrRetrieveResponseAdapterTask implements MapTask {
         // Set segment identifiers
         builder.setSuppSegKey(segment.getSegmentKey())
                 .setSuppid(String.valueOf(segmentId))
-                .setMarriedSegId(String.valueOf(journeyId));
+                .setMarriedSegId(String.valueOf(journeyId))
+                .setAirlinePNR(segment.getFlightDetail().getAirlinePNR());
 
         // Set cabin and booking class
         if (segment.getCode() != null) {
@@ -460,13 +461,13 @@ public class PnrRetrieveResponseAdapterTask implements MapTask {
         return null;
     }
 
-    private SupplyPnrFareInfoDTO.Builder buildBasicFareInfo(Order order) {
+    private SupplyPnrFareInfoDTO.Builder buildBasicFareInfo(Order order, DataLists dataLists) {
         SupplyPnrFareInfoDTO.Builder fareInfoBuilder = SupplyPnrFareInfoDTO.newBuilder()
                 .setStatus(SupplyStatus.SUCCESS)
                 .setRfndStatus(SupplyRefundStatusDTO.RS_NOT_SET)
                 .setPnrKey("")
                 .setSPnr(order.getOrderID())
-                .setAPnr(order.getGdsBookingReference())
+                .setAPnr(getAirlinePNRs(dataLists))
                 .setValidatingCarrier(order.getOwner())
                 .setFareFamily(DEFAULT_FARE_FAMILY)
                 .setAccountCode("")
@@ -493,6 +494,16 @@ public class PnrRetrieveResponseAdapterTask implements MapTask {
         return fareInfoBuilder;
     }
 
+    private String getAirlinePNRs(DataLists dataLists) {
+        Set<String> pnrs = new HashSet<>();
+        for (FlightSegment segment : dataLists.getFlightSegmentList().getFlightSegment()) {
+            if (segment != null && StringUtils.isNotEmpty(segment.getFlightDetail().getAirlinePNR())) {
+                pnrs.add(segment.getFlightDetail().getAirlinePNR());
+            }
+        }
+        return StringUtils.join(pnrs, ",");
+    }
+
     private SupplyFareDetailDTO.Builder initializeFareDetailBuilder() {
         return SupplyFareDetailDTO.newBuilder()
                 .setBs(0)
@@ -503,7 +514,7 @@ public class PnrRetrieveResponseAdapterTask implements MapTask {
     private SupplyFareInfoDTO getFareInfo(String pnrGroupNo, Order order, DataLists dataLists,
                                           Map<String, String> segmentRefMap, OrderViewRS orderViewRS) {
         SupplyFareInfoDTO.Builder builder = SupplyFareInfoDTO.newBuilder();
-        SupplyPnrFareInfoDTO.Builder fareInfoBuilder = buildBasicFareInfo(order);
+        SupplyPnrFareInfoDTO.Builder fareInfoBuilder = buildBasicFareInfo(order,dataLists);
 
         List<SupplyTicketDetailsDTO> ticketInfos = buildTicketInfos(orderViewRS);
         fareInfoBuilder.addAllTicketInfos(ticketInfos);

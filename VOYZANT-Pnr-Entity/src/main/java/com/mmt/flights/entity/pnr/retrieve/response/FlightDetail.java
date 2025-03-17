@@ -18,6 +18,9 @@ public class FlightDetail {
     @JsonProperty("AirMilesFlown")
     private String airMilesFlown;
 
+    @JsonProperty("AirlinePnr")
+    private String airlinePNR;
+
     public Duration getFlightDuration() {
         return flightDuration;
     }
@@ -48,5 +51,13 @@ public class FlightDetail {
 
     public void setAirMilesFlown(String airMilesFlown) {
         this.airMilesFlown = airMilesFlown;
+    }
+
+    public String getAirlinePNR() {
+        return airlinePNR;
+    }
+
+    public void setAirlinePNR(String airlinePNR) {
+        this.airlinePNR = airlinePNR;
     }
 }
