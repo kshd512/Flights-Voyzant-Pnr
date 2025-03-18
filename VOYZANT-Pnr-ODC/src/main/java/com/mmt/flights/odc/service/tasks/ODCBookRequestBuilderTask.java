@@ -5,8 +5,9 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
+import com.mmt.flights.common.logging.MMTLogger;
 import com.mmt.flights.common.service.CommonDocumentService;
-import com.mmt.flights.entity.common.*;
+import com.mmt.flights.entity.common.Query;
 import com.mmt.flights.entity.odc.*;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
 import com.mmt.flights.entity.pnr.retrieve.response.Payment;
@@ -15,8 +16,6 @@ import com.mmt.flights.odc.commit.DateChangeCommitRequest;
 import com.mmt.flights.postsales.error.PSErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +23,6 @@ import java.util.Map;
 
 @Component
 public class ODCBookRequestBuilderTask implements MapTask {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ODCBookRequestBuilderTask.class);
 
     //@Autowired
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -110,7 +107,7 @@ public class ODCBookRequestBuilderTask implements MapTask {
             try {
                 payment.setAmount(Double.parseDouble(amountStr));
             } catch (NumberFormatException e) {
-                LOGGER.warn("Invalid amount format in extra information: {}", amountStr);
+                MMTLogger.error("", "Invalid amount format in extra information: "+ amountStr , this.getClass().getName(), null);
             }
         }
 

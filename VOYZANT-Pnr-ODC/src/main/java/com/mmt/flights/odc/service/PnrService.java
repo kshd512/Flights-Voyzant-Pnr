@@ -21,7 +21,7 @@ import rx.Observable;
 public class PnrService {
 
     @Autowired
-    HiveRequestResponseLogger hiveLogger;
+    private HiveRequestResponseLogger hiveLogger;
 
     public Observable<SimpleSearchResponseV2> odcSearch(DateChangeSearchRequest request) {
         return FlowExecutor.getBuilder(ODCWorkflowBuilder.odcSearch(), new ODCSearchFlowHandler(hiveLogger)).build().execute(Observable.just(request));

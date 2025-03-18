@@ -76,7 +76,6 @@ public class ODCExchangePriceResponseAdapterTask implements MapTask {
                     gpm.setCostPrice((double)originalTotal);
                     gpm.setProfitOrLoss(reshopDue);
                     gpm.setProvider(offer.getOwner());
-                    //gpm.setType("EXCHANGE");
                     paymentResponse.setGpm(gpm);
                 }
                 

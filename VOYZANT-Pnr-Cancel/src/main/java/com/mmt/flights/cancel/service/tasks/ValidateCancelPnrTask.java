@@ -19,7 +19,6 @@ import com.mmt.flights.supply.pnr.v4.request.SupplyPaxInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -35,7 +34,6 @@ public class ValidateCancelPnrTask implements MapTask {
     private AirportDetailsUtil airportUtil;
 
     private static final String CANCELLED = "CANCELLED";
-    private static final String SUSPENDED = "SUSPENDED";
 
     @Override
     public FlowState run(FlowState flowState) throws Exception {
@@ -132,19 +130,10 @@ public class ValidateCancelPnrTask implements MapTask {
         }
 
         HashSet<String> flightNoSet = new HashSet<>();
-        List<FlightSegment> pnrSegments = orderViewRS.getDataLists().getFlightSegmentList().getFlightSegment();
         if(isFlightNotMatch(orderViewRS, request, flightNoSet)){
             throw new PSErrorException(ErrorEnum.EXT_FLIGHT_DOES_NOT_EXIST);
         }
-        validateRequestedFlights(pnrSegments, request);
         validateNoShowWindow(orderViewRS, request, flightNoSet);
-    }
-
-    private void validateRequestedFlights(List<FlightSegment> pnrSegments, SupplyPnrCancelRequestDTO request) {
-        for (SupplyPnrCancelFlightDTO requestFlight : request.getRequestCore().getFlightsList()) {
-            FlightSegment segment = findMatchingSegment(pnrSegments, requestFlight);
-            validateFlightStatus(segment);
-        }
     }
 
     public static boolean isFlightNotMatch(OrderViewRS orderViewRS, SupplyPnrCancelRequestDTO request, HashSet<String> flightNoSet) {
@@ -278,12 +267,5 @@ public class ValidateCancelPnrTask implements MapTask {
             }
         }
         return false;
-    }
-
-    private void validateFlightStatus(FlightSegment segment) {
-        //String flightStatus = segment.getFlightDetail().getFlightStatus().getValue();
-        //if (CANCELLED.equalsIgnoreCase(flightStatus) || SUSPENDED.equalsIgnoreCase(flightStatus)) {
-        //  throw new PSErrorException(ErrorEnum.EXT_SEGMENT_CANCELLED_BY_AIRLINE);
-        //}
     }
 }

@@ -5,6 +5,7 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.FlowStateKey;
 import com.mmt.flights.common.enums.ErrorEnum;
+import com.mmt.flights.common.logging.MMTLogger;
 import com.mmt.flights.entity.odc.OrderChangeResponse;
 import com.mmt.flights.entity.pnr.retrieve.response.Order;
 import com.mmt.flights.entity.pnr.retrieve.response.OrderViewRS;
@@ -12,8 +13,6 @@ import com.mmt.flights.odc.commit.DateChangeCommitResponse;
 import com.mmt.flights.odc.common.ConversionFactor;
 import com.mmt.flights.odc.common.ErrorDetails;
 import com.mmt.flights.odc.common.enums.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -24,18 +23,13 @@ import java.util.Map;
 @Component
 public class ODCBookResponseAdapterTask implements MapTask {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ODCBookResponseAdapterTask.class);
-
     //@Autowired
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public FlowState run(FlowState state) throws Exception {
-        LOGGER.info("Starting ODCBookResponseAdapterTask");
-
         String bookResponse = state.getValue(FlowStateKey.ODC_BOOK_RESPONSE);
         if (bookResponse == null) {
-            LOGGER.error("Book response is null");
             return createErrorResponse(state, ErrorEnum.FLT_UNKNOWN_ERROR, "Book response is null");
         }
 
@@ -45,7 +39,6 @@ public class ODCBookResponseAdapterTask implements MapTask {
 
             // Check if response has OrderViewRS
             if (response.getOrderViewRS() == null) {
-                LOGGER.error("Book operation failed - OrderViewRS is null");
                 return createErrorResponse(state, ErrorEnum.FLT_UNKNOWN_ERROR, "Failed to complete the date change booking");
             }
 
@@ -53,7 +46,6 @@ public class ODCBookResponseAdapterTask implements MapTask {
             
             // Validate order data exists
             if (orderViewRS.getOrder() == null || orderViewRS.getOrder().isEmpty()) {
-                LOGGER.error("Book operation returned no orders");
                 return createErrorResponse(state, ErrorEnum.FLT_UNKNOWN_ERROR, "No orders found in the booking response");
             }
 
@@ -89,15 +81,13 @@ public class ODCBookResponseAdapterTask implements MapTask {
                 extraInfo.put("timeLimits", order.getTimeLimits());
             }
             commitResponse.setExtraInformation(extraInfo);
-
-            LOGGER.info("Successfully completed ODCBookResponseAdapterTask for PNR: {}", commitResponse.getPnr());
             
             return state.toBuilder()
                     .addValue(FlowStateKey.RESPONSE, commitResponse)
                     .build();
 
         } catch (Exception e) {
-            LOGGER.error("Error processing book response", e);
+            MMTLogger.error("", "Error processing book response" , this.getClass().getName(), e);
             return createErrorResponse(state, ErrorEnum.FLT_UNKNOWN_ERROR, "Error processing book response: " + e.getMessage());
         }
     }

@@ -24,14 +24,8 @@ public class CancelPnrResponseAdaptorTask implements MapTask {
     @Override
     public FlowState run(FlowState state) throws Exception {
         String cancelResponse = state.getValue(FlowStateKey.CANCEL_PNR_RESPONSE);
-
-        // Parse cancel response
         CancelPnrResponse cancelPnrResponse = objectMapper.readValue(cancelResponse, CancelPnrResponse.class);
-        
-        // Build response
         SupplyPnrCancelResponseDTO.Builder response = SupplyPnrCancelResponseDTO.newBuilder();
-        
-        // Set statuses based on cancel response
         OrderViewRS orderViewRS = cancelPnrResponse.getOrderViewRS();
         if (orderViewRS != null && orderViewRS.getResponse() != null && !orderViewRS.getResponse().isEmpty()) {
             Response cancelResponseDetails = orderViewRS.getResponse().get(0);

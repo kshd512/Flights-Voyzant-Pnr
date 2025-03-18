@@ -28,7 +28,7 @@ public class CancelPnrWorkflowBuilder {
                 .toMap(PnrRetrieveInvokerTask.class)
                 .toMap(ValidateCancelPnrTask.class)
                 .toMap(CancelPnrRequestAdapterTask.class)
-                .toMap(CancelPnrNetworkCallTask.class)
+                .toMap(CancelPnrInvokerTask.class)
                 .toMap(CancelPnrResponseAdaptorTask.class, completeFlow()).build();
     }
 

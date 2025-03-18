@@ -14,8 +14,6 @@ import com.mmt.flights.supply.cancel.v4.response.SupplyPnrCancelResponseDTO;
 import com.mmt.flights.supply.cancel.v4.response.SupplyPnrCancelResponseMetaDataDTO;
 import com.mmt.flights.supply.common.SupplyErrorDetailDTO;
 import com.mmt.flights.supply.common.enums.SupplyStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -25,8 +23,6 @@ import java.util.Map;
 
 @Component
 public class VoidCancelPnrResponseAdapterTask implements MapTask {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VoidCancelPnrResponseAdapterTask.class);
 
     //@Autowired
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -40,7 +36,7 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
             SupplyPnrCancelResponseDTO responseDTO = adaptToSupplyPnrCancelResponseDTO(voidPnrResponse, state);
             state = state.toBuilder().addValue(FlowStateKey.SUPPLY_PNR_CANCEL_RESPONSE, responseDTO).build();
         } catch (Exception e) {
-            LOGGER.error("Error in VoidCancelPnrResponseAdapterTask", e);
+            MMTLogger.error("", "Error in VoidCancelPnrResponseAdapterTask" , this.getClass().getName(), e);
             throw new PSErrorException("Error adapting void PNR response", PSCommonErrorEnum.FLT_UNKNOWN_ERROR);
         } finally {
             MMTLogger.logTime(state, MetricServices.VOID_CANCEL_PNR_RESPONSE_ADAPTER_TASK_LATENCY.name(), startTime);
@@ -50,7 +46,7 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
     
     private SupplyPnrCancelResponseDTO adaptToSupplyPnrCancelResponseDTO(VoidPnrResponse voidPnrResponse, FlowState state) {
         SupplyPnrCancelResponseDTO.Builder builder = SupplyPnrCancelResponseDTO.newBuilder();
-        builder.setMeta(buildMetadata(state));
+        builder.setMeta(buildMetadata());
         boolean isSuccessful = isVoidOperationSuccessful(voidPnrResponse);
         builder.setCancellationStatus(SupplyStatus.FAILURE);
         if(isSuccessful){
@@ -66,7 +62,7 @@ public class VoidCancelPnrResponseAdapterTask implements MapTask {
         return builder.build();
     }
     
-    private SupplyPnrCancelResponseMetaDataDTO buildMetadata(FlowState state) {
+    private SupplyPnrCancelResponseMetaDataDTO buildMetadata() {
         SupplyPnrCancelResponseMetaDataDTO.Builder metaBuilder = SupplyPnrCancelResponseMetaDataDTO.newBuilder();
         metaBuilder.setServiceName("VOID_PNR_SERVICE");
         metaBuilder.setLob("FLIGHTS");

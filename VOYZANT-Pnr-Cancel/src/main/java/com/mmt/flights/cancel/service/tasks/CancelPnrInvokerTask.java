@@ -4,7 +4,6 @@ import com.mmt.api.rxflow.FlowState;
 import com.mmt.api.rxflow.task.MapTask;
 import com.mmt.flights.common.constants.CMSConstants;
 import com.mmt.flights.common.constants.FlowStateKey;
-import com.mmt.flights.common.logging.HiveRequestResponseLogger;
 import com.mmt.flights.common.logging.MMTLogger;
 import com.mmt.flights.common.logging.SupplierStep;
 import com.mmt.flights.common.logging.TaskLog;
@@ -20,10 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CancelPnrNetworkCallTask implements MapTask {
-
-    @Autowired
-    HiveRequestResponseLogger hive;
+public class CancelPnrInvokerTask implements MapTask {
 
     @Autowired
     private HttpClientUtil httpClientUtil;

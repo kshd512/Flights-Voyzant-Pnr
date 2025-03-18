@@ -14,6 +14,7 @@ import com.mmt.flights.entity.cms.CMSMapHolder;
 import com.mmt.flights.postsales.error.PSCommonErrorEnum;
 import com.mmt.flights.postsales.error.PSErrorEnum;
 import com.mmt.flights.postsales.error.PSErrorException;
+import com.mmt.flights.util.LoggingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,9 @@ public class ODCExchangePriceInvokerTask implements MapTask {
 
     @Autowired
     private ConnectorEndpoints endpoints;
+
+    @Autowired
+    private LoggingService loggingService;
 
     @Override
     public FlowState run(FlowState state) throws Exception {
@@ -51,6 +55,7 @@ public class ODCExchangePriceInvokerTask implements MapTask {
                                        PSCommonErrorEnum.FLT_UNKNOWN_ERROR);
         } finally {
             taskLog.setError(errorCode);
+            loggingService.logEncrypted(state, taskLog);
             MMTLogger.logTimeForNetworkCall(state, MetricServices.REQUEST_LATENCY.name(), startTime);
         }
 

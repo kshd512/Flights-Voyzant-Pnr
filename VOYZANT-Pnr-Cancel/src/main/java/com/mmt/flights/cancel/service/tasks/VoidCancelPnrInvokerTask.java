@@ -15,15 +15,11 @@ import com.mmt.flights.postsales.error.PSCommonErrorEnum;
 import com.mmt.flights.postsales.error.PSErrorEnum;
 import com.mmt.flights.postsales.error.PSErrorException;
 import com.mmt.flights.util.LoggingService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class VoidCancelPnrInvokerTask implements MapTask {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VoidCancelPnrInvokerTask.class);
 
     @Autowired
     private HttpClientUtil httpClientUtil;
@@ -36,14 +32,11 @@ public class VoidCancelPnrInvokerTask implements MapTask {
 
     @Override
     public FlowState run(FlowState state) throws Exception {
-        LOGGER.info("Starting VoidCancelPnrInvokerTask");
         TaskLog taskLog = new TaskLog(SupplierStep.VOID_ORDER);
         String voidPnrRequest = state.getValue(FlowStateKey.VOID_PNR_REQUEST);
         CMSMapHolder cmsMap = state.getValue(FlowStateKey.CMS_MAP);
         PSErrorEnum errorCode = PSCommonErrorEnum.OK;
         String voidPnrResponse = extractAndValidateVoidPnrResponse(state, taskLog, voidPnrRequest, cmsMap, errorCode);
-        
-        LOGGER.info("VoidCancelPnrInvokerTask completed successfully");
         return state.toBuilder().addValue(FlowStateKey.VOID_PNR_RESPONSE, voidPnrResponse).build();
     }
 
